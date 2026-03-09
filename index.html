@@ -586,9 +586,62 @@ body{margin:0;padding:0}
   .ot-btn { min-width:36px; min-height:36px }
   .num-input { min-height:34px; font-size:14px }
 }
+
+/* ── AUTH SCREEN ── */
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;align-items:center;justify-content:center;font-family:var(--sans)}
+.auth-card{background:var(--bg1);border:1px solid var(--border2);border-radius:4px;padding:40px 44px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.8)}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+.auth-logo-sub{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--text4)}
+.auth-title{font-size:18px;font-weight:700;font-family:var(--display);color:var(--text);margin-bottom:6px}
+.auth-sub{font-size:12px;color:var(--text3);margin-bottom:28px;line-height:1.6}
+.auth-label{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.1em;margin-bottom:6px;display:block}
+.auth-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 12px;outline:none;border-radius:2px;transition:border-color .2s;box-sizing:border-box}
+.auth-input:focus{border-color:var(--accent)}
+.auth-btn{width:100%;padding:11px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;margin-top:8px;transition:background .15s}
+.auth-btn:hover{background:#5a7ee0}
+.auth-btn:disabled{background:var(--bg3);color:var(--text4);cursor:not-allowed}
+.auth-msg{margin-top:14px;padding:10px 12px;border-radius:2px;font-size:11px;font-family:var(--mono);line-height:1.5}
+.auth-msg.success{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:#34d399}
+.auth-msg.error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171}
+.auth-footer{margin-top:24px;text-align:center;font-size:11px;color:var(--text4);line-height:1.6}
+#sync-indicator{position:fixed;bottom:72px;right:16px;z-index:500;font-size:9px;font-family:var(--mono);padding:4px 8px;border-radius:2px;transition:opacity .4s;pointer-events:none;background:var(--bg2);border:1px solid var(--border);color:var(--text4);opacity:0}
+#sync-indicator.syncing{color:var(--accent);border-color:var(--accent-dim)}
+#sync-indicator.saved{color:var(--green);border-color:rgba(52,211,153,.3)}
+#sync-indicator.error{color:var(--red);border-color:rgba(248,113,113,.3)}
+.user-menu-btn{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:none;cursor:pointer;padding:10px 16px;transition:background .15s}
+.user-menu-btn:hover{background:rgba(108,142,240,.06)}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent);font-family:var(--mono);flex-shrink:0}
+.user-email{font-size:11px;color:var(--text3);font-family:var(--mono);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span style="font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);letter-spacing:.06em">FARALLON</span>
+      <span class="auth-logo-sub">PRODUCTION BUDGET</span>
+    </div>
+    <div id="auth-panel-login">
+      <div class="auth-title">Sign in</div>
+      <div class="auth-sub">Enter your email and we'll send you a magic link — no password needed.</div>
+      <div style="margin-bottom:16px">
+        <label class="auth-label">EMAIL</label>
+        <input id="auth-email" class="auth-input" type="email" placeholder="you@yourcompany.com" autocomplete="email" onkeydown="if(event.key==='Enter')authSendMagicLink()">
+      </div>
+      <button class="auth-btn" id="auth-send-btn" onclick="authSendMagicLink()">SEND MAGIC LINK</button>
+      <div id="auth-msg" style="display:none" class="auth-msg"></div>
+      <div class="auth-footer">Your data is private and only accessible to you.</div>
+    </div>
+    <div id="auth-panel-sent" style="display:none">
+      <div class="auth-title">Check your email</div>
+      <div class="auth-sub">We sent a magic link to <strong id="auth-sent-email"></strong>.<br>Click it to sign in — expires in 1 hour.</div>
+      <button class="auth-btn" onclick="authShowLogin()" style="background:transparent;border:1px solid var(--border2);color:var(--text3);margin-top:8px">← Use a different email</button>
+    </div>
+  </div>
+</div>
+<div id="sync-indicator"></div>
 <div id="app">
 
   <!-- SIDEBAR: full-height, owns left edge top-to-bottom -->
@@ -665,6 +718,13 @@ body{margin:0;padding:0}
     <div class="sidebar-list" id="sidebar-list" oncontextmenu="sbListCtx(event)"></div>
 
     <div class="sidebar-footer">
+      <div id="sb-user-row" style="border-bottom:1px solid var(--border);display:none">
+        <button class="user-menu-btn" onclick="showUserMenu(event)">
+          <div class="user-avatar" id="sb-avatar">?</div>
+          <span class="user-email" id="sb-email-label"></span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0;color:var(--text4)"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
       <button onclick="switchTab('contacts')" id="sb-contacts-btn" style="display:flex;align-items:center;gap:8px;width:100%;padding:0 12px;height:100%;background:transparent;border:none;border-radius:0;cursor:pointer;transition:all .15s;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.04em">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
           <circle cx="8" cy="5.5" r="2.8"/>
@@ -1392,6 +1452,232 @@ const GROUPS = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════
+// SUPABASE — Cloud sync + Auth
+// ═══════════════════════════════════════════════════════
+const SUPA_URL = 'https://inkwpsxmarwehzektjao.supabase.co';
+const SUPA_KEY = 'sb_publishable_U0xO8gH_saly3FxYfafaDg_j61Fimf7';
+let _supa = null;
+let _currentUser = null;
+let _syncTimer = null;
+
+function supaInit() {
+  try {
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+      _supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+    }
+  } catch(e) { console.warn('Supabase init failed:', e); }
+}
+
+// ── Auth ──────────────────────────────────────────────
+async function authInit() {
+  if (!_supa) return; // local mode
+  try {
+    const { data: { session } } = await _supa.auth.getSession();
+    if (session?.user) {
+      _currentUser = session.user;
+      await cloudLoad();
+      hideAuthScreen();
+    } else {
+      showAuthScreen();
+    }
+    _supa.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        _currentUser = session.user;
+        await cloudLoad();
+        hideAuthScreen();
+      } else if (event === 'SIGNED_OUT') {
+        _currentUser = null;
+        showAuthScreen();
+      }
+    });
+  } catch(e) {
+    console.warn('authInit error:', e);
+    // Stay in local mode
+  }
+}
+
+function showAuthScreen() {
+  const el = document.getElementById('auth-screen');
+  if (el) el.style.display = 'flex';
+  const ap = document.getElementById('app');
+  if (ap) ap.style.display = 'none';
+}
+function hideAuthScreen() {
+  const el = document.getElementById('auth-screen');
+  if (el) el.style.display = 'none';
+  const ap = document.getElementById('app');
+  if (ap) ap.style.display = 'flex';
+  updateUserUI();
+  render();
+}
+function authShowLogin() {
+  document.getElementById('auth-panel-login').style.display = '';
+  document.getElementById('auth-panel-sent').style.display = 'none';
+  const msg = document.getElementById('auth-msg');
+  if (msg) msg.style.display = 'none';
+}
+async function authSendMagicLink() {
+  if (!_supa) return;
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) { authShowMsg('Please enter your email.', 'error'); return; }
+  const btn = document.getElementById('auth-send-btn');
+  btn.disabled = true; btn.textContent = 'SENDING...';
+  try {
+    const { error } = await _supa.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    });
+    if (error) throw error;
+    document.getElementById('auth-sent-email').textContent = email;
+    document.getElementById('auth-panel-login').style.display = 'none';
+    document.getElementById('auth-panel-sent').style.display = '';
+  } catch(e) {
+    authShowMsg(e.message || 'Something went wrong.', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'SEND MAGIC LINK';
+}
+function authShowMsg(msg, type) {
+  const el = document.getElementById('auth-msg');
+  if (!el) return;
+  el.style.display = '';
+  el.className = 'auth-msg ' + type;
+  el.textContent = msg;
+}
+async function authSignOut() {
+  if (_supa) await _supa.auth.signOut();
+}
+function updateUserUI() {
+  if (!_currentUser) return;
+  const email = _currentUser.email || '';
+  const el = document.getElementById('sb-user-row');
+  const av = document.getElementById('sb-avatar');
+  const em = document.getElementById('sb-email-label');
+  if (el) el.style.display = '';
+  if (av) av.textContent = email[0]?.toUpperCase() || '?';
+  if (em) em.textContent = email;
+}
+function showUserMenu(e) {
+  e.stopPropagation();
+  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  const rect = e.currentTarget.getBoundingClientRect();
+  const menu = document.createElement('div');
+  menu.className = 'sb-ctx';
+  menu.style.cssText = `position:fixed;left:${rect.left}px;bottom:${window.innerHeight-rect.top+4}px;min-width:180px;z-index:9999`;
+  menu.innerHTML = `
+    <div style="padding:8px 14px 6px;font-size:9px;font-family:var(--mono);color:var(--text4);letter-spacing:.1em">${esc(_currentUser?.email||'')}</div>
+    <hr class="sb-ctx-sep">
+    <div class="sb-ctx-item" onclick="downloadBackup()">⬇ Download backup</div>
+    <hr class="sb-ctx-sep">
+    <div class="sb-ctx-item danger" onclick="authSignOut()">Sign out</div>
+  `;
+  document.body.appendChild(menu);
+  const close = ()=>{ menu.remove(); document.removeEventListener('click',close); };
+  setTimeout(()=>document.addEventListener('click',close),0);
+}
+
+// ── Sync indicator ────────────────────────────────────
+function syncShow(state, msg) {
+  const el = document.getElementById('sync-indicator');
+  if (!el) return;
+  el.textContent = msg; el.className = state; el.style.opacity = '1';
+  if (state === 'saved') setTimeout(()=>{ el.style.opacity='0'; }, 2500);
+}
+
+// ── Cloud load ────────────────────────────────────────
+async function cloudLoad() {
+  if (!_supa || !_currentUser) return;
+  syncShow('syncing', '⟳ loading...');
+  try {
+    const uid = _currentUser.id;
+    const [bR,fR,rcR,tR,sR,ctR,coR] = await Promise.all([
+      _supa.from('budgets').select('data').eq('user_id',uid).order('created_at',{ascending:false}),
+      _supa.from('folders').select('data').eq('user_id',uid),
+      _supa.from('rate_cards').select('data').eq('user_id',uid),
+      _supa.from('templates').select('data').eq('user_id',uid),
+      _supa.from('snapshots').select('data').eq('user_id',uid).order('created_at',{ascending:false}),
+      _supa.from('contacts').select('data').eq('user_id',uid),
+      _supa.from('companies').select('data').eq('user_id',uid),
+    ]);
+    budgets   = (bR.data||[]).map(r=>r.data);
+    folders   = (fR.data||[]).map(r=>r.data);
+    rateCards = (rcR.data||[]).map(r=>r.data);
+    templates = (tR.data||[]).map(r=>r.data);
+    snapshots = (sR.data||[]).map(r=>r.data);
+    contacts  = (ctR.data||[]).map(r=>r.data);
+    companies = (coR.data||[]).map(r=>r.data);
+    // Load prefs from localStorage
+    try {
+      const lp = JSON.parse(localStorage.getItem(KEY+'_'+uid.slice(0,8))||'{}');
+      prefs = lp.prefs||{}; onboardDismissed = lp.onboardDismissed||false; activeId = lp.activeId||null;
+    } catch{}
+    // First-time: offer to migrate local data
+    if (budgets.length === 0) await migrateFromLocalStorage();
+    companySettings = companies[0]||{};
+    budgets.forEach(b=>{ if(!('folderId' in b)) b.folderId=null; });
+    syncShow('saved', '✓ loaded');
+  } catch(err) {
+    syncShow('error', '✗ load failed');
+    console.error('cloudLoad:', err);
+  }
+}
+
+// ── Cloud save (debounced) ────────────────────────────
+async function cloudSave() {
+  if (!_supa || !_currentUser) { localSave(); return; }
+  localSave();
+  syncShow('syncing', '⟳ saving...');
+  try {
+    const uid = _currentUser.id;
+    const ts = new Date().toISOString();
+    const ops = [];
+    if (budgets.length)   ops.push(_supa.from('budgets').upsert(budgets.map(b=>({id:b.id,user_id:uid,data:b,updated_at:ts})),{onConflict:'id'}));
+    if (folders.length)   ops.push(_supa.from('folders').upsert(folders.map(f=>({id:f.id,user_id:uid,data:f,updated_at:ts})),{onConflict:'id'}));
+    if (rateCards.length) ops.push(_supa.from('rate_cards').upsert(rateCards.map(r=>({id:r.id,user_id:uid,data:r,updated_at:ts})),{onConflict:'id'}));
+    if (templates.length) ops.push(_supa.from('templates').upsert(templates.map(t=>({id:t.id,user_id:uid,data:t,updated_at:ts})),{onConflict:'id'}));
+    if (snapshots.length) ops.push(_supa.from('snapshots').upsert(snapshots.map(s=>({id:s.id,user_id:uid,budget_id:s.budgetId||null,data:s,label:s.label||null,updated_at:ts})),{onConflict:'id'}));
+    if (contacts.length)  ops.push(_supa.from('contacts').upsert(contacts.map(c=>({id:c.id,user_id:uid,data:c,updated_at:ts})),{onConflict:'id'}));
+    if (companies.length) ops.push(_supa.from('companies').upsert(companies.map(c=>({id:c.id,user_id:uid,data:c,updated_at:ts})),{onConflict:'id'}));
+    const results = await Promise.all(ops);
+    const errs = results.filter(r=>r.error);
+    if (errs.length) throw new Error(errs.map(r=>r.error.message).join(', '));
+    syncShow('saved', '✓ saved');
+  } catch(err) {
+    syncShow('error', '✗ save failed');
+    console.error('cloudSave:', err);
+  }
+}
+function cloudSaveDebounced() {
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(cloudSave, 1200);
+}
+async function cloudDelete(table, id) {
+  if (!_supa || !_currentUser) return;
+  await _supa.from(table).delete().eq('id',id).eq('user_id',_currentUser.id);
+}
+function localSave() {
+  try {
+    const k = _currentUser ? KEY+'_'+_currentUser.id.slice(0,8) : KEY;
+    localStorage.setItem(k, JSON.stringify({prefs,onboardDismissed,activeId}));
+  } catch{}
+}
+async function migrateFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d.budgets?.length) return;
+    if (!confirm('Found '+d.budgets.length+' budget(s) saved locally. Import them into your cloud account?')) return;
+    budgets=d.budgets||[]; folders=d.folders||[]; rateCards=d.rateCards||[];
+    templates=d.templates||[]; snapshots=d.snapshots||[]; contacts=d.contacts||[];
+    companies=d.companies||[]; prefs=d.prefs||{}; onboardDismissed=d.onboardDismissed||false;
+    await cloudSave();
+    localStorage.removeItem(KEY);
+    alert('Imported '+budgets.length+' budget(s) to your cloud account.');
+  } catch(e) { console.error('Migration:', e); }
+}
+
 // STATE
 // ─────────────────────────────────────────────────────────────────────────────
 const KEY = 'farallon_v2';
@@ -1429,7 +1715,8 @@ function load() {
   } catch{}
 }
 function save() {
-  localStorage.setItem(KEY, JSON.stringify({budgets, folders, rateCards, templates, snapshots, contacts, companies, onboardDismissed, prefs}));
+  if (_currentUser && _supa) { cloudSaveDebounced(); } 
+  else { localStorage.setItem(KEY, JSON.stringify({budgets, folders, rateCards, templates, snapshots, contacts, companies, onboardDismissed, prefs})); }
 }
 function active() {
   const b = budgets.find(b=>b.id===activeId)||null;
@@ -2636,7 +2923,7 @@ function createFromTemplateAndClose(id) {
   createFromTemplate(id);
 }
 function selectBudget(id) { activeId=id; if(activeTab==='contacts') activeTab='budget'; render(); }
-function delBudget(id) { if(!confirm('Delete this budget?')) return; budgets=budgets.filter(b=>b.id!==id); if(activeId===id) activeId=null; render(); }
+function delBudget(id) { if(!confirm('Delete this budget?')) return; budgets=budgets.filter(b=>b.id!==id); if(activeId===id) activeId=null; cloudDelete('budgets',id); render(); }
 function dupBudget(id) { const src=budgets.find(b=>b.id===id); if(!src) return; const b=JSON.parse(JSON.stringify(src)); b.id=Date.now().toString(); b.name+=' (Copy)'; b.createdAt=Date.now(); b.folderId=src.folderId||null; budgets.unshift(b); activeId=b.id; activeTab='budget'; render(); flashNewBudget(); }
 
 function switchTab(tab) {
@@ -7284,7 +7571,7 @@ function createFromTemplate(id) {
 
 function deleteTemplate(id) {
   if(!confirm('Delete this template?')) return;
-  templates = templates.filter(t=>t.id!==id); save(); renderContent();
+  templates = templates.filter(t=>t.id!==id); cloudDelete('templates',id); save(); renderContent();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8312,6 +8599,14 @@ function rceUpdateRate(input) {
 // ── INIT ──
 loadRCEData(); load(); render();
 
+// ── Cloud boot: init Supabase after DOM is ready ──
+window.addEventListener('DOMContentLoaded', function() {
+  supaInit();
+  if (_supa) {
+    authInit().catch(function(e){ console.warn('authInit failed:', e); });
+  }
+});
+
 // ── Mobile: auto-collapse sidebar on small screens ──
 (function() {
   const sb = document.getElementById('sidebar');
@@ -8798,8 +9093,8 @@ function exportPOPdf(budgetId, poId) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function downloadBackup() {
-  const data = localStorage.getItem(KEY);
-  if(!data) { alert('No data to export.'); return; }
+  const data = JSON.stringify({budgets,folders,rateCards,templates,snapshots,contacts,companies,onboardDismissed,prefs});
+  if(!budgets.length) { alert('No data to export.'); return; }
   const blob = new Blob([data], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -8815,15 +9110,17 @@ function restoreBackup(input) {
   const file = input.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     try {
       const d = JSON.parse(e.target.result);
       if(!d.budgets) { alert('Invalid backup file.'); return; }
       if(!confirm('This will replace ALL current data with the backup. Continue?')) return;
-      localStorage.setItem(KEY, e.target.result);
-      load();
-      render();
-      closeSettings();
+      budgets=d.budgets||[]; folders=d.folders||[]; rateCards=d.rateCards||[];
+      templates=d.templates||[]; snapshots=d.snapshots||[]; contacts=d.contacts||[];
+      companies=d.companies||[]; prefs=d.prefs||{}; onboardDismissed=d.onboardDismissed||false;
+      companySettings=companies[0]||{};
+      await cloudSave();
+      render(); closeSettings();
       alert('Backup restored successfully.');
     } catch(err) {
       alert('Error reading backup file: ' + err.message);
