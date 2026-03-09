@@ -1894,7 +1894,9 @@ function showUserMenu(e) {
   const email = _currentUser?.email || '';
   const menu = document.createElement('div');
   menu.className = 'sb-ctx';
-  menu.style.cssText = `position:fixed;left:${rect.left}px;bottom:${window.innerHeight-rect.top+4}px;min-width:200px;z-index:9999`;
+  // Drop down below the button, align right edge
+  const menuLeft = Math.max(8, rect.right - 200);
+  menu.style.cssText = `position:fixed;left:${menuLeft}px;top:${rect.bottom+6}px;min-width:200px;z-index:9999`;
   menu.innerHTML = `
     <div style="padding:10px 14px 8px">
       ${name ? `<div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:2px">${esc(name)}</div>` : ''}
