@@ -807,10 +807,10 @@ body{margin:0;padding:0}
     <div class="tour-title">You're ready to produce.</div>
     <div class="tour-body">
       That's the whole app. Start by creating a new budget — pick a production type, fill in your crew and rates, and you'll have a professional AICP-format bid in no time.<br><br>
-      You can always revisit this tour from <strong>your profile</strong> in the sidebar.
+      You can always revisit this tour from your <strong>profile menu</strong> — click your initials in the top right.
     </div>
     <div class="tour-center-actions">
-      <button class="tour-btn-next" style="width:100%;padding:12px;font-size:11px" onclick="tourFinish()">LET'S GO →</button>
+      <button class="tour-btn-next" style="width:100%;padding:12px;font-size:11px" onclick="tourDismissFinish()">START BUILDING →</button>
     </div>
   </div>
 </div>
@@ -2141,125 +2141,422 @@ async function migrateFromLocalStorage() {
 
 
 // ════════════════════════════════════════════════════════════════
-// GUIDED TOUR
+// GUIDED TOUR — DEMO DATA + DEEP WALKTHROUGH
 // ════════════════════════════════════════════════════════════════
-const TOUR_STEPS = [
-  {
-    target: '#sidebar', place: 'right', tab: null,
-    title: 'Your project sidebar',
-    body: "All your budgets live here. Every project you create appears in this list. You can organize budgets into <strong>folders</strong> by client or project type — handy when you're juggling multiple productions at once.",
-  },
-  {
-    target: '.sb-actions-row', place: 'right', tab: null,
-    title: 'Creating a new budget',
-    body: "Hit the <strong>+</strong> button to start a new budget. You'll choose a production type — AICP Commercial, Music Video, Documentary, Corporate, and more. Each preset loads the right crew structure and default fringe rates for that kind of job.",
-  },
-  {
-    target: '#tab-budget', place: 'below', tab: 'budget',
-    title: 'The Budget tab',
-    body: "This is your main workspace. Your budget is organized using the <strong>AICP standard</strong> — the Association of Independent Commercial Producers format used across US commercial production. It divides costs into labeled sections so clients, agencies, and producers all speak the same language.",
-  },
-  {
-    target: '#main', place: 'center', tab: 'budget',
-    title: 'Budget sections',
-    body: "Each row is a <strong>budget section</strong> — groups like Prep Crew, Shoot Crew, Location Expenses, Equipment Rental, and so on. Click any section to expand it and see the individual line items inside. Sections with costs show a running total on the right.",
-  },
-  {
-    target: '.smart-bar', place: 'below', tab: 'budget',
-    title: 'Fringe, shoot days and rate cards',
-    body: "<strong>Fringe</strong> is the labor burden added on top of crew wages — payroll taxes, workers comp, pension and health. <strong>Shoot Days</strong> drives how many days your crew is booked. <strong>Rate Cards</strong> let you define standard day rates for your crew so you're not typing them in every time.",
-  },
-  {
-    target: '#sticky-bar', place: 'above', tab: 'budget',
-    title: 'ATL, BTL, and your fee',
-    body: "<strong>ATL</strong> (Above the Line) covers creative fees — director, writer, talent. <strong>BTL</strong> (Below the Line) is everything else — crew, equipment, locations, post. Your <strong>Agency Fee</strong> or markup is calculated on top. The grand total updates live as you type.",
-  },
-  {
-    target: '#tab-summary', place: 'below', tab: 'summary',
-    title: 'Cost Report',
-    body: "The <strong>Cost Report</strong> gives you a clean top-down view of every section total — what's budgeted, what's been spent in actuals, and the variance. This is what you share with a client or EP during production for a quick financial snapshot.",
-  },
-  {
-    target: '#tab-po', place: 'below', tab: 'po',
-    title: 'Purchase Orders',
-    body: "A <strong>Purchase Order (PO)</strong> is a formal document you issue to a vendor before they do the work. It authorizes the spend and creates a paper trail. POs cover everything from equipment rental to catering to location fees. Create one here and export a print-ready PDF to send to your vendor.",
-  },
-  {
-    target: '#main', place: 'center', tab: 'po',
-    title: 'Inside the PO tab',
-    body: "Each PO you create gets a number, a vendor name, a category, and a dollar amount. You can add line items to a PO and attach it to a specific budget section. When you're ready, export it as a PDF — it includes your company header, PO number, and all the details your vendor needs.",
-  },
-  {
-    target: '#tab-pc', place: 'below', tab: 'pc',
-    title: 'Petty Cash',
-    body: "<strong>Petty Cash</strong> is the physical cash float you hand out to departments during production. Each allocation is tracked as an <strong>envelope</strong> — the DP gets cash for expendables, locations gets cash for tips, and so on. This tab tracks all envelopes, spending, and reconciliation at wrap.",
-  },
-  {
-    target: '#tab-calendar', place: 'below', tab: 'calendar',
-    title: 'Production calendar',
-    body: "The <strong>Calendar</strong> maps your full production schedule — prep days, shoot days, and wrap. It connects directly to your budget so shoot day count drives crew day totals automatically. Export it as a PDF to share with your team or include in a bid package.",
-  },
-  {
-    target: '#tab-detail', place: 'below', tab: 'detail',
-    title: 'Detail Browser',
-    body: "The <strong>Detail Browser</strong> shows every single line item in your budget in one flat, scrollable view — no sections, no hierarchy. Useful for auditing, searching for a specific cost, or doing a final sanity check before you send a bid.",
-  },
-  {
-    target: '#export-wrap', place: 'left', tab: 'budget',
-    title: 'Exporting and the Wrap Book',
-    body: "The <strong>Export</strong> menu generates professional PDFs at any stage. Export your bid as a full AICP budget, generate individual POs, or produce a complete <strong>Wrap Book</strong> — a final cost report with the budget, actuals, all POs, and petty cash. This is what you hand to the client at the end of a job.",
-  },
-  {
-    target: '#topbar-avatar', place: 'below', tab: null,
-    title: 'Your account',
-    body: "Click your initials here anytime to access account settings. Update your name and company, change your password, download a full data backup, or <strong>restart this tour</strong> whenever you need a refresher. Your data is private and only accessible to you.",
-  },
-]
 
+// ── Demo budget ID (set when tour creates it) ──────────────────
+let _tourDemoBudgetId = null;
 let _tourStep = 0;
-let _tourActive = false;
 
-// ── Helpers ──────────────────────────────────────────
 function _tourEl(id)  { return document.getElementById(id); }
-function _tourQ(sel)  { return sel ? document.querySelector(sel) : null; }
 
-function tourShouldShow() {
-  const meta = _currentUser?.user_metadata || {};
-  return !meta.tour_complete && budgets.length === 0;
+// ── Build the Nike National Campaign demo budget ───────────────
+function _tourCreateDemoBudget() {
+  const today = new Date().toISOString().slice(0,10);
+  const id = 'TOUR_DEMO_' + Date.now();
+
+  const b = {
+    id,
+    name: 'Nike Air Max — National Campaign',
+    client: 'Nike / Wieden+Kennedy',
+    project: 'Air Max National TVC',
+    date: today,
+    shootDays: 3,
+    status: 'bid',
+    notes: 'National broadcast campaign. 3x :30 spots + cutdowns.',
+    values: {
+      // ATL — Director fees
+      'L227': { qty:1, rate:45000 },
+      // A. Prep Crew (5 prep days)
+      'A01':  { qty:5, rate:950  },  // Line Producer
+      'A03':  { qty:5, rate:2200 },  // DP
+      'A04':  { qty:5, rate:750  },  // 1st AC
+      'A05':  { qty:5, rate:450  },  // 2nd AC
+      'A11':  { qty:5, rate:950  },  // Gaffer
+      'A12':  { qty:5, rate:650  },  // Best Boy Electric
+      'A16':  { qty:5, rate:900  },  // Key Grip
+      'A17':  { qty:5, rate:600  },  // Best Boy Grip
+      'A24':  { qty:3, rate:750  },  // Make-Up/Hair (3 prep days)
+      'A26':  { qty:3, rate:850  },  // Wardrobe Stylist
+      'A37':  { qty:5, rate:650  },  // Location Scout
+      'A49':  { qty:5, rate:350  },  // PA #1
+      'A50':  { qty:5, rate:350  },  // PA #2
+      // B. Shoot Crew (3 shoot days)
+      'B51':  { qty:3, rate:1400 },  // Line Producer
+      'B52':  { qty:3, rate:1100 },  // 1st AD
+      'B53':  { qty:3, rate:2200 },  // DP
+      'B54':  { qty:3, rate:750  },  // 1st AC
+      'B55':  { qty:3, rate:450  },  // 2nd AC
+      'B56':  { qty:3, rate:800  },  // DIT
+      'B61':  { qty:3, rate:950  },  // Gaffer
+      'B62':  { qty:3, rate:650  },  // Best Boy Electric
+      'B63':  { qty:2, rate:500  },  // 3rd Electric
+      'B66':  { qty:3, rate:900  },  // Key Grip
+      'B67':  { qty:3, rate:600  },  // Best Boy Grip
+      'B68':  { qty:2, rate:500  },  // 3rd Grip
+      'B74':  { qty:3, rate:750  },  // Make-Up/Hair
+      'B76':  { qty:3, rate:850  },  // Wardrobe Stylist
+      'B78':  { qty:3, rate:650  },  // Script Supervisor
+      'B87':  { qty:3, rate:800  },  // Location Manager
+      'B89':  { qty:3, rate:700  },  // 2nd AD
+      'B91':  { qty:3, rate:450  },  // Craft Service
+      'B99':  { qty:3, rate:350  },  // PA #1
+      'B100': { qty:3, rate:350  },  // PA #2
+      // C. Prep & Wrap Expenses
+      'C101': { qty:1, rate:4200 },  // Office & Communications
+      'C102': { qty:1, rate:3800 },  // Casting
+      'C104': { qty:6, rate:85   },  // Working meals (prep)
+      // D. Location Expenses
+      'D121': { qty:1, rate:22000 }, // Location fees
+      'D122': { qty:1, rate:4500  }, // Location scouting
+      'D123': { qty:3, rate:2200  }, // Parking & transportation
+      'D124': { qty:1, rate:1800  }, // Police/permits
+      // E. Props, Wardrobe & Animals
+      'E141': { qty:1, rate:6500  }, // Prop rentals
+      'E142': { qty:1, rate:8400  }, // Wardrobe purchase & rental
+      // F. Studio Costs  
+      'F151': { qty:3, rate:4500  }, // Studio rental
+      // G. Art Dept Labor (using section G if it exists, otherwise skip)
+      // H. Equipment Rental
+      'H181': { qty:1, rate:18500 }, // Camera package (Keslow)
+      'H182': { qty:1, rate:12400 }, // Lighting & grip (Mole)
+      'H183': { qty:1, rate:7200  }, // Specialty lenses (Panavision)
+      // I. Media
+      'I191': { qty:1, rate:2800  }, // Cards/drives
+    },
+    actuals: {
+      'D121': 22000, 'H181': 18500, 'H182': 12400,
+      'B53':  6600,  'B66':  2700,  'B61':  2850,
+    },
+    fringes: {
+      'A01':'pu', 'A03':'pu', 'A04':'pu', 'A05':'pu',
+      'A11':'pu', 'A12':'pu', 'A16':'pu', 'A17':'pu',
+      'A24':'pu', 'A26':'pu', 'A49':'pu', 'A50':'pu',
+      'B51':'pu', 'B52':'pu', 'B53':'pu', 'B54':'pu',
+      'B55':'pu', 'B56':'pu', 'B61':'pu', 'B62':'pu',
+      'B63':'pu', 'B66':'pu', 'B67':'pu', 'B68':'pu',
+      'B74':'pu', 'B76':'pu', 'B78':'pu', 'B87':'pu',
+      'B89':'pu', 'B99':'pu', 'B100':'pu',
+    },
+    folderId: null,
+    mode: 'bid',
+    markup: { prodFee: 20, contingency: 5, fringes: 0 },
+    createdAt: Date.now(),
+    companyId: getDefaultCompany()?.id || null,
+    _isDemo: true,
+
+    // ── 8 Purchase Orders ──────────────────────────────────────
+    pos: [
+      { id:'DEMO_PO1', number:'PO-001', date: today,
+        vendor:'Keslow Camera', department:'Camera',
+        description:'Full camera package — ALEXA 35, lenses, accessories (3 days)',
+        amount:'18500', invoiceAmount:'18500', invoiceDate:today,
+        status:'approved', notes:'', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+      { id:'DEMO_PO2', number:'PO-002', date: today,
+        vendor:'Mole Richardson', department:'Electrical',
+        description:'Lighting & grip package — HMIs, LEDs, stand pkg, condors (3 days)',
+        amount:'12400', invoiceAmount:'12400', invoiceDate:today,
+        status:'approved', notes:'', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+      { id:'DEMO_PO3', number:'PO-003', date: today,
+        vendor:'Paramount Ranch — Location', department:'Locations',
+        description:'Full location fee — base camp + roads + parking',
+        amount:'22000', invoiceAmount:'22000', invoiceDate:today,
+        status:'invoiced', notes:'Net 30', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+      { id:'DEMO_PO4', number:'PO-004', date: today,
+        vendor:'Craft & Crew Catering', department:'Production',
+        description:'Catering for 45 crew × 3 shoot days + craft service',
+        amount:'6800', invoiceAmount:'', invoiceDate:'',
+        status:'open', notes:'', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+      { id:'DEMO_PO5', number:'PO-005', date: today,
+        vendor:'Panavision Hollywood', department:'Camera',
+        description:'Specialty anamorphic lens set — C-series (3 days)',
+        amount:'7200', invoiceAmount:'7200', invoiceDate:today,
+        status:'approved', notes:'', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+      { id:'DEMO_PO6', number:'PO-006', date: today,
+        vendor:'Picture Car Rentals', department:'Locations',
+        description:'Hero vehicles (3) + hero car on rig (4 days)',
+        amount:'4400', invoiceAmount:'', invoiceDate:'',
+        status:'open', notes:'', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+      { id:'DEMO_PO7', number:'PO-007', date: today,
+        vendor:'FotoKem Digital Imaging', department:'Post Production',
+        description:'DIT workflow, dailies, data management, LUTs',
+        amount:'5600', invoiceAmount:'', invoiceDate:'',
+        status:'open', notes:'', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+      { id:'DEMO_PO8', number:'PO-008', date: today,
+        vendor:'Premier Film Trucking', department:'Transportation',
+        description:'Camera truck + grip/electric truck + 15-pass van (3 days)',
+        amount:'8900', invoiceAmount:'8900', invoiceDate:today,
+        status:'invoiced', notes:'', lineRef:'', checkNumber:'', paymentDate:'', paymentMethod:'', paidDate:'' },
+    ],
+
+    // ── 4 Petty Cash Envelopes ─────────────────────────────────
+    pettyCash: [
+      {
+        id:'DEMO_ENV1', code:'LOC', name:'Locations Dept',
+        amount:'1200', returned:'0', department:'Locations',
+        issuedTo:'Karim Mansour', issuedDate: today,
+        status:'open', notes:'',
+        distributions:[
+          { id:'DEMO_D1a', date:today, vendor:'City of LA', description:'Parking permit — Cahuenga Blvd', amount:'280', receipt:true, category:'Permits & Fees' },
+          { id:'DEMO_D1b', date:today, vendor:'Paramount Ranch Security', description:'Security guard tips × 2', amount:'160', receipt:false, category:'Tips & Gratuity' },
+          { id:'DEMO_D1c', date:today, vendor:'Home Depot', description:'Cones, tape, signage for base camp', amount:'94', receipt:true, category:'Supplies' },
+        ]
+      },
+      {
+        id:'DEMO_ENV2', code:'CAM', name:'Camera Dept',
+        amount:'600', returned:'0', department:'Camera',
+        issuedTo:'Priya Nair', issuedDate: today,
+        status:'open', notes:'',
+        distributions:[
+          { id:'DEMO_D2a', date:today, vendor:'Filmtools', description:'Expendables — tape, markers, lens tissue', amount:'187', receipt:true, category:'Expendables' },
+          { id:'DEMO_D2b', date:today, vendor:'B&H Photo', description:'AA batteries × 48, V-mount charger', amount:'122', receipt:true, category:'Expendables' },
+        ]
+      },
+      {
+        id:'DEMO_ENV3', code:'ART', name:'Art Dept',
+        amount:'900', returned:'0', department:'Art',
+        issuedTo:'Dana Kowalski', issuedDate: today,
+        status:'open', notes:'',
+        distributions:[
+          { id:'DEMO_D3a', date:today, vendor:'IKEA Burbank', description:'Set dressing — hero room items', amount:'340', receipt:true, category:'Set Dressing' },
+          { id:'DEMO_D3b', date:today, vendor:'Ace Hardware', description:'Paint, brushes, misc hardware', amount:'78', receipt:true, category:'Supplies' },
+        ]
+      },
+      {
+        id:'DEMO_ENV4', code:'PROD', name:'Production Office',
+        amount:'500', returned:'0', department:'Production',
+        issuedTo:'Marcus Webb', issuedDate: today,
+        status:'open', notes:'',
+        distributions:[
+          { id:'DEMO_D4a', date:today, vendor:'Office Depot', description:'Paper, printer supplies, office misc', amount:'65', receipt:true, category:'Office' },
+          { id:'DEMO_D4b', date:today, vendor:'Starbucks / craft runs', description:'Office coffee runs × 5 days', amount:'120', receipt:false, category:'Meals & Craft' },
+        ]
+      },
+    ],
+
+    // ── Calendar offsets ───────────────────────────────────────
+    calOffsets: {
+      'B53': -2, 'A03': -5, 'A11': -3,
+      'B61': -1, 'B66': -1,
+    },
+  };
+
+  // Insert at front of budgets array
+  budgets.unshift(b);
+  activeId = id;
+  expanded = {};
+  save();
+  return id;
 }
 
-// ── Launch / Restart ──────────────────────────────────
+// ── Demo contacts to add ────────────────────────────────────────
+function _tourCreateDemoContacts() {
+  const demoContacts = [
+    { id:'DEMO_CT1', name:'Priya Nair',       role:'Director of Photography', department:'Camera',     company:'Freelance',               phone:'310-555-0142', email:'priya@example.com',       dayRate:'2200', tags:[], notes:'Alexa specialist. Nike relationship.', createdAt:Date.now() },
+    { id:'DEMO_CT2', name:'Marcus Webb',       role:'Line Producer',           department:'Production', company:'Webb Productions',        phone:'323-555-0187', email:'marcus@webbproductions.com',dayRate:'1400', tags:[], notes:'',                           createdAt:Date.now() },
+    { id:'DEMO_CT3', name:'Karim Mansour',     role:'Location Manager',         department:'Locations',  company:'Freelance',               phone:'818-555-0233', email:'karim@example.com',       dayRate:'800',  tags:[], notes:'LA permit expert.',              createdAt:Date.now() },
+    { id:'DEMO_CT4', name:'Dana Kowalski',     role:'Production Designer',      department:'Art',        company:'Freelance',               phone:'213-555-0099', email:'dana@example.com',        dayRate:'1100', tags:[], notes:'Nike branding guidelines on file.',createdAt:Date.now() },
+    { id:'DEMO_CT5', name:'Keslow Camera',     role:'Vendor',                   department:'Camera',     company:'Keslow Camera',           phone:'323-466-3070', email:'rentals@keslow.com',       dayRate:'',     tags:['vendor'], notes:'Preferred camera house.',  createdAt:Date.now() },
+    { id:'DEMO_CT6', name:'Paramount Ranch',   role:'Vendor',                   department:'Locations',  company:'Paramount Pictures Corp', phone:'818-777-4000', email:'locations@paramount.com',  dayRate:'',     tags:['vendor'], notes:'',                          createdAt:Date.now() },
+  ];
+  // Prepend demo contacts (avoid duplicates if tour restarts)
+  const existingIds = new Set(contacts.map(c=>c.id));
+  demoContacts.forEach(c => { if(!existingIds.has(c.id)) contacts.unshift(c); });
+  save();
+}
+
+// ── Cleanup: remove demo budget and contacts ────────────────────
+function _tourCleanup() {
+  if (_tourDemoBudgetId) {
+    const b = budgets.find(x=>x.id===_tourDemoBudgetId);
+    if (b) {
+      cloudDelete && cloudDelete('budgets', _tourDemoBudgetId);
+      budgets = budgets.filter(x=>x.id!==_tourDemoBudgetId);
+      if (activeId === _tourDemoBudgetId) activeId = budgets[0]?.id || null;
+    }
+  }
+  // Remove demo contacts
+  contacts = contacts.filter(c=>!c.id.startsWith('DEMO_CT'));
+  save();
+  _tourDemoBudgetId = null;
+}
+
+// ── TOUR STEPS ──────────────────────────────────────────────────
+const TOUR_STEPS = [
+  // 0 — Sidebar
+  {
+    target: '#sidebar', place: 'right', tab: null, expandSec: null, openPanel: null,
+    title: 'Your projects live here',
+    body: 'Every budget you create appears in this sidebar. You can organize them into <strong>folders</strong> by client or campaign — helpful when you\'re managing multiple productions at once. Click any budget to open it.',
+  },
+  // 1 — New budget
+  {
+    target: '.sb-actions-row', place: 'right', tab: null, expandSec: null, openPanel: null,
+    title: 'Creating a new budget',
+    body: 'Hit <strong>+</strong> to start a new budget. You\'ll choose a production type — AICP Commercial, Music Video, Documentary, Corporate, and more. Each template pre-loads the standard crew structure and default fringe rates for that job type.',
+  },
+  // 2 — Budget tab overview
+  {
+    target: '#tab-budget', place: 'below', tab: 'budget', expandSec: null, openPanel: null,
+    title: 'The Budget tab — AICP format',
+    body: 'This is your main workspace. Every budget follows the <strong>AICP standard</strong> — the format used across US commercial production. It organizes costs into labeled sections that clients, agencies, and production companies all recognize.',
+  },
+  // 3 — Sections
+  {
+    target: '#budget-sections', place: 'right', tab: 'budget', expandSec: null, openPanel: null,
+    title: 'Budget sections',
+    body: 'Each row is a section — <em>Prep Crew, Shoot Crew, Location Expenses, Equipment Rental</em>, and so on. Click the <strong>▶</strong> arrow to expand a section and see all its line items. Sections with values show a running total on the right.',
+  },
+  // 4 — Expand Shoot Crew to show lines
+  {
+    target: '#sec-B', place: 'right', tab: 'budget', expandSec: 'B', openPanel: null,
+    title: 'Inside a crew section',
+    body: 'This is the <strong>Shoot Crew</strong> section — every role on set for the shoot days. Each row has a <strong>Qty</strong> (days), <strong>Rate</strong> (day rate), and an auto-calculated total. The fringe code on the right determines payroll tax and benefits applied to that role.',
+  },
+  // 5 — Line panel
+  {
+    target: '#sec-B', place: 'right', tab: 'budget', expandSec: 'B', openPanel: 'B53',
+    title: 'Line item detail panel',
+    body: 'Click any line item name to open its <strong>detail panel</strong>. Here you can assign a vendor, enter notes, see the kit rental field, and access the <strong>OT Calculator</strong> — which computes 1.5× and 2× overtime earnings automatically, adding them to the crew total.',
+  },
+  // 6 — Smart toolbar
+  {
+    target: '.smart-bar', place: 'below', tab: 'budget', expandSec: null, openPanel: null,
+    title: 'Fringe, shoot days & rate cards',
+    body: '<strong>Fringe</strong> is the labor burden on top of wages — payroll taxes, workers comp, P&H. <strong>Shoot Days</strong> drives how many days your crew is booked. <strong>Rate Cards</strong> let you save standard day rates by role, so one click fills in your entire crew. <strong>Templates</strong> save entire budget structures to reuse across jobs.',
+  },
+  // 7 — Sticky totals bar
+  {
+    target: '#sticky-bar', place: 'above', tab: 'budget', expandSec: null, openPanel: null,
+    title: 'ATL, BTL, and your fee',
+    body: '<strong>ATL</strong> (Above the Line) covers creative fees — director, writer, talent. <strong>BTL</strong> (Below the Line) is everything else — crew, equipment, locations, post. Your <strong>Agency/Production Fee</strong> and contingency are calculated on top. Every number updates live as you type.',
+  },
+  // 8 — Cost Report tab
+  {
+    target: '#tab-summary', place: 'below', tab: 'summary', expandSec: null, openPanel: null,
+    title: 'Cost Report',
+    body: 'The <strong>Cost Report</strong> gives a top-down view of every section — what\'s budgeted vs. what\'s been spent. The <strong>Variance</strong> column immediately flags where you\'re over or under. This is the document you share with the client or EP during production for financial status updates.',
+  },
+  // 9 — Cost Report detail
+  {
+    target: '#main', place: 'center', tab: 'summary', expandSec: null, openPanel: null,
+    title: 'Reading the cost report',
+    body: 'Each row shows the section name, your <strong>bid amount</strong>, the <strong>actual spend</strong> entered as you collect invoices and receipts, and the <strong>variance</strong>. Green means under budget. Red means over. The report auto-generates from your budget — there\'s nothing to fill in separately.',
+  },
+  // 10 — PO tab
+  {
+    target: '#tab-po', place: 'below', tab: 'po', expandSec: null, openPanel: null,
+    title: 'Purchase Orders',
+    body: 'A <strong>PO</strong> is a formal document you issue to a vendor <em>before</em> they do the work. It authorizes the spend, defines the scope, and creates a paper trail. In commercial production, POs cover equipment rental, location fees, catering, transportation — anything vendor-sourced.',
+  },
+  // 11 — PO table detail
+  {
+    target: '#main', place: 'center', tab: 'po', expandSec: null, openPanel: null,
+    title: 'Inside the PO table',
+    body: 'Each PO has a <strong>number, vendor, department, description, and dollar amount</strong>. You track the invoice amount separately from the PO amount — so you know when actuals differ from what was authorized. Status moves from <em>Open → Approved → Invoiced → Paid</em> as the job progresses.',
+  },
+  // 12 — Petty Cash tab
+  {
+    target: '#tab-pc', place: 'below', tab: 'pc', expandSec: null, openPanel: null,
+    title: 'Petty Cash',
+    body: '<strong>Petty Cash</strong> is the physical cash float you hand to departments during production. Each allocation is tracked as an <strong>envelope</strong> — the locations dept gets $1,200 for permits and tips, camera gets $600 for expendables, and so on.',
+  },
+  // 13 — Petty Cash envelopes
+  {
+    target: '#main', place: 'center', tab: 'pc', expandSec: null, openPanel: null,
+    title: 'Envelopes and distributions',
+    body: 'Expand any envelope to see its <strong>distribution log</strong> — individual receipts and expenditures entered as cash is spent. You track vendor, description, amount, and whether a receipt was collected. The balance shows how much of the float is accounted for vs. remaining, and flags any discrepancy at wrap.',
+  },
+  // 14 — Calendar tab
+  {
+    target: '#tab-calendar', place: 'below', tab: 'calendar', expandSec: null, openPanel: null,
+    title: 'Production calendar',
+    body: 'The <strong>Calendar</strong> maps your entire shoot schedule visually — prep days, shoot days, and wrap. Every crew member appears as a <strong>bar on the timeline</strong>. The bar length is their day count; drag the edge to extend or shorten it. Changes update the budget automatically — no double entry.',
+  },
+  // 15 — Calendar crew sidebar
+  {
+    target: '#main', place: 'center', tab: 'calendar', expandSec: null, openPanel: null,
+    title: 'Crew sidebar & role settings',
+    body: 'Click any crew member in the left sidebar to open their settings panel. You can adjust their <strong>day rate, day count, and shoot phase</strong> (prep, shoot, or wrap). You can also enter personal notes per role — useful for tracking union status, special terms, or schedule exceptions.',
+  },
+  // 16 — Detail Browser tab
+  {
+    target: '#tab-detail', place: 'below', tab: 'detail', expandSec: null, openPanel: null,
+    title: 'Detail Browser',
+    body: 'The <strong>Detail Browser</strong> shows every single line item in your budget as one flat, searchable list — no sections, no hierarchy. Use it to quickly find a specific cost, audit your numbers before sending a bid, or compare bid vs. actual at the line-item level.',
+  },
+  // 17 — Export
+  {
+    target: '#export-wrap', place: 'left', tab: 'budget', expandSec: null, openPanel: null,
+    title: 'Exporting your work',
+    body: 'The <strong>Export</strong> menu generates print-ready PDFs. Export your full AICP bid budget, individual POs to send to vendors, or a complete <strong>Wrap Book</strong> — the final production document that includes your budget, cost report, all POs, and petty cash reconciliation. This is the official record at end of job.',
+  },
+  // 18 — Contacts
+  {
+    target: '#sb-contacts-btn', place: 'right', tab: null, expandSec: null, openPanel: null,
+    title: 'Contacts — your vendor & crew library',
+    body: 'Your <strong>Contacts</strong> library stores everyone you work with — crew, vendors, locations. Assign contacts to line items in your budget to auto-fill their day rate, enable calendar tracking, and pre-fill PO vendor fields. Contacts persist across all your budgets.',
+  },
+  // 19 — Account
+  {
+    target: '#topbar-avatar', place: 'below', tab: null, expandSec: null, openPanel: null,
+    title: 'Your account',
+    body: 'Click your initials anytime to edit your profile, change your password, download a full data backup, or restart this tour. Your data is private — only you can access your budgets. Click <strong>Finish →</strong> to wrap up the tour and start building your first real budget.',
+  },
+];
+
+// ── TOUR ENGINE ─────────────────────────────────────────────────
 function tourLaunch() {
-  if (!tourShouldShow()) return;
-  _tourShowWelcome();
+  if (!_currentUser) return;
+  const meta = _currentUser.user_metadata || {};
+  const isNew = budgets.filter(b=>!b._isDemo).length === 0 && !meta.tour_complete;
+  if (!isNew) return;
+  const welcome = _tourEl('tour-welcome');
+  if (welcome) { welcome.style.display = 'flex'; }
 }
 
 function tourRestart() {
-  setTimeout(() => {
-    document.querySelectorAll('.sb-ctx').forEach(m => m.remove());
-    _tourEl('profile-modal')?.remove();
-    _tourShowWelcome();
+  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  setTimeout(()=>{
+    const welcome = _tourEl('tour-welcome');
+    if (welcome) { welcome.style.display = 'flex'; }
   }, 60);
 }
 
-function _tourShowWelcome() {
-  // Hide tooltip/spotlight first
-  _tourHideStep();
-  _tourEl('tour-welcome').style.display = 'flex';
-  _tourEl('tour-finish').style.display  = 'none';
-}
-
-// ── Start / Skip / Finish ─────────────────────────────
 function tourStart() {
-  _tourEl('tour-welcome').style.display = 'none';
-  _tourStep  = 0;
-  _tourActive = true;
-  _tourEl('tour-overlay').classList.add('active');
-  _tourShowStep(0);
+  const welcome = _tourEl('tour-welcome');
+  if (welcome) welcome.style.display = 'none';
+
+  // Create demo budget if it doesn't already exist
+  const existing = budgets.find(b=>b._isDemo);
+  if (existing) {
+    _tourDemoBudgetId = existing.id;
+    activeId = existing.id;
+    renderSidebar && renderSidebar();
+  } else {
+    _tourDemoBudgetId = _tourCreateDemoBudget();
+    _tourCreateDemoContacts();
+  }
+
+  _tourStep = 0;
+  // Switch to budget tab and expand sections
+  activeTab = 'budget';
+  renderContent && renderContent();
+  renderSticky && renderSticky();
+
+  const overlay = _tourEl('tour-overlay');
+  if (overlay) overlay.classList.add('active');
+
+  setTimeout(()=>_tourShowStep(0), 180);
 }
 
 function tourSkip() {
-  _tourEnd(false);
+  _tourHide();
+  _tourCleanup();
+  // Revert to first real budget if any
+  const realBudget = budgets.find(b=>!b._isDemo);
+  if (realBudget) { activeId = realBudget.id; render(); }
+  else { activeId = null; render(); }
 }
 
 function tourNext() {
@@ -2267,9 +2564,7 @@ function tourNext() {
     _tourStep++;
     _tourShowStep(_tourStep);
   } else {
-    _tourHideStep();
-    _tourEl('tour-overlay').classList.remove('active');
-    _tourEl('tour-finish').style.display = 'flex';
+    tourFinish();
   }
 }
 
@@ -2280,43 +2575,64 @@ function tourBack() {
   }
 }
 
-function tourFinish() {
-  _tourEl('tour-finish').style.display = 'none';
-  _tourEnd(true);
-}
-
-function _tourEnd(completed) {
-  _tourActive = false;
-  _tourEl('tour-overlay').classList.remove('active');
-  _tourEl('tour-welcome').style.display = 'none';
-  _tourEl('tour-finish').style.display  = 'none';
-  _tourHideStep();
-  if (completed && _supa && _currentUser) {
-    _supa.auth.updateUser({ data: { tour_complete: true } }).catch(() => {});
+async function tourFinish() {
+  _tourHide();
+  _tourCleanup();
+  // Mark tour complete in user metadata
+  if (_supa && _currentUser) {
+    try {
+      await _supa.auth.updateUser({ data: { tour_complete: true } });
+    } catch(e) {}
   }
+  // Switch to real budget or empty state
+  const realBudget = budgets.find(b=>!b._isDemo);
+  if (realBudget) { activeId = realBudget.id; render(); }
+  else { activeId = null; render(); }
+  // Show the finish screen
+  const finish = _tourEl('tour-finish');
+  if (finish) { finish.style.display='flex'; }
 }
 
-function _tourHideStep() {
-  const spot = _tourEl('tour-spotlight');
-  const tip  = _tourEl('tour-tooltip');
+function tourDismissFinish() {
+  const finish = _tourEl('tour-finish');
+  if (finish) finish.style.display = 'none';
+}
+
+function _tourHide() {
+  const overlay = _tourEl('tour-overlay');
+  const spot    = _tourEl('tour-spotlight');
+  const tip     = _tourEl('tour-tooltip');
+  if (overlay) overlay.classList.remove('active');
   if (spot) spot.style.display = 'none';
   if (tip)  tip.style.display  = 'none';
 }
 
-// ── Render a step ─────────────────────────────────────
 function _tourShowStep(idx) {
   const step  = TOUR_STEPS[idx];
   const total = TOUR_STEPS.length;
 
-  // Switch tab if needed — then reposition after render settles
+  // Switch tab if needed
   if (step.tab && step.tab !== activeTab) {
     switchTab(step.tab);
-    setTimeout(() => _tourDoPosition(step), 120);
-  } else {
-    _tourDoPosition(step);
   }
 
-  _tourEl('tour-step-label').textContent = `STEP ${idx + 1} OF ${total}`;
+  // Expand a section if needed
+  if (step.expandSec) {
+    if (!expanded[step.expandSec]) {
+      expanded[step.expandSec] = true;
+      renderContent && renderContent();
+    }
+  }
+
+  // Open a line panel if needed
+  if (step.openPanel) {
+    setTimeout(()=>{
+      const b = budgets.find(x=>x.id===_tourDemoBudgetId);
+      if (b) openLinePanel && openLinePanel(b, step.openPanel);
+    }, 80);
+  }
+
+  _tourEl('tour-step-label').textContent = `STEP ${idx+1} OF ${total}`;
   _tourEl('tour-title').textContent      = step.title;
   _tourEl('tour-body').innerHTML         = step.body;
 
@@ -2325,81 +2641,90 @@ function _tourShowStep(idx) {
   prog.innerHTML = '';
   for (let i = 0; i < total; i++) {
     const d = document.createElement('div');
-    d.className = 'tour-dot' + (i === idx ? ' active' : i < idx ? ' done' : '');
+    d.className = 'tour-dot' + (i===idx?' active': i<idx?' done':'');
     prog.appendChild(d);
   }
 
-  _tourEl('tour-back-btn').style.visibility = idx === 0 ? 'hidden' : 'visible';
-  _tourEl('tour-next-btn').textContent = idx === total - 1 ? 'Finish →' : 'Next →';
+  _tourEl('tour-back-btn').style.visibility = idx===0 ? 'hidden' : 'visible';
+  _tourEl('tour-next-btn').textContent       = idx===total-1 ? 'Finish →' : 'Next →';
+
+  // Position after a short settle delay
+  setTimeout(()=>_tourDoPosition(step), 120);
 }
 
 function _tourDoPosition(step) {
   _tourPosition(step);
 }
 
-// ── Position spotlight + tooltip ──────────────────────
 function _tourPosition(step) {
-  const spot    = _tourEl('tour-spotlight');
-  const tip     = _tourEl('tour-tooltip');
-  const PAD     = 8;
-  const TIP_W   = 340;
-  const MARGIN  = 16;
+  const spot = _tourEl('tour-spotlight');
+  const tip  = _tourEl('tour-tooltip');
+  const TIP_W = 340;
+  const PAD   = 8;
 
-  if (step.place === 'center' || !step.target) {
-    spot.style.display = 'none';
-    tip.className      = 'arrow-none';
-    tip.style.cssText  = `display:block;width:${TIP_W}px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)`;
+  if (!step.target || step.place === 'center') {
+    if (spot) spot.style.display = 'none';
+    // Center tooltip
+    const top  = Math.round(window.innerHeight * 0.3);
+    const left = Math.round((window.innerWidth - TIP_W) / 2);
+    if (tip) {
+      tip.className = 'tour-tooltip-box';
+      tip.style.cssText = `display:block;position:fixed;width:${TIP_W}px;left:${left}px;top:${top}px;`;
+    }
     return;
   }
 
-  const el = _tourQ(step.target);
+  const el = document.querySelector(step.target);
   if (!el) {
-    spot.style.display = 'none';
-    tip.className      = 'arrow-none';
-    tip.style.cssText  = `display:block;width:${TIP_W}px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)`;
+    if (spot) spot.style.display = 'none';
+    const top  = Math.round(window.innerHeight * 0.3);
+    const left = Math.round((window.innerWidth - TIP_W) / 2);
+    if (tip) {
+      tip.className = 'tour-tooltip-box';
+      tip.style.cssText = `display:block;position:fixed;width:${TIP_W}px;left:${left}px;top:${top}px;`;
+    }
     return;
   }
 
   const r = el.getBoundingClientRect();
-
   // Spotlight
-  spot.style.cssText = `display:block;position:fixed;left:${r.left-PAD}px;top:${r.top-PAD}px;width:${r.width+PAD*2}px;height:${r.height+PAD*2}px;border-radius:4px;box-shadow:0 0 0 9999px rgba(0,0,0,.58);z-index:8001;pointer-events:none;`;
+  if (spot) {
+    spot.style.cssText = `display:block;position:fixed;left:${r.left-PAD}px;top:${r.top-PAD}px;width:${r.width+PAD*2}px;height:${r.height+PAD*2}px;border-radius:4px;box-shadow:0 0 0 9999px rgba(0,0,0,.58);z-index:8001;pointer-events:none;`;
+  }
 
-  // Tooltip position
-  let left, top, arrowClass;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  let top=0, left=0, arrowClass='tour-tooltip-box';
+  const GAP = 14;
+  const TIP_H = 300;
 
   if (step.place === 'right') {
-    left = r.right + PAD + MARGIN;
-    top  = Math.min(Math.max(r.top - PAD, 16), vh - 260);
-    arrowClass = 'arrow-left';
-    if (left + TIP_W > vw - 8) { left = r.left - PAD - TIP_W - MARGIN; arrowClass = 'arrow-right'; }
+    top  = r.top + r.height/2 - TIP_H/2;
+    left = r.right + GAP;
+    arrowClass = 'tour-tooltip-box arrow-left';
   } else if (step.place === 'left') {
-    left = r.left - PAD - TIP_W - MARGIN;
-    top  = Math.min(Math.max(r.top - PAD, 16), vh - 260);
-    arrowClass = 'arrow-right';
-    if (left < 8) { left = r.right + PAD + MARGIN; arrowClass = 'arrow-left'; }
+    top  = r.top + r.height/2 - TIP_H/2;
+    left = r.left - TIP_W - GAP;
+    arrowClass = 'tour-tooltip-box arrow-right';
   } else if (step.place === 'below') {
-    left = Math.min(Math.max(r.left - PAD, 8), vw - TIP_W - 8);
-    top  = r.bottom + PAD + MARGIN;
-    arrowClass = 'arrow-top';
-    if (top + 240 > vh) { top = r.top - PAD - 240 - MARGIN; arrowClass = 'arrow-bottom'; }
+    top  = r.bottom + GAP;
+    left = r.left + r.width/2 - TIP_W/2;
+    arrowClass = 'tour-tooltip-box arrow-top';
   } else if (step.place === 'above') {
-    left = Math.min(Math.max(r.left - PAD, 8), vw - TIP_W - 8);
-    top  = r.top - PAD - 240 - MARGIN;
-    arrowClass = 'arrow-bottom';
-    if (top < 8) { top = r.bottom + PAD + MARGIN; arrowClass = 'arrow-top'; }
+    top  = r.top - TIP_H - GAP;
+    left = r.left + r.width/2 - TIP_W/2;
+    arrowClass = 'tour-tooltip-box arrow-bottom';
   }
 
   // Clamp to viewport
-  const TIP_H = 280;
-  top  = Math.max(8, Math.min(top, window.innerHeight - TIP_H - 8));
-  left = Math.max(8, Math.min(left, window.innerWidth  - TIP_W  - 8));
+  top  = Math.max(8, Math.min(top,  window.innerHeight - TIP_H - 8));
+  left = Math.max(8, Math.min(left, window.innerWidth  - TIP_W - 8));
 
-  tip.className  = arrowClass;
-  tip.style.cssText = `display:block;position:fixed;width:${TIP_W}px;left:${left}px;top:${top}px;`;
+  if (tip) {
+    tip.className  = arrowClass;
+    tip.style.cssText = `display:block;position:fixed;width:${TIP_W}px;left:${left}px;top:${top}px;`;
+  }
 }
+
+
 
 
 // ════════════════════════════════════════════════════════════════
