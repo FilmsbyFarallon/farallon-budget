@@ -2336,7 +2336,7 @@ function _tourCreateDemoBudget() {
   budgets.unshift(b);
   activeId = id;
   expanded = {};
-  save();
+  // Don't call save() here — tourStart() will call render() which calls save()
   return id;
 }
 
@@ -2526,6 +2526,17 @@ function tourLaunch() {
 
 function tourRestart() {
   document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  // Clean up any previous demo first
+  if (_tourDemoBudgetId) {
+    const prev = budgets.find(x=>x.id===_tourDemoBudgetId);
+    if (prev) {
+      budgets = budgets.filter(x=>x.id!==_tourDemoBudgetId);
+      contacts = contacts.filter(c=>!c.id.startsWith('DEMO_CT'));
+      if (activeId===_tourDemoBudgetId) activeId = budgets[0]?.id || null;
+      _tourDemoBudgetId = null;
+      renderSidebar();
+    }
+  }
   setTimeout(()=>{
     const welcome = _tourEl('tour-welcome');
     if (welcome) { welcome.style.display = 'flex'; }
@@ -2541,22 +2552,23 @@ function tourStart() {
   if (existing) {
     _tourDemoBudgetId = existing.id;
     activeId = existing.id;
-    renderSidebar && renderSidebar();
   } else {
     _tourDemoBudgetId = _tourCreateDemoBudget();
     _tourCreateDemoContacts();
   }
 
   _tourStep = 0;
-  // Switch to budget tab and expand sections
   activeTab = 'budget';
-  renderContent && renderContent();
-  renderSticky && renderSticky();
+  expanded = {};
+
+  // Full render — sidebar + content + sticky + save
+  render();
 
   const overlay = _tourEl('tour-overlay');
   if (overlay) overlay.classList.add('active');
 
-  setTimeout(()=>_tourShowStep(0), 180);
+  // Delay first step until render completes
+  setTimeout(()=>_tourShowStep(0), 300);
 }
 
 function tourSkip() {
