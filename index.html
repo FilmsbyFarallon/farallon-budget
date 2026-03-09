@@ -621,11 +621,177 @@ body{margin:0;padding:0}
 .user-menu-btn:hover{background:rgba(108,142,240,.06)}
 .user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent);font-family:var(--mono);flex-shrink:0}
 .user-email{font-size:11px;color:var(--text3);font-family:var(--mono);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+
+/* ══════════════════════════════════════════════════════
+   GUIDED TOUR
+══════════════════════════════════════════════════════ */
+#tour-overlay {
+  position: fixed; inset: 0; z-index: 8000; pointer-events: none;
+  transition: opacity .3s;
+}
+#tour-overlay.active { pointer-events: all; }
+
+/* Spotlight cutout via box-shadow */
+#tour-spotlight {
+  position: fixed; z-index: 8001; border-radius: 4px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.78);
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+#tour-spotlight.tour-center {
+  box-shadow: none;
+}
+
+/* Tooltip card */
+#tour-tooltip {
+  position: fixed; z-index: 8002;
+  background: var(--bg1); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 22px 24px 18px;
+  width: 340px; max-width: calc(100vw - 32px);
+  box-shadow: 0 16px 48px rgba(0,0,0,.7);
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+}
+#tour-tooltip::before {
+  content: ''; position: absolute; width: 10px; height: 10px;
+  background: var(--bg1); border: 1px solid var(--border2);
+  transform: rotate(45deg);
+  transition: all .35s;
+}
+#tour-tooltip.arrow-left::before   { left: -6px; top: 22px; border-right: none; border-top: none; }
+#tour-tooltip.arrow-right::before  { right: -6px; top: 22px; border-left: none; border-bottom: none; }
+#tour-tooltip.arrow-top::before    { top: -6px; left: 24px; border-bottom: none; border-right: none; }
+#tour-tooltip.arrow-bottom::before { bottom: -6px; left: 24px; border-top: none; border-left: none; }
+#tour-tooltip.arrow-none::before   { display: none; }
+
+.tour-step-label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .15em;
+  color: var(--accent); margin-bottom: 8px; display: block;
+}
+.tour-title {
+  font-family: var(--display); font-size: 15px; font-weight: 700;
+  color: var(--text); margin-bottom: 8px; line-height: 1.3;
+}
+.tour-body {
+  font-size: 12px; color: var(--text2); line-height: 1.7;
+  margin-bottom: 18px;
+}
+.tour-body strong { color: var(--text); font-weight: 600; }
+.tour-body em { color: var(--gold); font-style: normal; }
+
+.tour-actions {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.tour-progress {
+  display: flex; gap: 4px; align-items: center;
+}
+.tour-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--bg3); transition: background .2s;
+}
+.tour-dot.active { background: var(--accent); }
+.tour-dot.done   { background: var(--border2); }
+
+.tour-btn-skip {
+  font-family: var(--mono); font-size: 10px; color: var(--text4);
+  background: transparent; border: none; cursor: pointer;
+  padding: 4px 0; letter-spacing: .05em; transition: color .15s;
+}
+.tour-btn-skip:hover { color: var(--text3); }
+.tour-btn-next {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: 3px; padding: 8px 18px; cursor: pointer;
+  transition: background .15s; white-space: nowrap;
+}
+.tour-btn-next:hover { background: #5a7ee0; }
+.tour-btn-back {
+  font-family: var(--mono); font-size: 10px; color: var(--text4);
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 3px; padding: 7px 12px; cursor: pointer;
+  transition: all .15s; letter-spacing: .05em;
+}
+.tour-btn-back:hover { border-color: var(--text3); color: var(--text3); }
+
+/* Welcome & finish panels (centered, no spotlight) */
+#tour-welcome, #tour-finish {
+  position: fixed; inset: 0; z-index: 8003;
+  background: rgba(0,0,0,.82); display: none;
+  align-items: center; justify-content: center;
+}
+.tour-center-card {
+  background: var(--bg1); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 40px 44px; width: 100%;
+  max-width: 480px; box-shadow: 0 24px 64px rgba(0,0,0,.8);
+  text-align: center;
+}
+.tour-center-card .tour-title { font-size: 22px; margin-bottom: 12px; }
+.tour-center-card .tour-body  { font-size: 13px; margin-bottom: 28px; }
+.tour-wordmark {
+  font-family: var(--display); font-size: 13px; font-weight: 700;
+  letter-spacing: .12em; color: var(--text3); margin-bottom: 32px;
+  display: block;
+}
+.tour-center-actions { display: flex; flex-direction: column; gap: 10px; }
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <!-- AUTH SCREEN -->
+
+<!-- ══════════════════════════════════════════════════
+     GUIDED TOUR
+══════════════════════════════════════════════════════ -->
+
+<!-- Welcome screen -->
+<div id="tour-welcome">
+  <div class="tour-center-card">
+    <span class="tour-wordmark">FARALLON PRODUCTION BUDGET</span>
+    <div class="tour-title">Welcome to your production budget.</div>
+    <div class="tour-body">
+      This is a professional budgeting tool built for commercial film and video production. Whether you're a seasoned line producer or building your first formal bid, this quick tour will walk you through everything.<br><br>
+      <strong>It takes about 2 minutes.</strong> You can skip anytime and revisit this tour from your profile settings.
+    </div>
+    <div class="tour-center-actions">
+      <button class="tour-btn-next" style="width:100%;padding:12px;font-size:11px" onclick="tourStart()">TAKE THE TOUR →</button>
+      <button class="tour-btn-skip" onclick="tourSkip()">Skip for now — I'll figure it out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Finish screen -->
+<div id="tour-finish">
+  <div class="tour-center-card">
+    <span class="tour-wordmark">FARALLON PRODUCTION BUDGET</span>
+    <div class="tour-title">You're ready to produce.</div>
+    <div class="tour-body">
+      That's the whole app. Start by creating a new budget — pick a production type, fill in your crew and rates, and you'll have a professional AICP-format bid in no time.<br><br>
+      You can always revisit this tour from <strong>your profile</strong> in the sidebar.
+    </div>
+    <div class="tour-center-actions">
+      <button class="tour-btn-next" style="width:100%;padding:12px;font-size:11px" onclick="tourFinish()">LET'S GO →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Spotlight + tooltip -->
+<div id="tour-overlay">
+  <div id="tour-spotlight"></div>
+  <div id="tour-tooltip">
+    <span class="tour-step-label" id="tour-step-label"></span>
+    <div class="tour-title" id="tour-title"></div>
+    <div class="tour-body" id="tour-body"></div>
+    <div class="tour-actions">
+      <button class="tour-btn-skip" onclick="tourSkip()">Skip tour</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="tour-btn-back" id="tour-back-btn" onclick="tourBack()">← Back</button>
+        <div class="tour-progress" id="tour-progress"></div>
+        <button class="tour-btn-next" id="tour-next-btn" onclick="tourNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-logo">
@@ -1582,6 +1748,8 @@ function hideAuthScreen() {
   if (ap) ap.style.display = 'flex';
   updateUserUI();
   render();
+  // Show tour for new users
+  setTimeout(tourLaunch, 600);
 }
 function authShowPanel(panel) {
   ['signin','signup','verify','forgot','reset'].forEach(p => {
@@ -1731,6 +1899,7 @@ function showUserMenu(e) {
     </div>
     <hr class="sb-ctx-sep">
     <div class="sb-ctx-item" onclick="openProfileModal()">✎ Edit profile</div>
+    <div class="sb-ctx-item" onclick="tourRestart()">⟳ Restart tour</div>
     <div class="sb-ctx-item" onclick="downloadBackup()">⬇ Download backup</div>
     <hr class="sb-ctx-sep">
     <div class="sb-ctx-item danger" onclick="authSignOut()">Sign out</div>
@@ -1917,6 +2086,270 @@ async function migrateFromLocalStorage() {
     alert('Imported '+budgets.length+' budget(s) to your cloud account.');
   } catch(e) { console.error('Migration:', e); }
 }
+
+
+// ════════════════════════════════════════════════════════════════
+// GUIDED TOUR
+// ════════════════════════════════════════════════════════════════
+const TOUR_STEPS = [
+  {
+    target: '#sidebar',
+    arrow: 'right',
+    place: 'right-of',
+    title: 'Your project sidebar',
+    body: "This is where all your budgets live. Every project you create appears here. You can organize budgets into <strong>folders</strong> — useful when you're juggling multiple clients or productions at once. Click any budget to open it.",
+  },
+  {
+    target: '.sb-actions-row',
+    arrow: 'right',
+    place: 'right-of',
+    title: 'Creating a new budget',
+    body: "Hit the <strong>+</strong> button to create a new budget. You'll be asked to choose a production type — Commercial, Music Video, Documentary, and more. Each type pre-loads the right crew structure and fringe rates for that kind of job.",
+  },
+  {
+    target: '#tab-nav',
+    arrow: 'bottom',
+    place: 'below',
+    title: 'Budget tabs',
+    body: 'Once a budget is open, these tabs give you access to every tool in the app. <strong>Budget</strong> is your main cost breakdown. <strong>Summary</strong> shows totals at a glance. <strong>POs</strong> manages purchase orders. <strong>Petty Cash</strong> tracks envelope spending. <strong>Calendar</strong> maps your shoot days. <strong>Detail</strong> is a full line-item report.',
+  },
+  {
+    target: '#main',
+    arrow: 'top',
+    place: 'center',
+    title: 'The AICP budget format',
+    body: 'Your budget is organized using the <strong>AICP standard</strong> — the Association of Independent Commercial Producers format used across the US commercial production industry. It divides costs into labeled sections (A through Z) so clients, agencies, and producers all speak the same language. Every line item lives in a specific section.',
+  },
+  {
+    target: '#main',
+    arrow: 'top',
+    place: 'center',
+    title: 'Crew, rates, and fringe',
+    body: 'Each crew position has a <strong>day rate</strong>, a <strong>quantity</strong>, and a number of <strong>shoot days</strong>. The app calculates totals automatically. <strong>Fringe</strong> is the cost on top of labor — payroll taxes, workers comp, pension and health. The fringe rate varies by union status and is applied automatically based on your production type.',
+  },
+  {
+    target: '#main',
+    arrow: 'top',
+    place: 'center',
+    title: 'Overtime (OT)',
+    body: 'Commercial production runs long days. Click the <strong>OT</strong> button on any crew line to open the overtime calculator. Enter your hours and the app calculates the additional OT cost using proper overtime rules — time-and-a-half, double time, and golden time where applicable. OT adds to your line total automatically.',
+  },
+  {
+    target: '#tab-po',
+    arrow: 'bottom',
+    place: 'below',
+    title: 'Purchase Orders',
+    body: "A <strong>Purchase Order (PO)</strong> is a formal document you issue to a vendor before they do the work or deliver goods. It authorizes the spend and protects both sides — the vendor knows they'll get paid, and you have a paper trail. In production, POs cover everything from equipment rentals to catering to location fees. The app generates printable PO PDFs for each vendor.",
+  },
+  {
+    target: '#tab-calendar',
+    arrow: 'bottom',
+    place: 'below',
+    title: 'Production calendar',
+    body: "The <strong>Calendar</strong> tab shows your full production schedule — prep days, shoot days, and wrap. It's linked to your budget so shoot day count drives your crew day totals. You can export the calendar as a PDF to share with your team or include in a bid package.",
+  },
+  {
+    target: '#main',
+    arrow: 'top',
+    place: 'center',
+    title: 'Wrap book',
+    body: "The <strong>Wrap Book</strong> is your final cost report — a complete accounting of what was budgeted versus what was actually spent. It's what you hand to the client and agency at the end of a job. In the Settings tab you can generate a full wrap book PDF, formatted and ready to send.",
+  },
+  {
+    target: '#sync-indicator',
+    arrow: 'left',
+    place: 'left-of',
+    title: 'Auto-save and cloud sync',
+    body: "Everything saves automatically as you work. You'll see a small <strong>✓ saved</strong> indicator in the corner when your data syncs to the cloud. Your budgets are accessible from any browser, any device — just sign in with your account.",
+  },
+  {
+    target: '.sidebar-footer',
+    arrow: 'right',
+    place: 'right-of',
+    title: 'Your profile',
+    body: 'Click your name or initials at the bottom of the sidebar to access your profile. You can update your name and company, change your password, download a backup of all your data, and <strong>restart this tour</strong> anytime from here.',
+  },
+];
+
+let _tourStep = 0;
+let _tourActive = false;
+
+function tourShouldShow() {
+  // Show for new users — no budgets and tour not completed
+  const meta = _currentUser?.user_metadata || {};
+  return !meta.tour_complete && budgets.length === 0;
+}
+
+function tourLaunch() {
+  // Called after login + cloudLoad
+  if (!tourShouldShow()) return;
+  document.getElementById('tour-welcome').style.display = 'flex';
+}
+
+function tourStart() {
+  document.getElementById('tour-welcome').style.display = 'none';
+  _tourStep = 0;
+  _tourActive = true;
+  document.getElementById('tour-overlay').classList.add('active');
+  tourShowStep(_tourStep);
+}
+
+function tourSkip() {
+  tourEnd(false);
+}
+
+function tourNext() {
+  if (_tourStep < TOUR_STEPS.length - 1) {
+    _tourStep++;
+    tourShowStep(_tourStep);
+  } else {
+    // Last step — show finish screen
+    document.getElementById('tour-overlay').classList.remove('active');
+    document.getElementById('tour-spotlight').style.cssText = '';
+    document.getElementById('tour-tooltip').style.display = 'none';
+    document.getElementById('tour-finish').style.display = 'flex';
+  }
+}
+
+function tourBack() {
+  if (_tourStep > 0) {
+    _tourStep--;
+    tourShowStep(_tourStep);
+  }
+}
+
+function tourFinish() {
+  document.getElementById('tour-finish').style.display = 'none';
+  tourEnd(true);
+}
+
+function tourEnd(completed) {
+  _tourActive = false;
+  document.getElementById('tour-overlay').classList.remove('active');
+  document.getElementById('tour-welcome').style.display = 'none';
+  document.getElementById('tour-finish').style.display = 'none';
+  document.getElementById('tour-spotlight').style.cssText = '';
+  document.getElementById('tour-tooltip').style.display = 'none';
+  if (completed && _supa && _currentUser) {
+    // Mark tour complete in user metadata
+    _supa.auth.updateUser({ data: { tour_complete: true } }).catch(()=>{});
+  }
+}
+
+function tourRestart() {
+  // Called from profile menu
+  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  document.getElementById('profile-modal')?.remove();
+  _tourStep = 0;
+  _tourActive = true;
+  document.getElementById('tour-welcome').style.display = 'flex';
+}
+
+function tourShowStep(idx) {
+  const step = TOUR_STEPS[idx];
+  const total = TOUR_STEPS.length;
+
+  // Update text
+  document.getElementById('tour-step-label').textContent = `STEP ${idx+1} OF ${total}`;
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-body').innerHTML = step.body;
+
+  // Progress dots
+  const prog = document.getElementById('tour-progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'tour-dot' + (i === idx ? ' active' : i < idx ? ' done' : '');
+    prog.appendChild(d);
+  }
+
+  // Back button visibility
+  document.getElementById('tour-back-btn').style.visibility = idx === 0 ? 'hidden' : '';
+  // Last step label
+  document.getElementById('tour-next-btn').textContent = idx === total - 1 ? 'Finish →' : 'Next →';
+
+  // Show tooltip
+  const tooltip = document.getElementById('tour-tooltip');
+  tooltip.style.display = '';
+
+  // Position spotlight + tooltip
+  tourPositionStep(step);
+}
+
+function tourPositionStep(step) {
+  const spotlight = document.getElementById('tour-spotlight');
+  const tooltip   = document.getElementById('tour-tooltip');
+  const PAD = 8; // spotlight padding
+
+  if (step.place === 'center') {
+    // No spotlight, center tooltip
+    spotlight.style.cssText = 'display:none';
+    tooltip.className = 'arrow-none';
+    tooltip.style.cssText = `
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: block;
+    `;
+    return;
+  }
+
+  const el = document.querySelector(step.target);
+  if (!el) {
+    // fallback to center
+    spotlight.style.cssText = 'display:none';
+    tooltip.className = 'arrow-none';
+    tooltip.style.cssText = 'top:50%;left:50%;transform:translate(-50%,-50%);display:block;';
+    return;
+  }
+
+  const r = el.getBoundingClientRect();
+  const sw = spotlight.offsetWidth || 340;
+  const sh = tooltip.offsetHeight || 200;
+
+  // Spotlight
+  spotlight.style.cssText = `
+    left: ${r.left - PAD}px;
+    top: ${r.top - PAD}px;
+    width: ${r.width + PAD*2}px;
+    height: ${r.height + PAD*2}px;
+    display: block;
+  `;
+
+  // Tooltip placement
+  const TT_W = 340;
+  const TT_MARGIN = 16;
+  let left, top, arrowClass;
+
+  if (step.place === 'right-of') {
+    left = r.right + PAD + TT_MARGIN;
+    top  = Math.max(8, r.top - PAD);
+    arrowClass = 'arrow-left';
+    // If off screen right, flip left
+    if (left + TT_W > window.innerWidth - 8) {
+      left = r.left - PAD - TT_W - TT_MARGIN;
+      arrowClass = 'arrow-right';
+    }
+  } else if (step.place === 'left-of') {
+    left = r.left - PAD - TT_W - TT_MARGIN;
+    top  = Math.max(8, r.top - PAD);
+    arrowClass = 'arrow-right';
+    if (left < 8) { left = r.right + PAD + TT_MARGIN; arrowClass = 'arrow-left'; }
+  } else if (step.place === 'below') {
+    left = Math.max(8, r.left - PAD);
+    top  = r.bottom + PAD + TT_MARGIN;
+    arrowClass = 'arrow-top';
+    if (top + 220 > window.innerHeight) { top = r.top - PAD - 220 - TT_MARGIN; arrowClass = 'arrow-bottom'; }
+  } else if (step.place === 'above') {
+    left = Math.max(8, r.left - PAD);
+    top  = r.top - PAD - 220 - TT_MARGIN;
+    arrowClass = 'arrow-bottom';
+    if (top < 8) { top = r.bottom + PAD + TT_MARGIN; arrowClass = 'arrow-top'; }
+  }
+
+  tooltip.className = arrowClass;
+  tooltip.style.cssText = `left:${left}px;top:${top}px;display:block;width:${TT_W}px;`;
+}
+
 
 // STATE
 // ─────────────────────────────────────────────────────────────────────────────
