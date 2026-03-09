@@ -208,7 +208,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .status-submitted{background:#0a1420;color:#3a6a9a;border:1px solid #102030}
 .status-approved{background:#0a1a10;color:#3a8a5a;border:1px solid #103020}
 .budget-card-actions{display:flex;gap:4px;margin-top:8px}
-.sidebar-footer{padding:0 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;justify-content:center;min-height:64px}
+.sidebar-footer{border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;justify-content:center;min-height:44px}
 
 /* CONTENT */
 #content-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
@@ -792,6 +792,19 @@ body{margin:0;padding:0}
   </div>
 </div>
 
+<!-- CUSTOM CONFIRM/ALERT MODAL -->
+<div id="custom-modal-overlay">
+  <div class="custom-modal">
+    <div class="custom-modal-icon" id="cm-icon"></div>
+    <div class="custom-modal-title" id="cm-title"></div>
+    <div class="custom-modal-body"  id="cm-body"></div>
+    <div class="custom-modal-actions">
+      <button class="custom-modal-cancel" id="cm-cancel" onclick="_cmCancel()">Cancel</button>
+      <button class="custom-modal-ok"     id="cm-ok"     onclick="_cmOk()">OK</button>
+    </div>
+  </div>
+</div>
+
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-logo">
@@ -941,14 +954,7 @@ body{margin:0;padding:0}
     <div class="sidebar-list" id="sidebar-list" oncontextmenu="sbListCtx(event)"></div>
 
     <div class="sidebar-footer">
-      <div id="sb-user-row" style="border-bottom:1px solid var(--border);display:none">
-        <button class="user-menu-btn" onclick="showUserMenu(event)">
-          <div class="user-avatar" id="sb-avatar">?</div>
-          <span class="user-email" id="sb-email-label"></span>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0;color:var(--text4)"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-      <button onclick="switchTab('contacts')" id="sb-contacts-btn" style="display:flex;align-items:center;gap:8px;width:100%;padding:0 12px;height:100%;background:transparent;border:none;border-radius:0;cursor:pointer;transition:all .15s;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.04em">
+      <button onclick="switchTab('contacts')" id="sb-contacts-btn" style="display:flex;align-items:center;gap:8px;width:100%;padding:0 16px;height:100%;background:transparent;border:none;border-radius:0;cursor:pointer;transition:all .15s;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.04em">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
           <circle cx="8" cy="5.5" r="2.8"/>
           <path d="M2.5 14.5c0-3 2.46-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/>
@@ -1871,15 +1877,8 @@ function updateUserUI() {
   const meta = _currentUser.user_metadata || {};
   const name = meta.full_name || meta.name || '';
   const email = _currentUser.email || '';
-  const display = name || email;
   const initials = name ? name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : email[0]?.toUpperCase() || '?';
-  const el = document.getElementById('sb-user-row');
-  const av = document.getElementById('sb-avatar');
-  const em = document.getElementById('sb-email-label');
-  if (el) el.style.display = '';
-  if (av) av.textContent = initials;
-  if (em) em.textContent = display;
-  // Also update topbar avatar
+  // Update topbar avatar
   const ta = document.getElementById('topbar-avatar');
   const ti = document.getElementById('topbar-avatar-initials');
   if (ta) ta.style.display = 'flex';
@@ -2082,7 +2081,7 @@ async function migrateFromLocalStorage() {
     if (!raw) return;
     const d = JSON.parse(raw);
     if (!d.budgets?.length) return;
-    if (!confirm('Found '+d.budgets.length+' budget(s) saved locally. Import them into your cloud account?')) return;
+    if (!await cmConfirm('Import local data','Found '+d.budgets.length+' budget(s) saved locally. Import them into your cloud account?','Import')) return;
     budgets=d.budgets||[]; folders=d.folders||[]; rateCards=d.rateCards||[];
     templates=d.templates||[]; snapshots=d.snapshots||[]; contacts=d.contacts||[];
     companies=d.companies||[]; prefs=d.prefs||{}; onboardDismissed=d.onboardDismissed||false;
@@ -2354,6 +2353,37 @@ function _tourPosition(step) {
   tip.style.cssText = `display:block;position:fixed;width:${TIP_W}px;left:${left}px;top:${top}px;`;
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// CUSTOM MODALS — replaces browser confirm() / alert()
+// ════════════════════════════════════════════════════════════════
+let _cmResolve = null;
+
+function _cmOpen({ title, body, okLabel='OK', okClass='primary', icon='warn', showCancel=true }) {
+  document.getElementById('cm-title').textContent  = title;
+  document.getElementById('cm-body').innerHTML     = body;
+  document.getElementById('cm-ok').textContent     = okLabel;
+  document.getElementById('cm-ok').className       = 'custom-modal-ok ' + okClass;
+  document.getElementById('cm-icon').className     = 'custom-modal-icon ' + icon;
+  document.getElementById('cm-icon').textContent   = icon==='danger' ? '🗑' : icon==='warn' ? '⚠' : 'ℹ';
+  document.getElementById('cm-cancel').style.display = showCancel ? '' : 'none';
+  document.getElementById('custom-modal-overlay').classList.add('open');
+  return new Promise(res => { _cmResolve = res; });
+}
+function _cmOk()     { document.getElementById('custom-modal-overlay').classList.remove('open'); if(_cmResolve) { _cmResolve(true);  _cmResolve=null; } }
+function _cmCancel() { document.getElementById('custom-modal-overlay').classList.remove('open'); if(_cmResolve) { _cmResolve(false); _cmResolve=null; } }
+
+// Public helpers — use these everywhere instead of confirm()/alert()
+function cmConfirm(title, body, okLabel='Confirm', danger=false) {
+  return _cmOpen({ title, body, okLabel, okClass: danger?'danger':'primary', icon: danger?'danger':'warn', showCancel:true });
+}
+function cmAlert(title, body) {
+  return _cmOpen({ title, body, okLabel:'OK', okClass:'primary', icon:'info', showCancel:false });
+}
+function cmDanger(title, body, okLabel='Delete') {
+  return _cmOpen({ title, body, okLabel, okClass:'danger', icon:'danger', showCancel:true });
+}
+
 // STATE
 // ─────────────────────────────────────────────────────────────────────────────
 const KEY = 'farallon_v2';
@@ -2436,8 +2466,8 @@ function setDefaultCompany(id) {
   companies.forEach(c=>c.isDefault = (c.id===id));
   save();
 }
-function deleteCompany(id) {
-  if(companies.length <= 1) { alert('You need at least one company.'); return; }
+async function deleteCompany(id) {
+  if(companies.length <= 1) { await cmAlert('Cannot delete','You need at least one company on file.'); return; }
   const wasDefault = (companies.find(c=>c.id===id)||{}).isDefault;
   companies = companies.filter(c=>c.id!==id);
   // Unlink budgets that referenced this company
@@ -2814,9 +2844,9 @@ function sbRevertMenu(x, y, bid) {
   const snaps = snapshots.filter(s=>s.budgetId===bid).slice().reverse().slice(0,8);
   sbShowCtx(x, y, snaps.map(s=>{
     const label = s.label || new Date(s.ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
-    return { label: '⏱  '+label, action: ()=>{
+    return { label: '⏱  '+label, action: async ()=>{
       const bname = budgets.find(b=>b.id===bid)?.name||'';
-      if(!confirm('Revert "'+bname+'" to snapshot "'+s.label+'"?')) return;
+      if(!await cmConfirm('Revert to snapshot','Revert <strong>'+bname+'</strong> to snapshot <strong>'+s.label+'</strong>? Current values will be replaced.','Revert')) return;
       const bi=budgets.findIndex(b=>b.id===bid); if(bi<0) return;
       const fid=budgets[bi].folderId;
       const restored=JSON.parse(JSON.stringify(s.data));
@@ -2849,13 +2879,13 @@ function createFolder() {
   save(); renderSidebar();
 }
 
-function sbDeleteFolder(fid) {
+async function sbDeleteFolder(fid) {
   const f=folders.find(x=>x.id===fid); if(!f) return;
   const children=budgets.filter(b=>b.folderId===fid);
   const msg=children.length
     ? `Delete folder "${f.name}"? The ${children.length} budget(s) inside will move to Unfiled.`
     : `Delete folder "${f.name}"?`;
-  if(!confirm(msg)) return;
+  if(!await cmDanger('Confirm',''+msg,'Confirm')) return;
   budgets.forEach(b=>{ if(b.folderId===fid) b.folderId=null; });
   folders=folders.filter(x=>x.id!==fid);
   save(); renderSidebar();
@@ -3599,7 +3629,7 @@ function createFromTemplateAndClose(id) {
   createFromTemplate(id);
 }
 function selectBudget(id) { activeId=id; if(activeTab==='contacts') activeTab='budget'; render(); }
-function delBudget(id) { if(!confirm('Delete this budget?')) return; budgets=budgets.filter(b=>b.id!==id); if(activeId===id) activeId=null; cloudDelete('budgets',id); render(); }
+async function delBudget(id) { const ok = await cmDanger('Delete budget','This will permanently delete this budget and all its data. This cannot be undone.','Delete Budget'); if(!ok) return; budgets=budgets.filter(b=>b.id!==id); if(activeId===id) activeId=null; cloudDelete('budgets',id); render(); }
 function dupBudget(id) { const src=budgets.find(b=>b.id===id); if(!src) return; const b=JSON.parse(JSON.stringify(src)); b.id=Date.now().toString(); b.name+=' (Copy)'; b.createdAt=Date.now(); b.folderId=src.folderId||null; budgets.unshift(b); activeId=b.id; activeTab='budget'; render(); flashNewBudget(); }
 
 function switchTab(tab) {
@@ -4038,9 +4068,9 @@ function createEnvelope(budgetId) {
   }, 60);
 }
 
-function deleteEnvelope(budgetId, envId) {
+async function deleteEnvelope(budgetId, envId) {
   const b = budgets.find(x=>x.id===budgetId); if(!b||!b.pettyCash) return;
-  if(!confirm('Delete this envelope and all its distributions?')) return;
+  if(!await cmDanger('Delete envelope','This will delete this envelope and all its distributions.','Delete Envelope')) return;
   b.pettyCash = b.pettyCash.filter(e=>e.id!==envId);
   delete _pcExpanded[envId];
   save();
@@ -4756,8 +4786,8 @@ function createContact() {
   }, 60);
 }
 
-function deleteContact(id) {
-  if(!confirm('Delete this contact?')) return;
+async function deleteContact(id) {
+  if(!await cmDanger('Delete contact','This will permanently remove this contact from your library.','Delete Contact')) return;
   contacts = contacts.filter(c=>c.id!==id);
   save();
   renderContactsPanel();
@@ -6737,7 +6767,7 @@ function renderCalendarPanel(b) {
 
     <!-- Remove role -->
     <div style="padding:12px 16px">
-      <button onclick="if(confirm('Remove this role from the calendar? This sets days and rate to zero.')){calRemoveCrewRole('${b.id}','${crew[selectedIdx].phases[0]?.lineId}')}"
+      <button onclick="cmDanger('Remove from calendar','This will set days and rate to zero for this role.','Remove').then(ok=>ok&&calRemoveCrewRole('${b.id}','${crew[selectedIdx].phases[0]?.lineId}'))"
         style="width:100%;padding:8px 12px;font-size:10px;font-family:var(--mono);letter-spacing:.06em;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s"
         onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)';this.style.background='rgba(248,113,113,.06)'"
         onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)';this.style.background='transparent'">
@@ -8172,9 +8202,9 @@ function applyShootDays(which) {
   render();
 }
 
-function copySectionRates(fromCode, toCode) {
+async function copySectionRates(fromCode, toCode) {
   const b = active(); if(!b) return;
-  if(!confirm('Copy rates from Section '+fromCode+' to Section '+toCode+'? Rates and fringe codes copy. Qty stays. Existing values overwritten.')) return;
+  if(!await cmConfirm('Copy rates','Copy rates from Section <strong>'+fromCode+'</strong> to Section <strong>'+toCode+'</strong>? Rates and fringe codes will copy. Qty stays. Existing values will be overwritten.','Copy Rates')) return;
   const fromSec = SECTIONS.find(s=>s.code===fromCode);
   const toSec = SECTIONS.find(s=>s.code===toCode);
   if(!fromSec||!toSec) return;
@@ -8206,11 +8236,11 @@ function saveRateCard() {
   save(); renderContent();
 }
 
-function loadRateCard(id, isBuiltin) {
+async function loadRateCard(id, isBuiltin) {
   const allCards = [...BUILTIN_RATE_CARDS, ...rateCards];
   const rc = allCards.find(r=>r.id===id); if(!rc) return;
   const b = active(); if(!b) return;
-  if(!confirm('Apply "'+rc.name+'" to this budget? Crew rates and fringe codes will be filled. Existing values overwritten.')) return;
+  if(!await cmConfirm('Apply rate card','Apply <strong>'+rc.name+'</strong> to this budget? Crew rates and fringe codes will be filled in. Existing values will be overwritten.','Apply')) return;
   // Apply fringeDefault to all crew lines if set
   if(rc.fringeDefault) {
     SECTIONS.filter(s=>s.isCrew).forEach(sec => {
@@ -8225,8 +8255,8 @@ function loadRateCard(id, isBuiltin) {
   render();
 }
 
-function deleteRateCard(id) {
-  if(!confirm('Delete this rate card?')) return;
+async function deleteRateCard(id) {
+  if(!await cmDanger('Delete rate card','This will permanently delete this rate card.','Delete')) return;
   rateCards = rateCards.filter(r=>r.id!==id);
   save(); renderContent();
 }
@@ -8245,8 +8275,8 @@ function createFromTemplate(id) {
   const b = newBudget(t); budgets.unshift(b); activeId=b.id; activeTab='budget'; expanded={}; render(); flashNewBudget();
 }
 
-function deleteTemplate(id) {
-  if(!confirm('Delete this template?')) return;
+async function deleteTemplate(id) {
+  if(!await cmDanger('Delete template','This will permanently delete this saved template.','Delete')) return;
   templates = templates.filter(t=>t.id!==id); cloudDelete('templates',id); save(); renderContent();
 }
 
@@ -8275,12 +8305,12 @@ function saveSnapshot() {
   spRefresh('snapshots');
 }
 
-function restoreSnapshot(id) {
+async function restoreSnapshot(id) {
   const snap = snapshots.find(s=>s.id===id); if(!snap) return;
   const b = active(); if(!b) return;
   const ts = new Date(snap.ts);
   const dateStr = ts.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  if(!confirm(`Restore snapshot "${snap.label}" (saved ${dateStr})?\n\nCurrent values will be replaced. This cannot be undone.`)) return;
+  if(!await cmDanger(`Restore snapshot`,`Restore snapshot <strong>${snap.label}</strong> from ${dateStr}? Current values will be replaced and this cannot be undone.`,'Restore')) return;
   // Copy all budget data fields from snapshot, keep id
   const snap_data = JSON.parse(JSON.stringify(snap.data));
   snap_data.id = b.id;
@@ -8821,9 +8851,9 @@ function saveLineNote(lineId, value) {
 // ─────────────────────────────────────────────────────────────────────────────
 // CLEAR BUDGET BY ID (from sidebar)
 // ─────────────────────────────────────────────────────────────────────────────
-function clearBudgetById(id) {
+async function clearBudgetById(id) {
   const b = budgets.find(x=>x.id===id); if(!b) return;
-  if(!confirm('Clear all line item values in "'+b.name+'"?\n\nProject info and markup settings are kept.')) return;
+  if(!await cmDanger('Clear budget values','This will clear all line item values in <strong>'+b.name+'</strong>. Project info and markup settings are kept.','Clear Values')) return;
   if(activeId === id) { activeId = id; clearBudget(); return; }
   b.values = {}; b.actuals = {}; b.fringes = {}; b.lineNotes = {}; b.sectionNotes = {};
   render();
@@ -9181,8 +9211,8 @@ function loadRCEData() {
   } catch(e) {}
 }
 
-function resetRCE() {
-  if(!confirm('Reset all built-in rate cards to their original default values?')) return;
+async function resetRCE() {
+  if(!await cmConfirm('Reset rate cards','This will reset all built-in rate cards to their original default values. Any customizations will be lost.','Reset')) return;
   RATE_CARD_DEFAULTS.forEach(def => {
     const rc = BUILTIN_RATE_CARDS.find(r=>r.id===def.id);
     if(rc) rc.rates = {...def.rates};
@@ -9563,7 +9593,7 @@ function renderCompaniesTab() {
       </div>
       <div style="display:flex;gap:8px;margin-top:6px;padding-top:12px;border-top:1px solid var(--border)">
         ${!co.isDefault?`<button onclick="setDefaultCompany('${co.id}');renderSettingsModal()" style="padding:6px 12px;font-family:var(--mono);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer">Set as Default</button>`:'<span style="font-size:9px;color:var(--text4);font-family:var(--mono)">Default company</span>'}
-        <button onclick="if(companies.length<=1){alert('Need at least one company.');}else if(confirm('Delete this company?')){deleteCompany('${co.id}')}" style="margin-left:auto;padding:6px 12px;font-family:var(--mono);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">Delete Company</button>
+        <button onclick="(async()=>{if(companies.length<=1){await cmAlert('Cannot delete','You need at least one company on file.');return;}if(await cmDanger('Delete company','This will permanently delete this company profile.','Delete Company'))deleteCompany('${co.id}');})()" style="margin-left:auto;padding:6px 12px;font-family:var(--mono);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">Delete Company</button>
       </div>
     </div>`;
   } else {
@@ -9790,7 +9820,7 @@ function restoreBackup(input) {
     try {
       const d = JSON.parse(e.target.result);
       if(!d.budgets) { alert('Invalid backup file.'); return; }
-      if(!confirm('This will replace ALL current data with the backup. Continue?')) return;
+      if(!await cmDanger('Restore backup','This will replace ALL current data with the backup. This cannot be undone.','Restore Backup')) return;
       budgets=d.budgets||[]; folders=d.folders||[]; rateCards=d.rateCards||[];
       templates=d.templates||[]; snapshots=d.snapshots||[]; contacts=d.contacts||[];
       companies=d.companies||[]; prefs=d.prefs||{}; onboardDismissed=d.onboardDismissed||false;
@@ -10596,7 +10626,48 @@ function renderCompareView(ids) {
     <style>
       .cmp-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--border2);border-radius:3px;overflow:hidden}
       .cmp-table tr:hover{background:var(--bg2)}
-    </style>
+    
+/* ── CUSTOM CONFIRM/ALERT MODALS ── */
+#custom-modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;
+  display:none;align-items:center;justify-content:center;
+}
+#custom-modal-overlay.open { display:flex; }
+.custom-modal {
+  background:var(--bg1);border:1px solid var(--border2);border-radius:5px;
+  padding:28px 32px 24px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);
+}
+.custom-modal-icon {
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;margin-bottom:14px;font-size:16px;
+}
+.custom-modal-icon.warn  { background:rgba(251,191,36,.12);color:#fbbf24; }
+.custom-modal-icon.danger{ background:rgba(248,113,113,.12);color:#f87171; }
+.custom-modal-icon.info  { background:rgba(108,142,240,.12);color:var(--accent); }
+.custom-modal-title {
+  font-family:var(--display);font-size:15px;font-weight:700;
+  color:var(--text);margin-bottom:8px;
+}
+.custom-modal-body {
+  font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:22px;
+}
+.custom-modal-actions { display:flex;gap:8px;justify-content:flex-end; }
+.custom-modal-cancel {
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  padding:8px 16px;background:transparent;border:1px solid var(--border2);
+  color:var(--text3);border-radius:3px;cursor:pointer;transition:all .15s;
+}
+.custom-modal-cancel:hover { border-color:var(--text3);color:var(--text); }
+.custom-modal-ok {
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  padding:8px 20px;border:none;border-radius:3px;cursor:pointer;transition:background .15s;color:#fff;
+}
+.custom-modal-ok.danger { background:#e74c3c; }
+.custom-modal-ok.danger:hover { background:#c0392b; }
+.custom-modal-ok.primary { background:var(--accent); }
+.custom-modal-ok.primary:hover { background:#5a7ee0; }
+</style>
     <div style="max-width:1100px;margin:0 auto">
       <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;flex-wrap:wrap">
         <div style="font-size:13px;font-family:var(--mono);letter-spacing:.1em;color:var(--text3)">BUDGET COMPARISON</div>
