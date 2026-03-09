@@ -681,15 +681,7 @@ body{margin:0;padding:0}
 .tour-actions {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
-.tour-progress {
-  display: flex; gap: 4px; align-items: center;
-}
-.tour-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--bg3); transition: background .2s;
-}
-.tour-dot.active { background: var(--accent); }
-.tour-dot.done   { background: var(--border2); }
+.tour-progress { display:none; }
 
 .tour-btn-skip {
   font-family: var(--mono); font-size: 10px; color: var(--text4);
@@ -826,7 +818,6 @@ body{margin:0;padding:0}
       <button class="tour-btn-skip" onclick="tourSkip()">Skip tour</button>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="tour-btn-back" id="tour-back-btn" onclick="tourBack()">← Back</button>
-        <div class="tour-progress" id="tour-progress"></div>
         <button class="tour-btn-next" id="tour-next-btn" onclick="tourNext()">Next →</button>
       </div>
     </div>
@@ -2384,124 +2375,142 @@ function _tourCleanup() {
 // ── TOUR STEPS ──────────────────────────────────────────────────
 const TOUR_STEPS = [
   // 0 — Sidebar
-  {
-    target: '#sidebar', place: 'right', tab: null, expandSec: null, openPanel: null,
+  { target:'#sidebar', place:'right', tab:null,
+    action: null,
     title: 'Your projects live here',
-    body: 'Every budget you create appears in this sidebar. You can organize them into <strong>folders</strong> by client or campaign — helpful when you\'re managing multiple productions at once. Click any budget to open it.',
+    body: 'Every budget you create appears in this sidebar. Organize them into <strong>folders</strong> by client or campaign — handy when you\'re juggling multiple productions. Click any budget to open it.',
   },
   // 1 — New budget
-  {
-    target: '.sb-actions-row', place: 'right', tab: null, expandSec: null, openPanel: null,
+  { target:'.sb-actions-row', place:'right', tab:null,
+    action: null,
     title: 'Creating a new budget',
-    body: 'Hit <strong>+</strong> to start a new budget. You\'ll choose a production type — AICP Commercial, Music Video, Documentary, Corporate, and more. Each template pre-loads the standard crew structure and default fringe rates for that job type.',
+    body: 'Hit <strong>+</strong> to start a new budget. Choose a production type — AICP Commercial, Music Video, Documentary, and more. Each template pre-loads the right crew structure and fringe rates for that job type.',
   },
   // 2 — Budget tab overview
-  {
-    target: '#tab-budget', place: 'below', tab: 'budget', expandSec: null, openPanel: null,
+  { target:'#tab-budget', place:'below', tab:'budget',
+    action: null,
     title: 'The Budget tab — AICP format',
-    body: 'This is your main workspace. Every budget follows the <strong>AICP standard</strong> — the format used across US commercial production. It organizes costs into labeled sections that clients, agencies, and production companies all recognize.',
+    body: 'Your main workspace. Every budget follows the <strong>AICP standard</strong> — the format used across US commercial production. It organizes costs into labeled sections that clients, agencies, and production companies all recognize.',
   },
-  // 3 — Sections
-  {
-    target: '#budget-sections', place: 'right', tab: 'budget', expandSec: null, openPanel: null,
+  // 3 — Sections list
+  { target:'#budget-sections', place:'right', tab:'budget',
+    action: null,
     title: 'Budget sections',
-    body: 'Each row is a section — <em>Prep Crew, Shoot Crew, Location Expenses, Equipment Rental</em>, and so on. Click the <strong>▶</strong> arrow to expand a section and see all its line items. Sections with values show a running total on the right.',
+    body: 'Each row is a budget section — <em>Prep Crew, Shoot Crew, Location Expenses, Equipment Rental</em>, and so on. Click the <strong>▶</strong> to expand any section and see its line items. Sections with values show a running total on the right.',
   },
-  // 4 — Expand Shoot Crew to show lines
-  {
-    target: '#sec-B', place: 'right', tab: 'budget', expandSec: 'B', openPanel: null,
+  // 4 — Expand Shoot Crew
+  { target:'#sec-B', place:'right', tab:'budget',
+    action: 'expandB',
     title: 'Inside a crew section',
-    body: 'This is the <strong>Shoot Crew</strong> section — every role on set for the shoot days. Each row has a <strong>Qty</strong> (days), <strong>Rate</strong> (day rate), and an auto-calculated total. The fringe code on the right determines payroll tax and benefits applied to that role.',
+    body: 'The <strong>Shoot Crew</strong> section lists every role on set. Each row has a <strong>Qty</strong> (days), <strong>Rate</strong> (day rate), and the auto-calculated total. The fringe code on the right determines payroll tax and benefits applied to that role.',
   },
-  // 5 — Line panel
-  {
-    target: '#sec-B', place: 'right', tab: 'budget', expandSec: 'B', openPanel: 'B53',
+  // 5 — Open line panel for DP
+  { target:'#line-panel', place:'left', tab:'budget',
+    action: 'openLinePanelDP',
     title: 'Line item detail panel',
-    body: 'Click any line item name to open its <strong>detail panel</strong>. Here you can assign a vendor, enter notes, see the kit rental field, and access the <strong>OT Calculator</strong> — which computes 1.5× and 2× overtime earnings automatically, adding them to the crew total.',
+    body: 'Click any crew name to open this <strong>detail panel</strong>. Here you assign a vendor from your contacts library, add booking notes, set a kit rental fee, and enter an OT flag. This data carries through to your cost report and POs.',
   },
-  // 6 — Smart toolbar
-  {
-    target: '.smart-bar', place: 'below', tab: 'budget', expandSec: null, openPanel: null,
+  // 6 — OT calculator
+  { target:'#line-panel', place:'left', tab:'budget',
+    action: 'openOT',
+    title: 'OT Calculator',
+    body: 'Enable overtime with the <strong>⏱</strong> button on any crew line. Enter the hourly rate and the number of 1.5× and 2× hours worked per day. The calculator adds the total OT earnings automatically on top of the base day rate — no spreadsheet needed.',
+  },
+  // 7 — Smart toolbar
+  { target:'.smart-bar', place:'below', tab:'budget',
+    action: null,
     title: 'Fringe, shoot days & rate cards',
-    body: '<strong>Fringe</strong> is the labor burden on top of wages — payroll taxes, workers comp, P&H. <strong>Shoot Days</strong> drives how many days your crew is booked. <strong>Rate Cards</strong> let you save standard day rates by role, so one click fills in your entire crew. <strong>Templates</strong> save entire budget structures to reuse across jobs.',
+    body: '<strong>Fringe</strong> is the labor burden on top of wages — payroll taxes, workers comp, P&H. <strong>Shoot Days</strong> drives how many days your crew is booked. <strong>Rate Cards</strong> save standard day rates by role — one click fills your entire crew. <strong>Templates</strong> save full budget structures to reuse across jobs.',
   },
-  // 7 — Sticky totals bar
-  {
-    target: '#sticky-bar', place: 'above', tab: 'budget', expandSec: null, openPanel: null,
+  // 8 — Sticky totals bar
+  { target:'#sticky-bar', place:'above', tab:'budget',
+    action: 'closeLinePanel',
     title: 'ATL, BTL, and your fee',
-    body: '<strong>ATL</strong> (Above the Line) covers creative fees — director, writer, talent. <strong>BTL</strong> (Below the Line) is everything else — crew, equipment, locations, post. Your <strong>Agency/Production Fee</strong> and contingency are calculated on top. Every number updates live as you type.',
+    body: '<strong>ATL</strong> (Above the Line) covers creative fees. <strong>BTL</strong> (Below the Line) is everything else — crew, equipment, locations, post. Your <strong>Production Fee</strong> and contingency are layered on top. Every number updates live as you type.',
   },
-  // 8 — Cost Report tab
-  {
-    target: '#tab-summary', place: 'below', tab: 'summary', expandSec: null, openPanel: null,
+  // 9 — Cost Report
+  { target:'#tab-summary', place:'below', tab:'summary',
+    action: null,
     title: 'Cost Report',
-    body: 'The <strong>Cost Report</strong> gives a top-down view of every section — what\'s budgeted vs. what\'s been spent. The <strong>Variance</strong> column immediately flags where you\'re over or under. This is the document you share with the client or EP during production for financial status updates.',
+    body: 'A top-down financial view of your entire production — <strong>bid vs. actuals vs. variance</strong> by section. Green means under budget, red means over. Share this with your client or EP during production for a quick financial status update.',
   },
-  // 9 — Cost Report detail
-  {
-    target: '#main', place: 'center', tab: 'summary', expandSec: null, openPanel: null,
-    title: 'Reading the cost report',
-    body: 'Each row shows the section name, your <strong>bid amount</strong>, the <strong>actual spend</strong> entered as you collect invoices and receipts, and the <strong>variance</strong>. Green means under budget. Red means over. The report auto-generates from your budget — there\'s nothing to fill in separately.',
+  // 10 — Cost Report detail
+  { target:'#main', place:'center', tab:'summary',
+    action: null,
+    title: 'Reading the numbers',
+    body: 'Each row shows the section, your <strong>bid amount</strong>, the <strong>actual spend</strong> as invoices come in, and the <strong>variance</strong>. The report auto-generates from your budget data — there\'s nothing to fill in separately. Enter actuals directly in the Actual column.',
   },
-  // 10 — PO tab
-  {
-    target: '#tab-po', place: 'below', tab: 'po', expandSec: null, openPanel: null,
+  // 11 — PO tab
+  { target:'#tab-po', place:'below', tab:'po',
+    action: null,
     title: 'Purchase Orders',
-    body: 'A <strong>PO</strong> is a formal document you issue to a vendor <em>before</em> they do the work. It authorizes the spend, defines the scope, and creates a paper trail. In commercial production, POs cover equipment rental, location fees, catering, transportation — anything vendor-sourced.',
+    body: 'A <strong>PO</strong> is a formal document issued to a vendor <em>before</em> they start work. It authorizes the spend, defines the scope, and creates a paper trail. POs cover equipment rental, location fees, catering, transportation — anything vendor-sourced.',
   },
-  // 11 — PO table detail
-  {
-    target: '#main', place: 'center', tab: 'po', expandSec: null, openPanel: null,
+  // 12 — PO table walkthrough
+  { target:'#main', place:'center', tab:'po',
+    action: null,
     title: 'Inside the PO table',
-    body: 'Each PO has a <strong>number, vendor, department, description, and dollar amount</strong>. You track the invoice amount separately from the PO amount — so you know when actuals differ from what was authorized. Status moves from <em>Open → Approved → Invoiced → Paid</em> as the job progresses.',
+    body: 'Each PO has a <strong>number, vendor, department, description, and authorized amount</strong>. Track the invoice amount separately from the PO — so you know when actuals differ from what was approved. Status moves <em>Open → Approved → Invoiced → Paid</em> as the job progresses. Export any PO as a print-ready PDF.',
   },
-  // 12 — Petty Cash tab
-  {
-    target: '#tab-pc', place: 'below', tab: 'pc', expandSec: null, openPanel: null,
+  // 13 — Petty cash tab
+  { target:'#tab-pc', place:'below', tab:'pc',
+    action: null,
     title: 'Petty Cash',
-    body: '<strong>Petty Cash</strong> is the physical cash float you hand to departments during production. Each allocation is tracked as an <strong>envelope</strong> — the locations dept gets $1,200 for permits and tips, camera gets $600 for expendables, and so on.',
+    body: '<strong>Petty Cash</strong> is the cash float you hand to departments during production. Each allocation is an <strong>envelope</strong> — the locations dept gets $1,200, camera gets $600, art gets $900. This is your demo project\'s petty cash — click Next to see inside an envelope.',
   },
-  // 13 — Petty Cash envelopes
-  {
-    target: '#main', place: 'center', tab: 'pc', expandSec: null, openPanel: null,
-    title: 'Envelopes and distributions',
-    body: 'Expand any envelope to see its <strong>distribution log</strong> — individual receipts and expenditures entered as cash is spent. You track vendor, description, amount, and whether a receipt was collected. The balance shows how much of the float is accounted for vs. remaining, and flags any discrepancy at wrap.',
+  // 14 — Expand envelope and explain
+  { target:'#main', place:'center', tab:'pc',
+    action: 'expandEnvelope',
+    title: 'Inside an envelope',
+    body: 'Each envelope has a <strong>distribution log</strong> — individual receipts entered as cash is spent. You track the vendor, description, amount, and whether a receipt was collected. The balance row shows what\'s accounted for vs. remaining, and flags any discrepancy at wrap.',
   },
-  // 14 — Calendar tab
-  {
-    target: '#tab-calendar', place: 'below', tab: 'calendar', expandSec: null, openPanel: null,
-    title: 'Production calendar',
-    body: 'The <strong>Calendar</strong> maps your entire shoot schedule visually — prep days, shoot days, and wrap. Every crew member appears as a <strong>bar on the timeline</strong>. The bar length is their day count; drag the edge to extend or shorten it. Changes update the budget automatically — no double entry.',
+  // 15 — Petty cash export
+  { target:'#main', place:'center', tab:'pc',
+    action: null,
+    title: 'Exporting petty cash',
+    body: 'Use the <strong>Export Petty Cash Report</strong> button at the top of this tab to generate a full PDF reconciliation — every envelope, every distribution, every balance. Hand this to accounting at the end of the job along with your physical receipts.',
   },
-  // 15 — Calendar crew sidebar
-  {
-    target: '#main', place: 'center', tab: 'calendar', expandSec: null, openPanel: null,
-    title: 'Crew sidebar & role settings',
-    body: 'Click any crew member in the left sidebar to open their settings panel. You can adjust their <strong>day rate, day count, and shoot phase</strong> (prep, shoot, or wrap). You can also enter personal notes per role — useful for tracking union status, special terms, or schedule exceptions.',
-  },
-  // 16 — Detail Browser tab
-  {
-    target: '#tab-detail', place: 'below', tab: 'detail', expandSec: null, openPanel: null,
+  // 16 — Detail Browser
+  { target:'#tab-detail', place:'below', tab:'detail',
+    action: null,
     title: 'Detail Browser',
-    body: 'The <strong>Detail Browser</strong> shows every single line item in your budget as one flat, searchable list — no sections, no hierarchy. Use it to quickly find a specific cost, audit your numbers before sending a bid, or compare bid vs. actual at the line-item level.',
+    body: 'A flat, searchable view of every single line item in your budget — no sections, no hierarchy. Use it to <strong>audit numbers</strong> before sending a bid, compare bid vs. actual at the line level, or quickly find a specific cost anywhere in the budget.',
   },
-  // 17 — Export
-  {
-    target: '#export-wrap', place: 'left', tab: 'budget', expandSec: null, openPanel: null,
+  // 17 — Detail Browser data
+  { target:'#main', place:'center', tab:'detail',
+    action: null,
+    title: 'Every line at a glance',
+    body: 'Each row shows the section code, line name, quantity, rate, fringe, OT, and total. The bid and actual columns sit side by side so variances are immediately visible. You can edit values directly here — changes sync back to the main budget instantly.',
+  },
+  // 18 — Calendar tab
+  { target:'#tab-calendar', place:'below', tab:'calendar',
+    action: null,
+    title: 'Production calendar',
+    body: 'A visual timeline of your entire production — prep, shoot, and wrap. Every crew member appears as a <strong>bar</strong>. The bar length is their day count. Drag either <strong>handle</strong> to extend or shorten it — the budget updates automatically. No double entry.',
+  },
+  // 19 — Select a crew member to show sidebar
+  { target:'#main', place:'center', tab:'calendar',
+    action: 'selectCalCrew',
+    title: 'Crew settings panel',
+    body: 'Click any crew member\'s name in the left column to open their settings panel. Here you can adjust their <strong>day rate, day count, and phase</strong> (prep vs. shoot vs. wrap). Add personal notes per role — union status, special terms, schedule exceptions.',
+  },
+  // 20 — Contacts
+  { target:'#sb-contacts-btn', place:'right', tab:'contacts',
+    action: 'switchToContacts',
+    title: 'Contacts — your crew & vendor library',
+    body: 'Your <strong>Contacts</strong> library stores everyone you work with — crew, vendors, locations. Assign a contact to any line item to auto-fill their day rate, enable calendar tracking, and pre-fill PO vendor fields. Contacts are shared across all your budgets.',
+  },
+  // 21 — Contacts populated
+  { target:'#main', place:'center', tab:'contacts',
+    action: null,
+    title: 'Your vendor and crew library',
+    body: 'Each contact has a name, role, company, phone, email, and day rate. Tag contacts as <strong>crew</strong> or <strong>vendor</strong> for quick filtering. Use the search bar to find anyone instantly. Contacts you add here are available across every budget you create.',
+  },
+  // 22 — Export
+  { target:'#export-wrap', place:'left', tab:'budget',
+    action: null,
     title: 'Exporting your work',
-    body: 'The <strong>Export</strong> menu generates print-ready PDFs. Export your full AICP bid budget, individual POs to send to vendors, or a complete <strong>Wrap Book</strong> — the final production document that includes your budget, cost report, all POs, and petty cash reconciliation. This is the official record at end of job.',
-  },
-  // 18 — Contacts
-  {
-    target: '#sb-contacts-btn', place: 'right', tab: null, expandSec: null, openPanel: null,
-    title: 'Contacts — your vendor & crew library',
-    body: 'Your <strong>Contacts</strong> library stores everyone you work with — crew, vendors, locations. Assign contacts to line items in your budget to auto-fill their day rate, enable calendar tracking, and pre-fill PO vendor fields. Contacts persist across all your budgets.',
-  },
-  // 19 — Account
-  {
-    target: '#topbar-avatar', place: 'below', tab: null, expandSec: null, openPanel: null,
-    title: 'Your account',
-    body: 'Click your initials anytime to edit your profile, change your password, download a full data backup, or restart this tour. Your data is private — only you can access your budgets. Click <strong>Finish →</strong> to wrap up the tour and start building your first real budget.',
+    body: 'The <strong>Export</strong> menu generates print-ready PDFs at any stage. Export your full AICP bid, individual POs to send vendors, petty cash reports, or a complete <strong>Wrap Book</strong> — budget, cost report, all POs, and petty cash reconciliation in one document. This is the official record at end of job.',
   },
 ];
 
@@ -2616,45 +2625,84 @@ function _tourShowStep(idx) {
     switchTab(step.tab);
   }
 
-  // Expand a section if needed
-  if (step.expandSec) {
-    if (!expanded[step.expandSec]) {
-      expanded[step.expandSec] = true;
-      renderContent && renderContent();
-    }
-  }
+  // Run step action
+  _tourRunAction(step.action);
 
-  // Open a line panel if needed
-  if (step.openPanel) {
-    setTimeout(()=>{
-      const b = budgets.find(x=>x.id===_tourDemoBudgetId);
-      if (b) openLinePanel && openLinePanel(b, step.openPanel);
-    }, 80);
-  }
-
+  // Update tooltip content
   _tourEl('tour-step-label').textContent = `STEP ${idx+1} OF ${total}`;
   _tourEl('tour-title').textContent      = step.title;
   _tourEl('tour-body').innerHTML         = step.body;
 
-  // Progress dots
+  // Progress dots (hidden via CSS, kept for structure)
   const prog = _tourEl('tour-progress');
-  prog.innerHTML = '';
-  for (let i = 0; i < total; i++) {
-    const d = document.createElement('div');
-    d.className = 'tour-dot' + (i===idx?' active': i<idx?' done':'');
-    prog.appendChild(d);
-  }
+  if (prog) prog.innerHTML = '';
 
   _tourEl('tour-back-btn').style.visibility = idx===0 ? 'hidden' : 'visible';
   _tourEl('tour-next-btn').textContent       = idx===total-1 ? 'Finish →' : 'Next →';
 
-  // Position after a short settle delay
-  setTimeout(()=>_tourDoPosition(step), 120);
+  // Position after settle delay
+  setTimeout(()=>_tourDoPosition(step), idx===0 ? 200 : 140);
 }
 
-function _tourDoPosition(step) {
-  _tourPosition(step);
+function _tourRunAction(action) {
+  if (!action) return;
+  const b = budgets.find(x=>x.id===_tourDemoBudgetId);
+
+  if (action === 'expandB') {
+    if (!expanded['B']) { expanded['B'] = true; renderContent && renderContent(); }
+  }
+
+  if (action === 'openLinePanelDP') {
+    if (!expanded['B']) { expanded['B'] = true; renderContent && renderContent(); }
+    setTimeout(()=>{ openLinePanel && openLinePanel('B53','B'); }, 120);
+  }
+
+  if (action === 'openOT') {
+    // Make sure line panel is open for B53 then toggle OT row open
+    setTimeout(()=>{
+      openLinePanel && openLinePanel('B53','B');
+      setTimeout(()=>{
+        // Trigger the OT row to open if not open
+        const otBtn = document.querySelector('.ot-btn');
+        if (otBtn && !otBtn.classList.contains('ot-active')) otBtn.click();
+      }, 80);
+    }, 80);
+  }
+
+  if (action === 'closeLinePanel') {
+    closeLinePanel && closeLinePanel();
+  }
+
+  if (action === 'expandEnvelope') {
+    if (!b) return;
+    // Expand the first petty cash envelope
+    const env = (b.pettyCash||[])[0];
+    if (env) {
+      _pcExpanded[env.id] = true;
+      setTimeout(()=>{
+        renderPCPanel && renderPCPanel(b);
+        // Scroll envelope into view
+        setTimeout(()=>{
+          const el = document.getElementById('pc-body-'+env.id);
+          if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+        }, 100);
+      }, 100);
+    }
+  }
+
+  if (action === 'selectCalCrew') {
+    if (!b) return;
+    // Select the DP (B53) in the calendar sidebar
+    _calSelectedCrew = 'B53';
+    setTimeout(()=>{ renderCalendarPanel && renderCalendarPanel(b); }, 120);
+  }
+
+  if (action === 'switchToContacts') {
+    switchTab('contacts');
+    setTimeout(()=>{ renderContactsPanel && renderContactsPanel(); }, 120);
+  }
 }
+
 
 function _tourPosition(step) {
   const spot = _tourEl('tour-spotlight');
