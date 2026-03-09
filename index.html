@@ -1756,15 +1756,15 @@ function openProfileModal() {
       <label class="auth-label" style="margin-top:12px">EMAIL</label>
       <input class="auth-input" type="email" value="${esc(_currentUser?.email||'')}" disabled style="opacity:.5;cursor:not-allowed">
       <div id="profile-msg" class="auth-msg" style="display:none;margin-top:12px"></div>
-      <div style="display:flex;gap:8px;margin-top:20px">
+      <div style="display:flex;gap:8px;margin-top:16px">
         <button class="auth-btn-ghost" onclick="document.getElementById('profile-modal').remove()" style="flex:1">Cancel</button>
-        <button class="auth-btn" onclick="saveProfile()" style="flex:2;margin-top:0">SAVE CHANGES</button>
+        <button id="profile-save-btn" class="auth-btn" onclick="saveProfile()" style="flex:2;margin-top:0">SAVE CHANGES</button>
       </div>
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
         <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:10px;letter-spacing:.08em">CHANGE PASSWORD</div>
         <input id="profile-pw1" class="auth-input" type="password" placeholder="New password (min 8 chars)">
         <input id="profile-pw2" class="auth-input" type="password" placeholder="Confirm new password">
-        <button class="auth-btn-ghost" onclick="savePassword()" style="margin-top:8px">UPDATE PASSWORD</button>
+        <button id="profile-pw-btn" class="auth-btn-ghost" onclick="savePassword()" style="margin-top:8px">UPDATE PASSWORD</button>
       </div>
     </div>
   `;
@@ -1774,43 +1774,47 @@ function openProfileModal() {
 
 async function saveProfile() {
   if (!_supa || !_currentUser) return;
-  const name = document.getElementById('profile-name').value.trim();
+  const name    = document.getElementById('profile-name').value.trim();
   const company = document.getElementById('profile-company').value.trim();
-  const btn = event.currentTarget;
-  btn.disabled = true; btn.textContent = 'SAVING...';
+  const msg     = document.getElementById('profile-msg');
+  const btn     = document.getElementById('profile-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'SAVING...'; }
   try {
-    const { error } = await _supa.auth.updateUser({
+    const { data, error } = await _supa.auth.updateUser({
       data: { full_name: name, company: company }
     });
     if (error) throw error;
-    _currentUser.user_metadata = { ..._currentUser.user_metadata, full_name: name, company: company };
+    // Refresh local user object from response
+    if (data?.user) _currentUser = data.user;
+    else _currentUser.user_metadata = { ..._currentUser.user_metadata, full_name: name, company: company };
     updateUserUI();
-    const msg = document.getElementById('profile-msg');
-    msg.style.display=''; msg.className='auth-msg success'; msg.textContent='Profile saved.';
+    if (msg) { msg.style.display=''; msg.className='auth-msg success'; msg.textContent='Profile saved.'; }
     setTimeout(()=>{ document.getElementById('profile-modal')?.remove(); }, 1200);
   } catch(e) {
-    const msg = document.getElementById('profile-msg');
-    msg.style.display=''; msg.className='auth-msg error'; msg.textContent=e.message||'Save failed.';
+    if (msg) { msg.style.display=''; msg.className='auth-msg error'; msg.textContent=e.message||'Save failed.'; }
   }
-  btn.disabled = false; btn.textContent = 'SAVE CHANGES';
+  if (btn) { btn.disabled = false; btn.textContent = 'SAVE CHANGES'; }
 }
 
 async function savePassword() {
   if (!_supa) return;
-  const pw1 = document.getElementById('profile-pw1').value;
-  const pw2 = document.getElementById('profile-pw2').value;
-  const msg = document.getElementById('profile-msg');
+  const pw1  = document.getElementById('profile-pw1').value;
+  const pw2  = document.getElementById('profile-pw2').value;
+  const msg  = document.getElementById('profile-msg');
+  const btn  = document.getElementById('profile-pw-btn');
   if (pw1.length < 8) { msg.style.display=''; msg.className='auth-msg error'; msg.textContent='Password must be at least 8 characters.'; return; }
   if (pw1 !== pw2)    { msg.style.display=''; msg.className='auth-msg error'; msg.textContent='Passwords do not match.'; return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'UPDATING...'; }
   try {
     const { error } = await _supa.auth.updateUser({ password: pw1 });
     if (error) throw error;
-    msg.style.display=''; msg.className='auth-msg success'; msg.textContent='Password updated.';
+    if (msg) { msg.style.display=''; msg.className='auth-msg success'; msg.textContent='Password updated successfully.'; }
     document.getElementById('profile-pw1').value='';
     document.getElementById('profile-pw2').value='';
   } catch(e) {
-    msg.style.display=''; msg.className='auth-msg error'; msg.textContent=e.message||'Update failed.';
+    if (msg) { msg.style.display=''; msg.className='auth-msg error'; msg.textContent=e.message||'Update failed.'; }
   }
+  if (btn) { btn.disabled = false; btn.textContent = 'UPDATE PASSWORD'; }
 }
 
 // ── Sync indicator ────────────────────────────────────
