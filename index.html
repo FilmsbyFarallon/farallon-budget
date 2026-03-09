@@ -589,21 +589,30 @@ body{margin:0;padding:0}
 
 /* ── AUTH SCREEN ── */
 #auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;align-items:center;justify-content:center;font-family:var(--sans)}
-.auth-card{background:var(--bg1);border:1px solid var(--border2);border-radius:4px;padding:40px 44px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.8)}
+.auth-card{background:var(--bg1);border:1px solid var(--border2);border-radius:4px;padding:40px 44px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.8)}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
 .auth-logo-sub{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--text4)}
-.auth-title{font-size:18px;font-weight:700;font-family:var(--display);color:var(--text);margin-bottom:6px}
-.auth-sub{font-size:12px;color:var(--text3);margin-bottom:28px;line-height:1.6}
-.auth-label{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.1em;margin-bottom:6px;display:block}
-.auth-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 12px;outline:none;border-radius:2px;transition:border-color .2s;box-sizing:border-box}
+.auth-title{font-size:18px;font-weight:700;font-family:var(--display);color:var(--text);margin-bottom:6px;letter-spacing:.02em}
+.auth-sub{font-size:12px;color:var(--text3);margin-bottom:24px;line-height:1.6}
+.auth-label{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.1em;margin-bottom:5px;display:block}
+.auth-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 12px;outline:none;border-radius:2px;transition:border-color .2s;box-sizing:border-box;margin-bottom:14px}
 .auth-input:focus{border-color:var(--accent)}
-.auth-btn{width:100%;padding:11px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;margin-top:8px;transition:background .15s}
+.auth-input:last-of-type{margin-bottom:0}
+.auth-btn{width:100%;padding:11px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;margin-top:12px;transition:background .15s}
 .auth-btn:hover{background:#5a7ee0}
 .auth-btn:disabled{background:var(--bg3);color:var(--text4);cursor:not-allowed}
+.auth-btn-ghost{width:100%;padding:10px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;margin-top:8px;transition:border-color .15s,color .15s}
+.auth-btn-ghost:hover{border-color:var(--text3);color:var(--text)}
 .auth-msg{margin-top:14px;padding:10px 12px;border-radius:2px;font-size:11px;font-family:var(--mono);line-height:1.5}
 .auth-msg.success{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:#34d399}
 .auth-msg.error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171}
-.auth-footer{margin-top:24px;text-align:center;font-size:11px;color:var(--text4);line-height:1.6}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--text4);font-size:10px;font-family:var(--mono)}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-footer{margin-top:20px;text-align:center;font-size:11px;color:var(--text4);line-height:1.7}
+.auth-footer a{color:var(--accent);cursor:pointer;text-decoration:none}
+.auth-footer a:hover{text-decoration:underline}
+.auth-switch{text-align:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--text4)}
+.auth-switch a{color:var(--accent);cursor:pointer}
 #sync-indicator{position:fixed;bottom:72px;right:16px;z-index:500;font-size:9px;font-family:var(--mono);padding:4px 8px;border-radius:2px;transition:opacity .4s;pointer-events:none;background:var(--bg2);border:1px solid var(--border);color:var(--text4);opacity:0}
 #sync-indicator.syncing{color:var(--accent);border-color:var(--accent-dim)}
 #sync-indicator.saved{color:var(--green);border-color:rgba(52,211,153,.3)}
@@ -623,22 +632,70 @@ body{margin:0;padding:0}
       <span style="font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);letter-spacing:.06em">FARALLON</span>
       <span class="auth-logo-sub">PRODUCTION BUDGET</span>
     </div>
-    <div id="auth-panel-login">
+
+    <!-- PANEL: Sign In -->
+    <div id="auth-panel-signin">
       <div class="auth-title">Sign in</div>
-      <div class="auth-sub">Enter your email and we'll send you a magic link — no password needed.</div>
-      <div style="margin-bottom:16px">
-        <label class="auth-label">EMAIL</label>
-        <input id="auth-email" class="auth-input" type="email" placeholder="you@yourcompany.com" autocomplete="email" onkeydown="if(event.key==='Enter')authSendMagicLink()">
-      </div>
-      <button class="auth-btn" id="auth-send-btn" onclick="authSendMagicLink()">SEND MAGIC LINK</button>
-      <div id="auth-msg" style="display:none" class="auth-msg"></div>
-      <div class="auth-footer">Your data is private and only accessible to you.</div>
+      <div class="auth-sub">Welcome back.</div>
+      <label class="auth-label">EMAIL</label>
+      <input id="signin-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signin-password').focus()">
+      <label class="auth-label">PASSWORD</label>
+      <input id="signin-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSignIn()">
+      <button class="auth-btn" id="signin-btn" onclick="authSignIn()">SIGN IN</button>
+      <div id="auth-msg" class="auth-msg" style="display:none"></div>
+      <div class="auth-footer"><a onclick="authShowPanel('forgot')">Forgot your password?</a></div>
+      <div class="auth-switch">Don't have an account? <a onclick="authShowPanel('signup')">Create one</a></div>
     </div>
-    <div id="auth-panel-sent" style="display:none">
+
+    <!-- PANEL: Sign Up -->
+    <div id="auth-panel-signup" style="display:none">
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">Free to start. No credit card required.</div>
+      <label class="auth-label">FULL NAME</label>
+      <input id="signup-name" class="auth-input" type="text" placeholder="Your name" autocomplete="name" onkeydown="if(event.key==='Enter')document.getElementById('signup-company').focus()">
+      <label class="auth-label">COMPANY <span style="color:var(--text4);font-size:9px">(optional)</span></label>
+      <input id="signup-company" class="auth-input" type="text" placeholder="Production company name" onkeydown="if(event.key==='Enter')document.getElementById('signup-email').focus()">
+      <label class="auth-label">EMAIL</label>
+      <input id="signup-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signup-password').focus()">
+      <label class="auth-label">PASSWORD <span style="color:var(--text4);font-size:9px">(min 8 characters)</span></label>
+      <input id="signup-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')document.getElementById('signup-password2').focus()">
+      <label class="auth-label">CONFIRM PASSWORD</label>
+      <input id="signup-password2" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authSignUp()">
+      <button class="auth-btn" id="signup-btn" onclick="authSignUp()">CREATE ACCOUNT</button>
+      <div id="auth-msg-signup" class="auth-msg" style="display:none"></div>
+      <div class="auth-switch">Already have an account? <a onclick="authShowPanel('signin')">Sign in</a></div>
+    </div>
+
+    <!-- PANEL: Verify email -->
+    <div id="auth-panel-verify" style="display:none">
       <div class="auth-title">Check your email</div>
-      <div class="auth-sub">We sent a magic link to <strong id="auth-sent-email"></strong>.<br>Click it to sign in — expires in 1 hour.</div>
-      <button class="auth-btn" onclick="authShowLogin()" style="background:transparent;border:1px solid var(--border2);color:var(--text3);margin-top:8px">← Use a different email</button>
+      <div class="auth-sub">We sent a confirmation link to <strong id="verify-email"></strong>.<br>Click it to activate your account.</div>
+      <button class="auth-btn-ghost" onclick="authShowPanel('signin')">← Back to sign in</button>
     </div>
+
+    <!-- PANEL: Forgot password -->
+    <div id="auth-panel-forgot" style="display:none">
+      <div class="auth-title">Reset password</div>
+      <div class="auth-sub">Enter your email and we'll send you a reset link.</div>
+      <label class="auth-label">EMAIL</label>
+      <input id="forgot-email" class="auth-input" type="email" placeholder="you@company.com" onkeydown="if(event.key==='Enter')authForgotPassword()">
+      <button class="auth-btn" id="forgot-btn" onclick="authForgotPassword()">SEND RESET LINK</button>
+      <div id="auth-msg-forgot" class="auth-msg" style="display:none"></div>
+      <button class="auth-btn-ghost" onclick="authShowPanel('signin')">← Back to sign in</button>
+    </div>
+
+    <!-- PANEL: Reset password (after clicking email link) -->
+    <div id="auth-panel-reset" style="display:none">
+      <div class="auth-title">Set new password</div>
+      <div class="auth-sub">Choose a new password for your account.</div>
+      <label class="auth-label">NEW PASSWORD</label>
+      <input id="reset-password" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')document.getElementById('reset-password2').focus()">
+      <label class="auth-label">CONFIRM NEW PASSWORD</label>
+      <input id="reset-password2" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authResetPassword()">
+      <button class="auth-btn" id="reset-btn" onclick="authResetPassword()">UPDATE PASSWORD</button>
+      <div id="auth-msg-reset" class="auth-msg" style="display:none"></div>
+    </div>
+
   </div>
 </div>
 <div id="sync-indicator"></div>
@@ -1472,9 +1529,16 @@ function supaInit() {
 
 // ── Auth ──────────────────────────────────────────────
 async function authInit() {
-  if (!_supa) return; // local mode
+  if (!_supa) return;
   try {
     const { data: { session } } = await _supa.auth.getSession();
+    // Check if we're handling a password reset link
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      authShowPanel('reset');
+      showAuthScreen();
+      return;
+    }
     if (session?.user) {
       _currentUser = session.user;
       await cloudLoad();
@@ -1485,8 +1549,16 @@ async function authInit() {
     _supa.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         _currentUser = session.user;
+        // If this is after a password reset, show the reset panel
+        if (window.location.hash.includes('type=recovery')) {
+          authShowPanel('reset');
+          return;
+        }
         await cloudLoad();
         hideAuthScreen();
+      } else if (event === 'PASSWORD_RECOVERY') {
+        authShowPanel('reset');
+        showAuthScreen();
       } else if (event === 'SIGNED_OUT') {
         _currentUser = null;
         showAuthScreen();
@@ -1494,7 +1566,6 @@ async function authInit() {
     });
   } catch(e) {
     console.warn('authInit error:', e);
-    // Stay in local mode
   }
 }
 
@@ -1512,62 +1583,154 @@ function hideAuthScreen() {
   updateUserUI();
   render();
 }
-function authShowLogin() {
-  document.getElementById('auth-panel-login').style.display = '';
-  document.getElementById('auth-panel-sent').style.display = 'none';
-  const msg = document.getElementById('auth-msg');
-  if (msg) msg.style.display = 'none';
+function authShowPanel(panel) {
+  ['signin','signup','verify','forgot','reset'].forEach(p => {
+    const el = document.getElementById('auth-panel-'+p);
+    if (el) el.style.display = p === panel ? '' : 'none';
+  });
+  // Clear all messages
+  ['auth-msg','auth-msg-signup','auth-msg-forgot','auth-msg-reset'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
 }
-async function authSendMagicLink() {
-  if (!_supa) return;
-  const email = document.getElementById('auth-email').value.trim();
-  if (!email) { authShowMsg('Please enter your email.', 'error'); return; }
-  const btn = document.getElementById('auth-send-btn');
-  btn.disabled = true; btn.textContent = 'SENDING...';
-  try {
-    const { error } = await _supa.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin }
-    });
-    if (error) throw error;
-    document.getElementById('auth-sent-email').textContent = email;
-    document.getElementById('auth-panel-login').style.display = 'none';
-    document.getElementById('auth-panel-sent').style.display = '';
-  } catch(e) {
-    authShowMsg(e.message || 'Something went wrong.', 'error');
-  }
-  btn.disabled = false; btn.textContent = 'SEND MAGIC LINK';
-}
-function authShowMsg(msg, type) {
-  const el = document.getElementById('auth-msg');
+function authShowMsg(msgId, msg, type) {
+  const el = document.getElementById(msgId);
   if (!el) return;
   el.style.display = '';
   el.className = 'auth-msg ' + type;
   el.textContent = msg;
 }
+async function authSignIn() {
+  if (!_supa) return;
+  const email = document.getElementById('signin-email').value.trim();
+  const password = document.getElementById('signin-password').value;
+  if (!email || !password) { authShowMsg('auth-msg','Please enter your email and password.','error'); return; }
+  const btn = document.getElementById('signin-btn');
+  btn.disabled = true; btn.textContent = 'SIGNING IN...';
+  try {
+    const { data, error } = await _supa.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    _currentUser = data.user;
+    await cloudLoad();
+    hideAuthScreen();
+  } catch(e) {
+    authShowMsg('auth-msg', e.message || 'Sign in failed. Check your email and password.', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'SIGN IN';
+}
+async function authSignUp() {
+  if (!_supa) return;
+  const name     = document.getElementById('signup-name').value.trim();
+  const company  = document.getElementById('signup-company').value.trim();
+  const email    = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const password2= document.getElementById('signup-password2').value;
+  if (!name)  { authShowMsg('auth-msg-signup','Please enter your name.','error'); return; }
+  if (!email) { authShowMsg('auth-msg-signup','Please enter your email.','error'); return; }
+  if (password.length < 8) { authShowMsg('auth-msg-signup','Password must be at least 8 characters.','error'); return; }
+  if (password !== password2) { authShowMsg('auth-msg-signup','Passwords do not match.','error'); return; }
+  const btn = document.getElementById('signup-btn');
+  btn.disabled = true; btn.textContent = 'CREATING ACCOUNT...';
+  try {
+    const { data, error } = await _supa.auth.signUp({
+      email, password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: { full_name: name, company: company }
+      }
+    });
+    if (error) throw error;
+    // Show verify panel
+    document.getElementById('verify-email').textContent = email;
+    authShowPanel('verify');
+  } catch(e) {
+    authShowMsg('auth-msg-signup', e.message || 'Signup failed.', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'CREATE ACCOUNT';
+}
+async function authForgotPassword() {
+  if (!_supa) return;
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) { authShowMsg('auth-msg-forgot','Please enter your email.','error'); return; }
+  const btn = document.getElementById('forgot-btn');
+  btn.disabled = true; btn.textContent = 'SENDING...';
+  try {
+    const { error } = await _supa.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    });
+    if (error) throw error;
+    authShowMsg('auth-msg-forgot','Reset link sent! Check your inbox.','success');
+  } catch(e) {
+    authShowMsg('auth-msg-forgot', e.message || 'Failed to send reset email.', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'SEND RESET LINK';
+}
+async function authResetPassword() {
+  if (!_supa) return;
+  const password  = document.getElementById('reset-password').value;
+  const password2 = document.getElementById('reset-password2').value;
+  if (password.length < 8) { authShowMsg('auth-msg-reset','Password must be at least 8 characters.','error'); return; }
+  if (password !== password2) { authShowMsg('auth-msg-reset','Passwords do not match.','error'); return; }
+  const btn = document.getElementById('reset-btn');
+  btn.disabled = true; btn.textContent = 'UPDATING...';
+  try {
+    const { error } = await _supa.auth.updateUser({ password });
+    if (error) throw error;
+    authShowMsg('auth-msg-reset','Password updated! Signing you in...','success');
+    setTimeout(async () => {
+      const { data: { session } } = await _supa.auth.getSession();
+      if (session?.user) {
+        _currentUser = session.user;
+        await cloudLoad();
+        hideAuthScreen();
+        window.location.hash = '';
+      }
+    }, 1500);
+  } catch(e) {
+    authShowMsg('auth-msg-reset', e.message || 'Failed to update password.', 'error');
+  }
+  btn.disabled = false; btn.textContent = 'UPDATE PASSWORD';
+}
 async function authSignOut() {
   if (_supa) await _supa.auth.signOut();
+  _currentUser = null;
+  authShowPanel('signin');
+  showAuthScreen();
 }
 function updateUserUI() {
   if (!_currentUser) return;
+  const meta = _currentUser.user_metadata || {};
+  const name = meta.full_name || meta.name || '';
   const email = _currentUser.email || '';
+  const display = name || email;
+  const initials = name ? name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : email[0]?.toUpperCase() || '?';
   const el = document.getElementById('sb-user-row');
   const av = document.getElementById('sb-avatar');
   const em = document.getElementById('sb-email-label');
   if (el) el.style.display = '';
-  if (av) av.textContent = email[0]?.toUpperCase() || '?';
-  if (em) em.textContent = email;
+  if (av) av.textContent = initials;
+  if (em) em.textContent = display;
 }
 function showUserMenu(e) {
   e.stopPropagation();
   document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
   const rect = e.currentTarget.getBoundingClientRect();
+  const meta = _currentUser?.user_metadata || {};
+  const name = meta.full_name || meta.name || '';
+  const company = meta.company || '';
+  const email = _currentUser?.email || '';
   const menu = document.createElement('div');
   menu.className = 'sb-ctx';
-  menu.style.cssText = `position:fixed;left:${rect.left}px;bottom:${window.innerHeight-rect.top+4}px;min-width:180px;z-index:9999`;
+  menu.style.cssText = `position:fixed;left:${rect.left}px;bottom:${window.innerHeight-rect.top+4}px;min-width:200px;z-index:9999`;
   menu.innerHTML = `
-    <div style="padding:8px 14px 6px;font-size:9px;font-family:var(--mono);color:var(--text4);letter-spacing:.1em">${esc(_currentUser?.email||'')}</div>
+    <div style="padding:10px 14px 8px">
+      ${name ? `<div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:2px">${esc(name)}</div>` : ''}
+      ${company ? `<div style="font-size:10px;color:var(--text3);margin-bottom:2px">${esc(company)}</div>` : ''}
+      <div style="font-size:10px;font-family:var(--mono);color:var(--text4)">${esc(email)}</div>
+    </div>
     <hr class="sb-ctx-sep">
+    <div class="sb-ctx-item" onclick="openProfileModal()">✎ Edit profile</div>
     <div class="sb-ctx-item" onclick="downloadBackup()">⬇ Download backup</div>
     <hr class="sb-ctx-sep">
     <div class="sb-ctx-item danger" onclick="authSignOut()">Sign out</div>
@@ -1575,6 +1738,79 @@ function showUserMenu(e) {
   document.body.appendChild(menu);
   const close = ()=>{ menu.remove(); document.removeEventListener('click',close); };
   setTimeout(()=>document.addEventListener('click',close),0);
+}
+
+function openProfileModal() {
+  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  const meta = _currentUser?.user_metadata || {};
+  const overlay = document.createElement('div');
+  overlay.id = 'profile-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:3000;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;padding:32px 36px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.8)">
+      <div style="font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:20px;color:var(--text)">Edit Profile</div>
+      <label class="auth-label">FULL NAME</label>
+      <input id="profile-name" class="auth-input" type="text" value="${esc(meta.full_name||meta.name||'')}" placeholder="Your name">
+      <label class="auth-label" style="margin-top:12px">COMPANY</label>
+      <input id="profile-company" class="auth-input" type="text" value="${esc(meta.company||'')}" placeholder="Production company">
+      <label class="auth-label" style="margin-top:12px">EMAIL</label>
+      <input class="auth-input" type="email" value="${esc(_currentUser?.email||'')}" disabled style="opacity:.5;cursor:not-allowed">
+      <div id="profile-msg" class="auth-msg" style="display:none;margin-top:12px"></div>
+      <div style="display:flex;gap:8px;margin-top:20px">
+        <button class="auth-btn-ghost" onclick="document.getElementById('profile-modal').remove()" style="flex:1">Cancel</button>
+        <button class="auth-btn" onclick="saveProfile()" style="flex:2;margin-top:0">SAVE CHANGES</button>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:10px;letter-spacing:.08em">CHANGE PASSWORD</div>
+        <input id="profile-pw1" class="auth-input" type="password" placeholder="New password (min 8 chars)">
+        <input id="profile-pw2" class="auth-input" type="password" placeholder="Confirm new password">
+        <button class="auth-btn-ghost" onclick="savePassword()" style="margin-top:8px">UPDATE PASSWORD</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+async function saveProfile() {
+  if (!_supa || !_currentUser) return;
+  const name = document.getElementById('profile-name').value.trim();
+  const company = document.getElementById('profile-company').value.trim();
+  const btn = event.currentTarget;
+  btn.disabled = true; btn.textContent = 'SAVING...';
+  try {
+    const { error } = await _supa.auth.updateUser({
+      data: { full_name: name, company: company }
+    });
+    if (error) throw error;
+    _currentUser.user_metadata = { ..._currentUser.user_metadata, full_name: name, company: company };
+    updateUserUI();
+    const msg = document.getElementById('profile-msg');
+    msg.style.display=''; msg.className='auth-msg success'; msg.textContent='Profile saved.';
+    setTimeout(()=>{ document.getElementById('profile-modal')?.remove(); }, 1200);
+  } catch(e) {
+    const msg = document.getElementById('profile-msg');
+    msg.style.display=''; msg.className='auth-msg error'; msg.textContent=e.message||'Save failed.';
+  }
+  btn.disabled = false; btn.textContent = 'SAVE CHANGES';
+}
+
+async function savePassword() {
+  if (!_supa) return;
+  const pw1 = document.getElementById('profile-pw1').value;
+  const pw2 = document.getElementById('profile-pw2').value;
+  const msg = document.getElementById('profile-msg');
+  if (pw1.length < 8) { msg.style.display=''; msg.className='auth-msg error'; msg.textContent='Password must be at least 8 characters.'; return; }
+  if (pw1 !== pw2)    { msg.style.display=''; msg.className='auth-msg error'; msg.textContent='Passwords do not match.'; return; }
+  try {
+    const { error } = await _supa.auth.updateUser({ password: pw1 });
+    if (error) throw error;
+    msg.style.display=''; msg.className='auth-msg success'; msg.textContent='Password updated.';
+    document.getElementById('profile-pw1').value='';
+    document.getElementById('profile-pw2').value='';
+  } catch(e) {
+    msg.style.display=''; msg.className='auth-msg error'; msg.textContent=e.message||'Update failed.';
+  }
 }
 
 // ── Sync indicator ────────────────────────────────────
