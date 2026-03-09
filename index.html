@@ -733,6 +733,47 @@ body{margin:0;padding:0}
 }
 .tour-center-actions { display: flex; flex-direction: column; gap: 10px; }
 
+
+/* ── CUSTOM CONFIRM/ALERT MODALS ── */
+#custom-modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;
+  display:none;align-items:center;justify-content:center;
+}
+#custom-modal-overlay.open { display:flex; }
+.custom-modal {
+  background:var(--bg1);border:1px solid var(--border2);border-radius:5px;
+  padding:28px 32px 24px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);
+}
+.custom-modal-icon {
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;margin-bottom:14px;font-size:16px;
+}
+.custom-modal-icon.warn  { background:rgba(251,191,36,.12);color:#fbbf24; }
+.custom-modal-icon.danger{ background:rgba(248,113,113,.12);color:#f87171; }
+.custom-modal-icon.info  { background:rgba(108,142,240,.12);color:var(--accent); }
+.custom-modal-title {
+  font-family:var(--display);font-size:15px;font-weight:700;
+  color:var(--text);margin-bottom:8px;
+}
+.custom-modal-body {
+  font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:22px;
+}
+.custom-modal-actions { display:flex;gap:8px;justify-content:flex-end; }
+.custom-modal-cancel {
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  padding:8px 16px;background:transparent;border:1px solid var(--border2);
+  color:var(--text3);border-radius:3px;cursor:pointer;transition:all .15s;
+}
+.custom-modal-cancel:hover { border-color:var(--text3);color:var(--text); }
+.custom-modal-ok {
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  padding:8px 20px;border:none;border-radius:3px;cursor:pointer;transition:background .15s;color:#fff;
+}
+.custom-modal-ok.danger { background:#e74c3c; }
+.custom-modal-ok.danger:hover { background:#c0392b; }
+.custom-modal-ok.primary { background:var(--accent); }
+.custom-modal-ok.primary:hover { background:#5a7ee0; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1886,6 +1927,11 @@ function updateUserUI() {
 }
 function showUserMenu(e) {
   e.stopPropagation();
+  // Toggle — if menu already open, close it
+  if (document.querySelector('.sb-ctx')) {
+    document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+    return;
+  }
   document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
   const rect = e.currentTarget.getBoundingClientRect();
   const meta = _currentUser?.user_metadata || {};
@@ -2317,7 +2363,7 @@ function _tourPosition(step) {
   const r = el.getBoundingClientRect();
 
   // Spotlight
-  spot.style.cssText = `display:block;position:fixed;left:${r.left-PAD}px;top:${r.top-PAD}px;width:${r.width+PAD*2}px;height:${r.height+PAD*2}px;border-radius:4px;box-shadow:0 0 0 9999px rgba(0,0,0,.78);z-index:8001;pointer-events:none;`;
+  spot.style.cssText = `display:block;position:fixed;left:${r.left-PAD}px;top:${r.top-PAD}px;width:${r.width+PAD*2}px;height:${r.height+PAD*2}px;border-radius:4px;box-shadow:0 0 0 9999px rgba(0,0,0,.58);z-index:8001;pointer-events:none;`;
 
   // Tooltip position
   let left, top, arrowClass;
@@ -10628,48 +10674,7 @@ function renderCompareView(ids) {
     <style>
       .cmp-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--border2);border-radius:3px;overflow:hidden}
       .cmp-table tr:hover{background:var(--bg2)}
-    
-/* ── CUSTOM CONFIRM/ALERT MODALS ── */
-#custom-modal-overlay {
-  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9000;
-  display:none;align-items:center;justify-content:center;
-}
-#custom-modal-overlay.open { display:flex; }
-.custom-modal {
-  background:var(--bg1);border:1px solid var(--border2);border-radius:5px;
-  padding:28px 32px 24px;width:100%;max-width:380px;
-  box-shadow:0 20px 60px rgba(0,0,0,.8);
-}
-.custom-modal-icon {
-  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;margin-bottom:14px;font-size:16px;
-}
-.custom-modal-icon.warn  { background:rgba(251,191,36,.12);color:#fbbf24; }
-.custom-modal-icon.danger{ background:rgba(248,113,113,.12);color:#f87171; }
-.custom-modal-icon.info  { background:rgba(108,142,240,.12);color:var(--accent); }
-.custom-modal-title {
-  font-family:var(--display);font-size:15px;font-weight:700;
-  color:var(--text);margin-bottom:8px;
-}
-.custom-modal-body {
-  font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:22px;
-}
-.custom-modal-actions { display:flex;gap:8px;justify-content:flex-end; }
-.custom-modal-cancel {
-  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
-  padding:8px 16px;background:transparent;border:1px solid var(--border2);
-  color:var(--text3);border-radius:3px;cursor:pointer;transition:all .15s;
-}
-.custom-modal-cancel:hover { border-color:var(--text3);color:var(--text); }
-.custom-modal-ok {
-  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
-  padding:8px 20px;border:none;border-radius:3px;cursor:pointer;transition:background .15s;color:#fff;
-}
-.custom-modal-ok.danger { background:#e74c3c; }
-.custom-modal-ok.danger:hover { background:#c0392b; }
-.custom-modal-ok.primary { background:var(--accent); }
-.custom-modal-ok.primary:hover { background:#5a7ee0; }
-</style>
+    </style>
     <div style="max-width:1100px;margin:0 auto">
       <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;flex-wrap:wrap">
         <div style="font-size:13px;font-family:var(--mono);letter-spacing:.1em;color:var(--text3)">BUDGET COMPARISON</div>
