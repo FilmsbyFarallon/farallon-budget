@@ -2098,72 +2098,76 @@ async function migrateFromLocalStorage() {
 // ════════════════════════════════════════════════════════════════
 const TOUR_STEPS = [
   {
-    target: '#sidebar',
-    place: 'right',
+    target: '#sidebar', place: 'right', tab: null,
     title: 'Your project sidebar',
-    body: "This is where all your budgets live. Every project you create appears here. You can organize budgets into <strong>folders</strong> — useful when you're juggling multiple clients or productions at once. Click any budget to open it.",
+    body: "All your budgets live here. Every project you create appears in this list. You can organize budgets into <strong>folders</strong> by client or project type — handy when you're juggling multiple productions at once.",
   },
   {
-    target: '.sb-actions-row',
-    place: 'right',
+    target: '.sb-actions-row', place: 'right', tab: null,
     title: 'Creating a new budget',
-    body: 'Hit the <strong>+</strong> button to create a new budget. Choose a production type — Commercial, Music Video, Documentary, and more. Each type pre-loads the right crew structure and fringe rates for that kind of job.',
+    body: "Hit the <strong>+</strong> button to start a new budget. You'll choose a production type — AICP Commercial, Music Video, Documentary, Corporate, and more. Each preset loads the right crew structure and default fringe rates for that kind of job.",
   },
   {
-    target: '#tab-nav',
-    place: 'below',
-    title: 'Budget tabs',
-    body: 'Once a budget is open, these tabs give you access to every tool. <strong>Budget</strong> is your main cost breakdown. <strong>Cost Report</strong> shows totals at a glance. <strong>POs</strong> manages purchase orders. <strong>Petty Cash</strong> tracks envelope spending. <strong>Calendar</strong> maps your shoot days.',
+    target: '#tab-budget', place: 'below', tab: 'budget',
+    title: 'The Budget tab',
+    body: "This is your main workspace. Your budget is organized using the <strong>AICP standard</strong> — the Association of Independent Commercial Producers format used across US commercial production. It divides costs into labeled sections so clients, agencies, and producers all speak the same language.",
   },
   {
-    target: null,
-    place: 'center',
-    title: 'The AICP budget format',
-    body: 'Your budget uses the <strong>AICP standard</strong> — the Association of Independent Commercial Producers format used across US commercial production. It divides costs into labeled sections (A through Z) so clients, agencies, and producers all speak the same language.',
+    target: '#main', place: 'center', tab: 'budget',
+    title: 'Budget sections',
+    body: "Each row is a <strong>budget section</strong> — groups like Prep Crew, Shoot Crew, Location Expenses, Equipment Rental, and so on. Click any section to expand it and see the individual line items inside. Sections with costs show a running total on the right.",
   },
   {
-    target: null,
-    place: 'center',
-    title: 'Crew, rates, and fringe',
-    body: 'Each crew position has a <strong>day rate</strong>, a <strong>quantity</strong>, and a number of <strong>days</strong>. The app calculates totals automatically. <strong>Fringe</strong> is the cost on top of labor — payroll taxes, workers comp, pension and health — applied automatically based on your production type.',
+    target: '.smart-bar', place: 'below', tab: 'budget',
+    title: 'Fringe, shoot days and rate cards',
+    body: "<strong>Fringe</strong> is the labor burden added on top of crew wages — payroll taxes, workers comp, pension and health. <strong>Shoot Days</strong> drives how many days your crew is booked. <strong>Rate Cards</strong> let you define standard day rates for your crew so you're not typing them in every time.",
   },
   {
-    target: null,
-    place: 'center',
-    title: 'Overtime (OT)',
-    body: 'Commercial production runs long days. Click the <strong>OT</strong> button on any crew line to open the overtime calculator. Enter your hours and the app calculates additional OT cost using proper overtime rules — time-and-a-half, double time, and golden time where applicable.',
+    target: '#sticky-bar', place: 'above', tab: 'budget',
+    title: 'ATL, BTL, and your fee',
+    body: "<strong>ATL</strong> (Above the Line) covers creative fees — director, writer, talent. <strong>BTL</strong> (Below the Line) is everything else — crew, equipment, locations, post. Your <strong>Agency Fee</strong> or markup is calculated on top. The grand total updates live as you type.",
   },
   {
-    target: '#tab-po',
-    place: 'below',
+    target: '#tab-summary', place: 'below', tab: 'summary',
+    title: 'Cost Report',
+    body: "The <strong>Cost Report</strong> gives you a clean top-down view of every section total — what's budgeted, what's been spent in actuals, and the variance. This is what you share with a client or EP during production for a quick financial snapshot.",
+  },
+  {
+    target: '#tab-po', place: 'below', tab: 'po',
     title: 'Purchase Orders',
-    body: 'A <strong>Purchase Order (PO)</strong> is a formal document you issue to a vendor before they do the work. It authorizes the spend and protects both sides. In production, POs cover everything from equipment rentals to catering to location fees. The app generates printable PO PDFs.',
+    body: "A <strong>Purchase Order (PO)</strong> is a formal document you issue to a vendor before they do the work. It authorizes the spend and creates a paper trail. POs cover everything from equipment rental to catering to location fees. Create one here and export a print-ready PDF to send to your vendor.",
   },
   {
-    target: '#tab-calendar',
-    place: 'below',
+    target: '#main', place: 'center', tab: 'po',
+    title: 'Inside the PO tab',
+    body: "Each PO you create gets a number, a vendor name, a category, and a dollar amount. You can add line items to a PO and attach it to a specific budget section. When you're ready, export it as a PDF — it includes your company header, PO number, and all the details your vendor needs.",
+  },
+  {
+    target: '#tab-pc', place: 'below', tab: 'pc',
+    title: 'Petty Cash',
+    body: "<strong>Petty Cash</strong> is the physical cash float you hand out to departments during production. Each allocation is tracked as an <strong>envelope</strong> — the DP gets cash for expendables, locations gets cash for tips, and so on. This tab tracks all envelopes, spending, and reconciliation at wrap.",
+  },
+  {
+    target: '#tab-calendar', place: 'below', tab: 'calendar',
     title: 'Production calendar',
-    body: 'The <strong>Calendar</strong> tab shows your full production schedule — prep, shoot, and wrap. It connects to your budget so shoot day count drives your crew day totals. Export it as a PDF to share with your team.',
+    body: "The <strong>Calendar</strong> maps your full production schedule — prep days, shoot days, and wrap. It connects directly to your budget so shoot day count drives crew day totals automatically. Export it as a PDF to share with your team or include in a bid package.",
   },
   {
-    target: null,
-    place: 'center',
-    title: 'Wrap book',
-    body: "The <strong>Wrap Book</strong> is your final cost report — a complete accounting of what was budgeted versus what was actually spent. It's what you hand to the client and agency at the end of a job. Generate a full wrap book PDF from the Export menu.",
+    target: '#tab-detail', place: 'below', tab: 'detail',
+    title: 'Detail Browser',
+    body: "The <strong>Detail Browser</strong> shows every single line item in your budget in one flat, scrollable view — no sections, no hierarchy. Useful for auditing, searching for a specific cost, or doing a final sanity check before you send a bid.",
   },
   {
-    target: '#sync-indicator',
-    place: 'left',
-    title: 'Auto-save and cloud sync',
-    body: "Everything saves automatically as you work. You'll see a small <strong>✓ saved</strong> indicator when your data syncs to the cloud. Your budgets are accessible from any browser, any device — just sign in.",
+    target: '#export-wrap', place: 'left', tab: 'budget',
+    title: 'Exporting and the Wrap Book',
+    body: "The <strong>Export</strong> menu generates professional PDFs at any stage. Export your bid as a full AICP budget, generate individual POs, or produce a complete <strong>Wrap Book</strong> — a final cost report with the budget, actuals, all POs, and petty cash. This is what you hand to the client at the end of a job.",
   },
   {
-    target: '#topbar-avatar',
-    place: 'below',
-    title: 'Your profile',
-    body: 'Click your initials here anytime to access your account. Update your name and company, change your password, download a data backup, or <strong>restart this tour</strong> whenever you need a refresher.',
+    target: '#topbar-avatar', place: 'below', tab: null,
+    title: 'Your account',
+    body: "Click your initials here anytime to access account settings. Update your name and company, change your password, download a full data backup, or <strong>restart this tour</strong> whenever you need a refresher. Your data is private and only accessible to you.",
   },
-];
+]
 
 let _tourStep = 0;
 let _tourActive = false;
@@ -2257,6 +2261,14 @@ function _tourShowStep(idx) {
   const step  = TOUR_STEPS[idx];
   const total = TOUR_STEPS.length;
 
+  // Switch tab if needed — then reposition after render settles
+  if (step.tab && step.tab !== activeTab) {
+    switchTab(step.tab);
+    setTimeout(() => _tourDoPosition(step), 120);
+  } else {
+    _tourDoPosition(step);
+  }
+
   _tourEl('tour-step-label').textContent = `STEP ${idx + 1} OF ${total}`;
   _tourEl('tour-title').textContent      = step.title;
   _tourEl('tour-body').innerHTML         = step.body;
@@ -2272,7 +2284,9 @@ function _tourShowStep(idx) {
 
   _tourEl('tour-back-btn').style.visibility = idx === 0 ? 'hidden' : 'visible';
   _tourEl('tour-next-btn').textContent = idx === total - 1 ? 'Finish →' : 'Next →';
+}
 
+function _tourDoPosition(step) {
   _tourPosition(step);
 }
 
@@ -2330,6 +2344,11 @@ function _tourPosition(step) {
     arrowClass = 'arrow-bottom';
     if (top < 8) { top = r.bottom + PAD + MARGIN; arrowClass = 'arrow-top'; }
   }
+
+  // Clamp to viewport
+  const TIP_H = 280;
+  top  = Math.max(8, Math.min(top, window.innerHeight - TIP_H - 8));
+  left = Math.max(8, Math.min(left, window.innerWidth  - TIP_W  - 8));
 
   tip.className  = arrowClass;
   tip.style.cssText = `display:block;position:fixed;width:${TIP_W}px;left:${left}px;top:${top}px;`;
