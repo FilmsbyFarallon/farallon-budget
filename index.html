@@ -398,6 +398,44 @@ body{margin:0;padding:0}
 .po-field:focus{background:var(--bg3);outline:1px solid var(--border2)}
 .po-field option{background:var(--bg2);color:var(--text)}
 .po-row:hover{background:rgba(108,142,240,.03) !important}
+.po-row.selected{background:rgba(200,169,110,.06) !important;box-shadow:inset 3px 0 0 var(--gold)}
+.po-row.selected:hover{background:rgba(200,169,110,.09) !important}
+.po-row{cursor:default;user-select:none}
+#po-batch-bar{
+  display:none;align-items:center;gap:10px;
+  background:var(--bg3);border-bottom:1px solid var(--border2);
+  padding:8px 24px;flex-shrink:0;
+  animation:poBarSlide .15s ease;
+}
+#po-batch-bar.visible{display:flex}
+@keyframes poBarSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+#po-batch-count{
+  font-size:11px;font-family:var(--mono);color:var(--gold);
+  font-weight:600;letter-spacing:.04em;margin-right:4px;
+}
+.po-batch-btn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  padding:5px 12px;border-radius:2px;cursor:pointer;
+  transition:all .12s;border:1px solid var(--border2);
+  background:transparent;color:var(--text3);
+}
+.po-batch-btn:hover{border-color:var(--text2);color:var(--text)}
+.po-batch-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.po-batch-btn.gold{border-color:var(--gold-dim);color:var(--gold)}
+.po-batch-btn.gold:hover{background:rgba(200,169,110,.1);border-color:var(--gold)}
+#po-batch-status-wrap{position:relative;display:inline-block}
+#po-batch-status-dd{
+  position:absolute;top:calc(100% + 4px);left:0;z-index:500;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:3px;
+  box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:140px;display:none;
+}
+#po-batch-status-dd.open{display:block}
+#po-batch-status-dd button{
+  display:block;width:100%;text-align:left;padding:8px 14px;
+  font-family:var(--mono);font-size:11px;background:transparent;
+  border:none;cursor:pointer;transition:background .1s;
+}
+#po-batch-status-dd button:hover{background:var(--bg3)}
 .po-text-preview{
   font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;cursor:pointer;padding:2px 4px;border-radius:2px;
@@ -1000,6 +1038,26 @@ body{margin:0;padding:0}
 </div>
 
 <!-- CUSTOM CONFIRM/ALERT MODAL -->
+<div id="po-batch-bar">
+  <span id="po-batch-count">0 selected</span>
+  <div style="width:1px;height:14px;background:var(--border2)"></div>
+  <div id="po-batch-status-wrap">
+    <button class="po-batch-btn" onclick="togglePOBatchStatusDD()">Set Status ▾</button>
+    <div id="po-batch-status-dd">
+      <button onclick="batchSetStatus('open')"     style="color:#6c8ef0">Open</button>
+      <button onclick="batchSetStatus('approved')" style="color:#34d399">Approved</button>
+      <button onclick="batchSetStatus('invoiced')" style="color:#fb923c">Invoiced</button>
+      <button onclick="batchSetStatus('paid')"     style="color:#a855f7">Paid</button>
+      <button onclick="batchSetStatus('cancelled')"style="color:#5a5a72">Void</button>
+    </div>
+  </div>
+  <button class="po-batch-btn gold" onclick="exportSelectedPOs()">Export PDF</button>
+  <button class="po-batch-btn danger" onclick="deleteSelectedPOs()">Delete Selected</button>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <button class="po-batch-btn danger" onclick="deleteAllPOs()" style="font-size:9px;opacity:.7">Clear All POs</button>
+    <button class="po-batch-btn" onclick="clearPOSelection()" style="font-size:9px">✕ Deselect All</button>
+  </div>
+</div>
 <div id="po-text-popover">
   <label id="po-text-popover-label">DESCRIPTION</label>
   <textarea id="po-text-popover-ta" rows="3"></textarea>
@@ -4305,6 +4363,7 @@ function dupBudget(id) { const src=budgets.find(b=>b.id===id); if(!src) return; 
 
 function switchTab(tab) {
   if (tab === 'contacts' && activeTab !== 'contacts') _prevTab = activeTab;
+  if(activeTab === 'po' && tab !== 'po') { _poSelected.clear(); updatePOSelectionUI(); }
   activeTab = tab;
   renderContent();
   renderSticky();
@@ -4494,10 +4553,150 @@ function renderPOTotals(b) {
   }
 }
 
+// ── PO batch selection & actions ──
+let _poSelected = new Set();
+
+function poRowClick(e, poId) {
+  // Don't select when clicking inputs, selects, buttons, or text previews
+  if(e.target.closest('input,select,button,.po-text-preview')) return;
+  const row = e.currentTarget;
+  if(e.shiftKey && _poSelected.size > 0) {
+    // Shift-click: select range
+    const rows = Array.from(document.querySelectorAll('.po-row'));
+    const ids = rows.map(r=>r.dataset.id);
+    const lastSelected = [..._poSelected].pop();
+    const iA = ids.indexOf(lastSelected);
+    const iB = ids.indexOf(poId);
+    const [from,to] = iA<iB ? [iA,iB] : [iB,iA];
+    ids.slice(from, to+1).forEach(id => _poSelected.add(id));
+  } else {
+    if(_poSelected.has(poId)) _poSelected.delete(poId);
+    else _poSelected.add(poId);
+  }
+  updatePOSelectionUI();
+}
+
+function updatePOSelectionUI() {
+  document.querySelectorAll('.po-row').forEach(row => {
+    row.classList.toggle('selected', _poSelected.has(row.dataset.id));
+  });
+  const bar = document.getElementById('po-batch-bar');
+  const count = document.getElementById('po-batch-count');
+  if(_poSelected.size > 0) {
+    bar.classList.add('visible');
+    count.textContent = _poSelected.size + ' selected';
+  } else {
+    bar.classList.remove('visible');
+    document.getElementById('po-batch-status-dd').classList.remove('open');
+  }
+}
+
+function clearPOSelection() {
+  _poSelected.clear();
+  updatePOSelectionUI();
+}
+
+function togglePOBatchStatusDD() {
+  document.getElementById('po-batch-status-dd').classList.toggle('open');
+}
+
+function batchSetStatus(status) {
+  const panel = document.getElementById('po-panel');
+  if(!panel||!panel._poBudgetId) return;
+  const b = budgets.find(x=>x.id===panel._poBudgetId); if(!b) return;
+  (b.pos||[]).forEach(po => {
+    if(_poSelected.has(po.id)) po.status = status;
+  });
+  save();
+  document.getElementById('po-batch-status-dd').classList.remove('open');
+  clearPOSelection();
+  renderPOPanel(b);
+}
+
+function deleteSelectedPOs() {
+  const panel = document.getElementById('po-panel');
+  if(!panel||!panel._poBudgetId||_poSelected.size===0) return;
+  const b = budgets.find(x=>x.id===panel._poBudgetId); if(!b) return;
+  customConfirm(`Delete ${_poSelected.size} selected PO${_poSelected.size>1?'s':''}?`, 'danger', () => {
+    b.pos = (b.pos||[]).filter(po => !_poSelected.has(po.id));
+    save();
+    clearPOSelection();
+    renderPOPanel(b);
+  });
+}
+
+function deleteAllPOs() {
+  const panel = document.getElementById('po-panel');
+  if(!panel||!panel._poBudgetId) return;
+  const b = budgets.find(x=>x.id===panel._poBudgetId); if(!b) return;
+  customConfirm(`Delete all ${(b.pos||[]).length} POs? This cannot be undone.`, 'danger', () => {
+    b.pos = [];
+    save();
+    clearPOSelection();
+    renderPOPanel(b);
+  });
+}
+
+function exportSelectedPOs() {
+  const panel = document.getElementById('po-panel');
+  if(!panel||!panel._poBudgetId||_poSelected.size===0) return;
+  const b = budgets.find(x=>x.id===panel._poBudgetId); if(!b) return;
+  const selected = (b.pos||[]).filter(po=>_poSelected.has(po.id));
+  const compName = active()?.company || 'Production';
+  const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fmt = v => v ? '$'+parseFloat(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  const total = selected.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const rows = selected.map(po => {
+    const st = poStatus(po.status);
+    return `<tr>
+      <td>${esc2(po.number||'')}</td>
+      <td>${esc2(po.date||'')}</td>
+      <td>${esc2(po.vendor||'')}</td>
+      <td>${esc2(po.department||'')}</td>
+      <td>${esc2(po.description||'')}</td>
+      <td style="text-align:right;font-weight:600;color:#b8860b">${fmt(po.amount)}</td>
+      <td style="text-align:right">${fmt(po.invoiceAmount)}</td>
+      <td style="color:${st.color};font-weight:600">${st.label}</td>
+      <td>${esc2(po.notes||'')}</td>
+    </tr>`;
+  }).join('');
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PO Summary</title>
+  <style>
+    body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:#111;padding:32px;margin:0}
+    h1{font-size:18px;font-weight:700;margin-bottom:4px}
+    .meta{font-size:11px;color:#666;margin-bottom:24px}
+    table{width:100%;border-collapse:collapse}
+    th{background:#f4f4f4;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;text-align:left;border-bottom:2px solid #ddd}
+    td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top}
+    tfoot td{font-weight:700;border-top:2px solid #111;border-bottom:none;font-size:12px}
+    @media print{body{padding:16px}}
+  </style></head><body>
+  <h1>${esc2(compName)} — PO Summary</h1>
+  <div class="meta">${esc2(b.name||'Untitled Budget')} &nbsp;·&nbsp; ${selected.length} purchase order${selected.length>1?'s':''} &nbsp;·&nbsp; Generated ${new Date().toLocaleDateString()}</div>
+  <table>
+    <thead><tr>
+      <th>PO #</th><th>Date</th><th>Vendor</th><th>Dept</th><th>Description</th>
+      <th style="text-align:right">PO Amt</th><th style="text-align:right">Invoice</th>
+      <th>Status</th><th>Notes</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr>
+      <td colspan="5">Total</td>
+      <td style="text-align:right">$${total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td colspan="3"></td>
+    </tr></tfoot>
+  </table>
+  </body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(),400);
+}
+
 function renderPOPanel(b) {
   const panel = document.getElementById('po-panel');
   if(!panel) return;
   if(!b.pos) b.pos=[];
+  panel._poBudgetId = b.id;  // store for batch ops
 
   const fmt = v => v===''||v===null||v===undefined ? '' : '$'+parseFloat(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtAmt = v => parseFloat(v)||0;
@@ -4587,7 +4786,7 @@ function renderPOPanel(b) {
     pos.forEach((po, idx) => {
       const st = poStatus(po.status);
       const rowBg = idx%2===0 ? 'var(--bg1)' : 'var(--bg2)';
-      html += `<tr class="po-row" data-id="${po.id}" style="background:${rowBg};border-bottom:1px solid var(--border)">
+      html += `<tr class="po-row" data-id="${po.id}" style="background:${rowBg};border-bottom:1px solid var(--border)" onclick="poRowClick(event,'${po.id}')">
         <td style="padding:7px 5px 7px 20px;overflow:hidden">
           <input class="po-field" value="${esc(po.number||'')}" style="font-size:11px;font-family:var(--mono);color:var(--text2);font-weight:600"
             onchange="updatePO('${b.id}','${po.id}','number',this.value)">
@@ -4719,8 +4918,11 @@ function renderPOPanel(b) {
   panel.innerHTML = html;
   renderPOTotals(b);
 
-  // Restore filter ref
+  // Restore filter ref and budget id
   panel._poFilter = filtKey;
+  panel._poBudgetId = b.id;
+  // Reset selection UI after re-render (rows are new DOM nodes)
+  updatePOSelectionUI();
 }
 
 function setPOFilter(budgetId, filterKey) {
