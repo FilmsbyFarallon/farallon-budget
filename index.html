@@ -984,7 +984,7 @@ body{margin:0;padding:0}
 .sp-vendor-item:hover, .sp-vendor-item.sp-active { background:rgba(108,142,240,.08); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx-style@0.8.13/dist/xlsx.full.min.js"></script>
+<!-- Excel export is self-contained (raw OOXML + ZIP) — no external library needed -->
 </head>
 <body>
 <!-- AUTH SCREEN -->
@@ -12065,315 +12065,334 @@ function exportWrapBook() {
 
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EXCEL WORKBOOK EXPORT — styled via xlsx-style
-// 4 sheets: Budget · Cost Report · Purchase Orders · Petty Cash
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXCEL WORKBOOK EXPORT — self-contained OOXML + ZIP, no library needed
+// Full dark theme styling: gold headers, colored status, section backgrounds
 // ─────────────────────────────────────────────────────────────────────────────
 function exportExcel() {
   const b = active(); if(!b) return;
-  if(typeof XLSX === 'undefined') { cmAlert('Not Ready', 'Spreadsheet library is still loading — please try again in a moment.'); return; }
-
   const company = getCompanyForBudget(b)?.name || 'Production';
   const fmtN = v => parseFloat(v)||0;
+  const escX = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-  // ── Palette ────────────────────────────────────────────────────────────────
-  const C = {
-    darkBg:  '0D0D1A',
-    midBg:   '13131F',
-    altBg:   '16162A',
-    gold:    'C8A96E',
-    white:   'FFFFFF',
-    text:    'E2E2F0',
-    text2:   'A0A0C0',
-    green:   '34D399',
-    red:     'E05555',
-    border:  '252540',
-    totBg:   '1E1E35',
-  };
-
-  // ── Style factory ──────────────────────────────────────────────────────────
-  const brd = { style:'thin', color:{ rgb: C.border } };
-  const borders = { top:brd, bottom:brd, left:brd, right:brd };
-
-  function mkStyle(fontOpts, fillRgb, alignOpts, numFmt, hasBorder) {
-    const st = {
-      font: { name:'Arial', sz:10, color:{ rgb: C.text }, ...fontOpts },
-      alignment: { vertical:'center', ...alignOpts },
-    };
-    if(fillRgb) st.fill = { patternType:'solid', fgColor:{ rgb: fillRgb } };
-    if(numFmt) st.numFmt = numFmt;
-    if(hasBorder) st.border = borders;
-    return st;
+  // ── Shared strings ─────────────────────────────────────────────────────────
+  const _sst=[], _sstMap={};
+  function si(str) {
+    str=String(str==null?'':str);
+    if(_sstMap[str]!==undefined) return _sstMap[str];
+    _sstMap[str]=_sst.length; _sst.push(str); return _sst.length-1;
   }
 
-  const ST = {
-    title:   mkStyle({ bold:true, sz:16, color:{rgb:C.gold} },    C.darkBg, {},                        '',           false),
-    sub:     mkStyle({ bold:true, sz:11, color:{rgb:C.text} },    C.darkBg, {},                        '',           false),
-    meta:    mkStyle({ sz:9,  color:{rgb:C.text2} },              C.darkBg, {},                        '',           false),
-    blank:   mkStyle({},                                          C.darkBg, {},                        '',           false),
-    colHdr:  mkStyle({ bold:true, sz:9, color:{rgb:C.gold} },     C.midBg,  { horizontal:'left'  },   '',           true),
-    colHdrR: mkStyle({ bold:true, sz:9, color:{rgb:C.gold} },     C.midBg,  { horizontal:'right' },   '',           true),
-    secHdr:  mkStyle({ bold:true, sz:10,color:{rgb:C.gold} },     C.midBg,  {},                        '',           false),
-    secHdrR: mkStyle({ bold:true, sz:10,color:{rgb:C.gold} },     C.midBg,  { horizontal:'right' },   '$#,##0.00',  false),
-    grpHdr:  mkStyle({ bold:true, sz:9, color:{rgb:C.text2} },    C.darkBg, {},                        '',           false),
-    dataL:   mkStyle({ sz:10, color:{rgb:C.text} },               C.altBg,  { horizontal:'left'  },   '',           true),
-    dataR:   mkStyle({ sz:10, color:{rgb:C.text} },               C.altBg,  { horizontal:'right' },   '$#,##0.00',  true),
-    dataN:   mkStyle({ sz:10, color:{rgb:C.text} },               C.altBg,  { horizontal:'right' },   '#,##0.00',   true),
-    dataC:   mkStyle({ sz:10, color:{rgb:C.text2} },              C.altBg,  { horizontal:'center' },  '',           true),
-    dataPct: mkStyle({ sz:10, color:{rgb:C.text2} },              C.altBg,  { horizontal:'center' },  '0.0%',       true),
-    totLbl:  mkStyle({ bold:true, sz:10, color:{rgb:C.text} },    C.totBg,  {},                        '',           true),
-    totVal:  mkStyle({ bold:true, sz:11, color:{rgb:C.gold} },    C.totBg,  { horizontal:'right' },   '$#,##0.00',  true),
-    grandL:  mkStyle({ bold:true, sz:11, color:{rgb:C.gold} },    C.midBg,  {},                        '',           true),
-    grandV:  mkStyle({ bold:true, sz:13, color:{rgb:C.gold} },    C.midBg,  { horizontal:'right' },   '$#,##0.00',  true),
-    varPos:  mkStyle({ bold:true, sz:10, color:{rgb:C.red} },     C.altBg,  { horizontal:'right' },   '$#,##0.00',  true),
-    varNeg:  mkStyle({ bold:true, sz:10, color:{rgb:C.green} },   C.altBg,  { horizontal:'right' },   '$#,##0.00',  true),
-    varZ:    mkStyle({ sz:10, color:{rgb:C.text2} },              C.altBg,  { horizontal:'right' },   '$#,##0.00',  true),
-    stOpen:  mkStyle({ sz:10, color:{rgb:'6C8EF0'} },             C.altBg,  { horizontal:'center' },  '',           true),
-    stAppr:  mkStyle({ sz:10, color:{rgb:'34D399'} },             C.altBg,  { horizontal:'center' },  '',           true),
-    stInv:   mkStyle({ sz:10, color:{rgb:'FB923C'} },             C.altBg,  { horizontal:'center' },  '',           true),
-    stPaid:  mkStyle({ sz:10, color:{rgb:'A855F7'} },             C.altBg,  { horizontal:'center' },  '',           true),
-    stVoid:  mkStyle({ sz:10, color:{rgb:'5A5A72'} },             C.altBg,  { horizontal:'center' },  '',           true),
-    pcEnv:   mkStyle({ bold:true, sz:10,color:{rgb:C.white} },    C.midBg,  {},                        '',           false),
-  };
+  // ── Style IDs ──────────────────────────────────────────────────────────────
+  const S={title:0,sub:1,meta:2,blank:3,colHdr:4,colHdrR:5,secHdr:6,secHdrR:7,
+    grpHdr:8,dataL:9,dataR:10,dataN:11,dataC:12,dataPct:13,totLbl:14,totVal:15,
+    grandL:16,grandV:17,varPos:18,varNeg:19,varZ:20,stOpen:21,stAppr:22,stInv:23,
+    stPaid:24,stVoid:25,pcEnv:26,check:27};
 
-  // ── Cell helper ────────────────────────────────────────────────────────────
-  function cell(v, style) {
-    if(v === null || v === undefined) v = '';
-    return { v, t: typeof v === 'number' ? 'n' : 's', s: style };
-  }
+  // ── Cell constructors ──────────────────────────────────────────────────────
+  const cs=(v,s)=>({v:String(v==null?'':v),s,t:'s'});
+  const cn=(v,s)=>({v:fmtN(v),s,t:'n'});
+  const ce=(s)=>({v:'',s,t:'s'});
 
-  // ── Sheet assembler ────────────────────────────────────────────────────────
-  function buildSheet(rows, colWidths, freezeRow) {
-    const ws = {};
-    const maxCol = Math.max(...rows.map(r => r.length)) - 1;
-    rows.forEach((row, r) => {
-      for(let col = 0; col <= maxCol; col++) {
-        const cd = row[col];
-        ws[XLSX.utils.encode_cell({r, c:col})] = cd != null ? cd : { v:'', t:'s', s: ST.blank };
-      }
-    });
-    ws['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rows.length-1, c:maxCol} });
-    ws['!cols'] = colWidths.map(w => ({ wch: w }));
-    if(freezeRow) ws['!freeze'] = { xSplit:0, ySplit: freezeRow };
-    return ws;
-  }
-
-  // ── SHEET 1 — BUDGET ──────────────────────────────────────────────────────
-  function makeBudgetSheet() {
-    const nc = 6;
-    const B = () => Array(nc).fill(cell('', ST.blank));
-    const rows = [];
-
-    rows.push([cell(`${company}  ·  ${b.name||'Untitled Budget'}`, ST.title), ...Array(nc-1).fill(cell('', ST.title))]);
-    rows.push([cell(b.client||'', ST.sub),   ...Array(nc-1).fill(cell('', ST.sub))]);
-    rows.push([cell(`Project: ${b.project||''}  ·  Shoot Days: ${b.shootDays||'—'}  ·  Exported: ${new Date().toLocaleDateString()}`, ST.meta), ...Array(nc-1).fill(cell('', ST.meta))]);
+  // ── Sheet data builders ────────────────────────────────────────────────────
+  function budgetSheet() {
+    const nc=6, B=()=>Array(nc).fill(ce(S.blank)), rows=[];
+    rows.push([cs(`${company}  ·  ${b.name||'Untitled Budget'}`,S.title),...Array(nc-1).fill(ce(S.title))]);
+    rows.push([cs(b.client||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
+    rows.push([cs(`Project: ${b.project||''}  ·  Shoot Days: ${b.shootDays||'—'}  ·  Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
-    rows.push([cell('CODE', ST.colHdr), cell('LINE ITEM', ST.colHdr), cell('QTY', ST.colHdrR), cell('RATE', ST.colHdrR), cell('FRINGE %', ST.colHdrR), cell('TOTAL', ST.colHdrR)]);
-
-    let lastGrp = null;
-    SECTIONS.forEach(sec => {
-      const hasData = sec.lines.some(l => fmtN((b.values[l.id]||{}).qty) || fmtN((b.values[l.id]||{}).rate));
-      if(!hasData) return;
-
-      if(sec.group !== lastGrp) {
-        lastGrp = sec.group;
-        const lbl = sec.group==='atl' ? '▸  ABOVE THE LINE' : sec.group==='production' ? '▸  BELOW THE LINE — PRODUCTION' : sec.group==='talent' ? '▸  TALENT' : '▸  POST PRODUCTION';
-        rows.push(B());
-        rows.push([cell(lbl, ST.grpHdr), ...Array(nc-1).fill(cell('', ST.grpHdr))]);
+    rows.push([cs('CODE',S.colHdr),cs('LINE ITEM',S.colHdr),cs('QTY',S.colHdrR),cs('RATE',S.colHdrR),cs('FRINGE %',S.colHdrR),cs('TOTAL',S.colHdrR)]);
+    let lg=null;
+    SECTIONS.forEach(sec=>{
+      const hd=sec.lines.some(l=>fmtN((b.values[l.id]||{}).qty)||fmtN((b.values[l.id]||{}).rate));
+      if(!hd) return;
+      if(sec.group!==lg){
+        lg=sec.group;
+        const lbl=sec.group==='atl'?'▸  ABOVE THE LINE':sec.group==='production'?'▸  BELOW THE LINE — PRODUCTION':sec.group==='talent'?'▸  TALENT':'▸  POST PRODUCTION';
+        rows.push(B()); rows.push([cs(lbl,S.grpHdr),...Array(nc-1).fill(ce(S.grpHdr))]);
       }
-
-      const secTot = sectionTotal(sec, b) + sectionFringeTotal(sec, b);
-      rows.push([cell(sec.code, ST.secHdr), cell(sec.name, ST.secHdr), cell('', ST.secHdr), cell('', ST.secHdr), cell('', ST.secHdr), cell(secTot, ST.secHdrR)]);
-
-      sec.lines.forEach(line => {
-        const v = b.values[line.id]||{};
-        const qty = fmtN(v.qty), rate = fmtN(v.rate);
-        if(!qty && !rate) return;
-        const fringeCode = (b.fringes||{})[line.id] || '';
-        const fp = FRINGE_RATES[fringeCode] || 0;
-        const tot = lineTotal(line, b) + lineFringeAmt(line, b);
-        rows.push([
-          cell(line.id,            ST.dataC),
-          cell(line.name||line.id, ST.dataL),
-          line.unit==='flat' ? cell('flat', ST.dataC) : cell(qty, ST.dataN),
-          cell(rate, ST.dataR),
-          fp ? cell(fp/100, ST.dataPct) : cell('—', ST.dataC),
-          cell(tot,  ST.dataR),
-        ]);
+      const st=sectionTotal(sec,b)+sectionFringeTotal(sec,b);
+      rows.push([cs(sec.code,S.secHdr),cs(sec.name,S.secHdr),ce(S.secHdr),ce(S.secHdr),ce(S.secHdr),cn(st,S.secHdrR)]);
+      sec.lines.forEach(line=>{
+        const v=b.values[line.id]||{};
+        const qty=fmtN(v.qty),rate=fmtN(v.rate);
+        if(!qty&&!rate) return;
+        const fp=FRINGE_RATES[(b.fringes||{})[line.id]]||0;
+        const tot=lineTotal(line,b)+lineFringeAmt(line,b);
+        rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'?cs('flat',S.dataC):cn(qty,S.dataN),cn(rate,S.dataR),fp?cn(fp/100,S.dataPct):cs('—',S.dataC),cn(tot,S.dataR)]);
       });
     });
-
-    const btl   = btlSubtotal(b);
-    const atl   = groupSubtotal('atl', b);
-    const fee   = btl * ((parseFloat(b.markup.prodFee)||0)/100);
-    const cont  = (btl+fee) * ((parseFloat(b.markup.contingency)||0)/100);
-    const grand = grandTotal(b);
-
-    const totRow = (lbl, val) => [cell('', ST.totLbl), cell(lbl, ST.totLbl), cell('', ST.totLbl), cell('', ST.totLbl), cell('', ST.totLbl), cell(val, ST.totVal)];
-
-    rows.push(B());
-    rows.push([cell('TOTALS', ST.secHdr), ...Array(nc-1).fill(cell('', ST.secHdr))]);
-    if(atl)                              rows.push(totRow('ATL (Above the Line)', atl));
-    rows.push(totRow('BTL (Below the Line)', btl));
-    if(parseFloat(b.markup.prodFee))     rows.push(totRow(`Production Fee (${b.markup.prodFee}%)`, fee));
-    if(parseFloat(b.markup.contingency)) rows.push(totRow(`Contingency (${b.markup.contingency}%)`, cont));
-    rows.push([cell('', ST.grandL), cell('GRAND TOTAL', ST.grandL), cell('', ST.grandL), cell('', ST.grandL), cell('', ST.grandL), cell(grand, ST.grandV)]);
-
-    return buildSheet(rows, [8, 36, 7, 13, 10, 14], 5);
+    const btl=btlSubtotal(b),atl=groupSubtotal('atl',b);
+    const fee=btl*((parseFloat(b.markup.prodFee)||0)/100);
+    const cont=(btl+fee)*((parseFloat(b.markup.contingency)||0)/100);
+    const grand=grandTotal(b);
+    const tr=(lbl,val)=>[ce(S.totLbl),cs(lbl,S.totLbl),ce(S.totLbl),ce(S.totLbl),ce(S.totLbl),cn(val,S.totVal)];
+    rows.push(B()); rows.push([cs('TOTALS',S.secHdr),...Array(nc-1).fill(ce(S.secHdr))]);
+    if(atl) rows.push(tr('ATL (Above the Line)',atl));
+    rows.push(tr('BTL (Below the Line)',btl));
+    if(parseFloat(b.markup.prodFee)) rows.push(tr(`Production Fee (${b.markup.prodFee}%)`,fee));
+    if(parseFloat(b.markup.contingency)) rows.push(tr(`Contingency (${b.markup.contingency}%)`,cont));
+    rows.push([ce(S.grandL),cs('GRAND TOTAL',S.grandL),ce(S.grandL),ce(S.grandL),ce(S.grandL),cn(grand,S.grandV)]);
+    return {rows,cols:[8,36,7,13,10,14],freeze:5,af:-1};
   }
 
-  // ── SHEET 2 — COST REPORT ────────────────────────────────────────────────
-  function makeCostReportSheet() {
-    const nc = 5;
-    const B = () => Array(nc).fill(cell('', ST.blank));
-    const rows = [];
-
-    rows.push([cell(`${company}  ·  COST REPORT`, ST.title), ...Array(nc-1).fill(cell('', ST.title))]);
-    rows.push([cell(b.name||'Untitled', ST.sub),             ...Array(nc-1).fill(cell('', ST.sub))]);
-    rows.push([cell(`Exported: ${new Date().toLocaleDateString()}`, ST.meta), ...Array(nc-1).fill(cell('', ST.meta))]);
+  function costSheet() {
+    const nc=5,B=()=>Array(nc).fill(ce(S.blank)),rows=[];
+    rows.push([cs(`${company}  ·  COST REPORT`,S.title),...Array(nc-1).fill(ce(S.title))]);
+    rows.push([cs(b.name||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
+    rows.push([cs(`Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
-    rows.push([cell('CODE', ST.colHdr), cell('SECTION', ST.colHdr), cell('BID', ST.colHdrR), cell('ACTUAL', ST.colHdrR), cell('VARIANCE', ST.colHdrR)]);
-
-    let lastGrp = null;
-    SECTIONS.forEach(sec => {
-      const bid    = sectionTotal(sec, b) + sectionFringeTotal(sec, b);
-      const actual = actualSectionTotal(sec, b);
-      const vari   = actual - bid;
-      if(!bid && !actual) return;
-
-      if(sec.group !== lastGrp) {
-        lastGrp = sec.group;
-        const lbl = sec.group==='atl' ? '▸  ABOVE THE LINE' : sec.group==='production' ? '▸  BELOW THE LINE' : sec.group==='talent' ? '▸  TALENT' : '▸  POST PRODUCTION';
-        rows.push(B());
-        rows.push([cell(lbl, ST.grpHdr), ...Array(nc-1).fill(cell('', ST.grpHdr))]);
+    rows.push([cs('CODE',S.colHdr),cs('SECTION',S.colHdr),cs('BID',S.colHdrR),cs('ACTUAL',S.colHdrR),cs('VARIANCE',S.colHdrR)]);
+    let lg=null;
+    SECTIONS.forEach(sec=>{
+      const bid=sectionTotal(sec,b)+sectionFringeTotal(sec,b);
+      const actual=actualSectionTotal(sec,b);
+      if(!bid&&!actual) return;
+      if(sec.group!==lg){
+        lg=sec.group;
+        const lbl=sec.group==='atl'?'▸  ABOVE THE LINE':sec.group==='production'?'▸  BELOW THE LINE':sec.group==='talent'?'▸  TALENT':'▸  POST PRODUCTION';
+        rows.push(B()); rows.push([cs(lbl,S.grpHdr),...Array(nc-1).fill(ce(S.grpHdr))]);
       }
-
-      rows.push([
-        cell(sec.code, ST.dataC),
-        cell(sec.name, ST.dataL),
-        cell(bid,    ST.dataR),
-        cell(actual, ST.dataR),
-        cell(vari,   vari > 0 ? ST.varPos : vari < 0 ? ST.varNeg : ST.varZ),
-      ]);
+      const vari=actual-bid;
+      rows.push([cs(sec.code,S.dataC),cs(sec.name,S.dataL),cn(bid,S.dataR),cn(actual,S.dataR),cn(vari,vari>0?S.varPos:vari<0?S.varNeg:S.varZ)]);
     });
-
-    const bidG = grandTotal(b), actG = actualGrand(b), totV = actG - bidG;
+    const bg=grandTotal(b),ag=actualGrand(b),tv=ag-bg;
     rows.push(B());
-    rows.push([
-      cell('', ST.grandL), cell('GRAND TOTAL', ST.grandL),
-      cell(bidG, ST.grandV), cell(actG, ST.grandV),
-      cell(totV, { ...ST.grandV, font:{ ...ST.grandV.font, color:{ rgb: totV > 0 ? C.red : C.green } } }),
-    ]);
-
-    return buildSheet(rows, [8, 34, 14, 14, 14], 5);
+    rows.push([ce(S.grandL),cs('GRAND TOTAL',S.grandL),cn(bg,S.grandV),cn(ag,S.grandV),cn(tv,tv>0?S.varPos:S.varNeg)]);
+    return {rows,cols:[8,34,14,14,14],freeze:5,af:-1};
   }
 
-  // ── SHEET 3 — PURCHASE ORDERS ────────────────────────────────────────────
-  function makePOSheet() {
-    const pos = b.pos || [];
-    const nc = 10;
-    const B = () => Array(nc).fill(cell('', ST.blank));
-    const stMap = { open:ST.stOpen, approved:ST.stAppr, invoiced:ST.stInv, paid:ST.stPaid, cancelled:ST.stVoid };
-    const rows = [];
-
-    rows.push([cell(`${company}  ·  PURCHASE ORDERS`, ST.title), ...Array(nc-1).fill(cell('', ST.title))]);
-    rows.push([cell(b.name||'Untitled', ST.sub),                  ...Array(nc-1).fill(cell('', ST.sub))]);
-    rows.push([cell(`${pos.length} PO${pos.length!==1?'s':''}  ·  Exported: ${new Date().toLocaleDateString()}`, ST.meta), ...Array(nc-1).fill(cell('', ST.meta))]);
+  function poSheet() {
+    const pos=b.pos||[],nc=10,B=()=>Array(nc).fill(ce(S.blank));
+    const sm={open:S.stOpen,approved:S.stAppr,invoiced:S.stInv,paid:S.stPaid,cancelled:S.stVoid};
+    const rows=[];
+    rows.push([cs(`${company}  ·  PURCHASE ORDERS`,S.title),...Array(nc-1).fill(ce(S.title))]);
+    rows.push([cs(b.name||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
+    rows.push([cs(`${pos.length} PO${pos.length!==1?'s':''}  ·  Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
-    rows.push([
-      cell('PO #', ST.colHdr), cell('DATE', ST.colHdr), cell('VENDOR', ST.colHdr), cell('DEPT', ST.colHdr),
-      cell('DESCRIPTION', ST.colHdr), cell('PO AMOUNT', ST.colHdrR), cell('INVOICE AMT', ST.colHdrR),
-      cell('INV DATE', ST.colHdr), cell('STATUS', ST.colHdr), cell('NOTES', ST.colHdr),
-    ]);
-
-    pos.forEach(po => {
-      const st = poStatus(po.status);
-      rows.push([
-        cell(po.number||'',      ST.dataC),
-        cell(po.date||'',        ST.dataC),
-        cell(po.vendor||'',      ST.dataL),
-        cell(po.department||'',  ST.dataL),
-        cell(po.description||'', ST.dataL),
-        cell(fmtN(po.amount),    ST.dataR),
-        po.invoiceAmount ? cell(fmtN(po.invoiceAmount), ST.dataR) : cell('', ST.dataC),
-        cell(po.invoiceDate||'', ST.dataC),
-        cell(st.label,           stMap[po.status] || ST.dataC),
-        cell(po.notes||'',       ST.dataL),
-      ]);
+    rows.push([cs('PO #',S.colHdr),cs('DATE',S.colHdr),cs('VENDOR',S.colHdr),cs('DEPT',S.colHdr),cs('DESCRIPTION',S.colHdr),cs('PO AMOUNT',S.colHdrR),cs('INVOICE AMT',S.colHdrR),cs('INV DATE',S.colHdr),cs('STATUS',S.colHdr),cs('NOTES',S.colHdr)]);
+    pos.forEach(po=>{
+      const st=poStatus(po.status);
+      rows.push([cs(po.number||'',S.dataC),cs(po.date||'',S.dataC),cs(po.vendor||'',S.dataL),cs(po.department||'',S.dataL),cs(po.description||'',S.dataL),cn(fmtN(po.amount),S.dataR),po.invoiceAmount?cn(fmtN(po.invoiceAmount),S.dataR):ce(S.dataC),cs(po.invoiceDate||'',S.dataC),cs(st.label,sm[po.status]||S.dataC),cs(po.notes||'',S.dataL)]);
     });
-
-    const total = poTotal(b);
     rows.push(B());
-    rows.push([
-      cell('',ST.grandL), cell('',ST.grandL), cell('',ST.grandL), cell('',ST.grandL),
-      cell('TOTAL COMMITTED', ST.grandL), cell(total, ST.grandV),
-      ...Array(nc-6).fill(cell('', ST.grandL)),
-    ]);
-
-    const ws = buildSheet(rows, [8,11,22,14,36,14,14,11,11,28], 5);
-    ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s:{r:4,c:0}, e:{r:4,c:nc-1} }) };
-    return ws;
+    rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('TOTAL COMMITTED',S.grandL),cn(poTotal(b),S.grandV),...Array(nc-6).fill(ce(S.grandL))]);
+    return {rows,cols:[8,11,22,14,36,14,14,11,11,28],freeze:5,af:4};
   }
 
-  // ── SHEET 4 — PETTY CASH ────────────────────────────────────────────────
-  function makePCSheet() {
-    const envs = b.pettyCash || [];
-    const nc = 6;
-    const B = () => Array(nc).fill(cell('', ST.blank));
-    const rows = [];
-
-    rows.push([cell(`${company}  ·  PETTY CASH RECONCILIATION`, ST.title), ...Array(nc-1).fill(cell('', ST.title))]);
-    rows.push([cell(b.name||'Untitled', ST.sub), ...Array(nc-1).fill(cell('', ST.sub))]);
-    rows.push([cell(`Exported: ${new Date().toLocaleDateString()}`, ST.meta), ...Array(nc-1).fill(cell('', ST.meta))]);
-
-    envs.forEach(env => {
-      const issued    = fmtN(env.amount);
-      const spent     = (env.distributions||[]).reduce((s,d)=>s+fmtN(d.amount), 0);
-      const remaining = issued - spent;
-
+  function pcSheet() {
+    const envs=b.pettyCash||[],nc=6,B=()=>Array(nc).fill(ce(S.blank)),rows=[];
+    rows.push([cs(`${company}  ·  PETTY CASH RECONCILIATION`,S.title),...Array(nc-1).fill(ce(S.title))]);
+    rows.push([cs(b.name||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
+    rows.push([cs(`Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
+    envs.forEach(env=>{
+      const issued=fmtN(env.amount),spent=(env.distributions||[]).reduce((s,d)=>s+fmtN(d.amount),0),rem=issued-spent;
       rows.push(B());
-      rows.push([cell(`[${env.code}]  ${env.name}`, ST.pcEnv), cell('', ST.pcEnv), cell(`Issued to: ${env.issuedTo||''}`, ST.pcEnv), cell('', ST.pcEnv), cell('ISSUED', ST.colHdrR), cell(issued, ST.secHdrR)]);
-      rows.push([cell('', ST.colHdr), cell('DATE', ST.colHdr), cell('VENDOR', ST.colHdr), cell('DESCRIPTION', ST.colHdr), cell('AMOUNT', ST.colHdrR), cell('RECEIPT', ST.colHdr)]);
-
-      (env.distributions||[]).forEach(d => {
-        rows.push([
-          cell('', ST.dataC),
-          cell(d.date||'',        ST.dataC),
-          cell(d.vendor||'',      ST.dataL),
-          cell(d.description||'', ST.dataL),
-          cell(fmtN(d.amount),    ST.dataR),
-          cell(d.receipt ? '✓' : '—', d.receipt ? ST.stAppr : ST.dataC),
-        ]);
-      });
-
-      rows.push([cell('',ST.totLbl), cell('',ST.totLbl), cell('',ST.totLbl), cell('TOTAL SPENT', ST.totLbl), cell(spent, ST.totVal), cell('',ST.totLbl)]);
-      const remStyle = remaining < 0 ? { ...ST.totVal, font:{ ...ST.totVal.font, color:{ rgb: C.red } } } : ST.totVal;
-      rows.push([cell('',ST.totLbl), cell('',ST.totLbl), cell('',ST.totLbl), cell('REMAINING', ST.totLbl), cell(remaining, remStyle), cell('',ST.totLbl)]);
+      rows.push([cs(`[${env.code}]  ${env.name}`,S.pcEnv),ce(S.pcEnv),cs(`Issued to: ${env.issuedTo||''}`,S.pcEnv),ce(S.pcEnv),cs('ISSUED',S.colHdrR),cn(issued,S.secHdrR)]);
+      rows.push([ce(S.colHdr),cs('DATE',S.colHdr),cs('VENDOR',S.colHdr),cs('DESCRIPTION',S.colHdr),cs('AMOUNT',S.colHdrR),cs('RECEIPT',S.colHdr)]);
+      (env.distributions||[]).forEach(d=>{rows.push([ce(S.dataC),cs(d.date||'',S.dataC),cs(d.vendor||'',S.dataL),cs(d.description||'',S.dataL),cn(fmtN(d.amount),S.dataR),cs(d.receipt?'✓':'—',d.receipt?S.check:S.dataC)]);});
+      rows.push([ce(S.totLbl),ce(S.totLbl),ce(S.totLbl),cs('TOTAL SPENT',S.totLbl),cn(spent,S.totVal),ce(S.totLbl)]);
+      rows.push([ce(S.totLbl),ce(S.totLbl),ce(S.totLbl),cs('REMAINING',S.totLbl),cn(rem,rem<0?S.varPos:S.totVal),ce(S.totLbl)]);
     });
-
-    const totalIssued = envs.reduce((s,e)=>s+fmtN(e.amount), 0);
-    const totalSpent  = envs.reduce((s,e)=>s+(e.distributions||[]).reduce((ss,d)=>ss+fmtN(d.amount),0), 0);
-
-    rows.push(B());
-    rows.push([cell('SUMMARY', ST.secHdr), ...Array(nc-1).fill(cell('', ST.secHdr))]);
-    rows.push([cell('',ST.grandL), cell('',ST.grandL), cell('',ST.grandL), cell('Total Issued',  ST.grandL), cell(totalIssued,              ST.grandV), cell('',ST.grandL)]);
-    rows.push([cell('',ST.grandL), cell('',ST.grandL), cell('',ST.grandL), cell('Total Spent',   ST.grandL), cell(totalSpent,               ST.grandV), cell('',ST.grandL)]);
-    rows.push([cell('',ST.grandL), cell('',ST.grandL), cell('',ST.grandL), cell('Net Remaining', ST.grandL), cell(totalIssued - totalSpent, ST.grandV), cell('',ST.grandL)]);
-
-    return buildSheet(rows, [8, 12, 22, 32, 14, 9], 0);
+    const ti=envs.reduce((s,e)=>s+fmtN(e.amount),0),ts=envs.reduce((s,e)=>s+(e.distributions||[]).reduce((ss,d)=>ss+fmtN(d.amount),0),0);
+    rows.push(B()); rows.push([cs('SUMMARY',S.secHdr),...Array(nc-1).fill(ce(S.secHdr))]);
+    rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Total Issued',S.grandL),cn(ti,S.grandV),ce(S.grandL)]);
+    rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Total Spent',S.grandL),cn(ts,S.grandV),ce(S.grandL)]);
+    rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Net Remaining',S.grandL),cn(ti-ts,S.grandV),ce(S.grandL)]);
+    return {rows,cols:[8,12,22,32,14,9],freeze:0,af:-1};
   }
 
-  // ── Assemble & download ────────────────────────────────────────────────────
+  // ── XML generators ─────────────────────────────────────────────────────────
+  function colLetter(n){let s='';for(n++;n>0;n=Math.floor((n-1)/26))s=String.fromCharCode(((n-1)%26)+65)+s;return s;}
+
+  function wsXml(sd) {
+    const {rows,freeze,af}=sd;
+    let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+    x+=freeze>0?`<sheetViews><sheetView workbookViewId="0"><pane ySplit="${freeze}" topLeftCell="A${freeze+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`:'<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
+    x+=`<cols>${sd.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`;
+    x+='<sheetData>';
+    rows.forEach((row,r)=>{
+      x+=`<row r="${r+1}" ht="18" customHeight="1">`;
+      row.forEach((cell,c)=>{
+        const addr=`${colLetter(c)}${r+1}`;
+        if(cell.t==='n') x+=`<c r="${addr}" s="${cell.s}" t="n"><v>${isNaN(cell.v)?0:cell.v}</v></c>`;
+        else x+=`<c r="${addr}" s="${cell.s}" t="s"><v>${si(cell.v)}</v></c>`;
+      });
+      x+='</row>';
+    });
+    x+='</sheetData>';
+    if(af>=0){const lc=colLetter((rows[af]||rows[0]).length-1);x+=`<autoFilter ref="A${af+1}:${lc}${af+1}"/>`;}
+    return x+'</worksheet>';
+  }
+
+  function sstXml(){
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${_sst.length}" uniqueCount="${_sst.length}">${_sst.map(s=>`<si><t xml:space="preserve">${escX(s)}</t></si>`).join('')}</sst>`;
+  }
+
+  function stylesXml() {
+    const dk='0D0D1A',mid='13131F',alt='16162A',tot='1E1E35';
+    const gold='C8A96E',white='FFFFFF',text='E2E2F0',text2='A0A0C0';
+    const green='34D399',red='E05555',blue='6C8EF0',orange='FB923C',purple='A855F7',grey='5A5A72';
+    const bclr='252540';
+
+    const fonts=[
+      `<font><sz val="16"/><color rgb="${gold}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="11"/><color rgb="${white}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="9"/><color rgb="${text2}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${text}"/><name val="Arial"/></font>`,
+      `<font><sz val="9"/><color rgb="${gold}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="10"/><color rgb="${gold}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="9"/><color rgb="${text2}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="10"/><color rgb="${text}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${text2}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${text}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="11"/><color rgb="${gold}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="11"/><color rgb="${gold}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="13"/><color rgb="${gold}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="10"/><color rgb="${red}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="10"/><color rgb="${green}"/><name val="Arial"/><b/></font>`,
+      `<font><sz val="10"/><color rgb="${blue}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${green}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${orange}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${purple}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${grey}"/><name val="Arial"/></font>`,
+      `<font><sz val="10"/><color rgb="${white}"/><name val="Arial"/><b/></font>`,
+    ];
+    const fills=[
+      '<fill><patternFill patternType="none"/></fill>',
+      '<fill><patternFill patternType="gray125"/></fill>',
+      `<fill><patternFill patternType="solid"><fgColor rgb="${dk}"/></patternFill></fill>`,
+      `<fill><patternFill patternType="solid"><fgColor rgb="${mid}"/></patternFill></fill>`,
+      `<fill><patternFill patternType="solid"><fgColor rgb="${alt}"/></patternFill></fill>`,
+      `<fill><patternFill patternType="solid"><fgColor rgb="${tot}"/></patternFill></fill>`,
+    ];
+    const tb=`<left style="thin"><color rgb="${bclr}"/></left><right style="thin"><color rgb="${bclr}"/></right><top style="thin"><color rgb="${bclr}"/></top><bottom style="thin"><color rgb="${bclr}"/></bottom>`;
+    const borders=[
+      '<border><left/><right/><top/><bottom/><diagonal/></border>',
+      `<border>${tb}<diagonal/></border>`,
+    ];
+    const numFmts=[
+      '<numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0.00"/>',
+      '<numFmt numFmtId="165" formatCode="#,##0.00"/>',
+      '<numFmt numFmtId="166" formatCode="0.0%"/>',
+    ];
+    // fontId,fillId,borderId,numFmtId,horiz
+    // fills: 2=dk,3=mid,4=alt,5=tot
+    const xfDef=[
+      [0,2,0,0,'left'],    // 0 title
+      [1,2,0,0,'left'],    // 1 sub
+      [2,2,0,0,'left'],    // 2 meta
+      [3,2,0,0,'left'],    // 3 blank
+      [4,3,1,0,'left'],    // 4 colHdr
+      [4,3,1,0,'right'],   // 5 colHdrR
+      [5,3,0,0,'left'],    // 6 secHdr
+      [5,3,0,164,'right'], // 7 secHdrR
+      [6,2,0,0,'left'],    // 8 grpHdr
+      [7,4,1,0,'left'],    // 9 dataL
+      [7,4,1,164,'right'], // 10 dataR
+      [7,4,1,165,'right'], // 11 dataN
+      [8,4,1,0,'center'],  // 12 dataC
+      [8,4,1,166,'center'],// 13 dataPct
+      [9,5,1,0,'left'],    // 14 totLbl
+      [10,5,1,164,'right'],// 15 totVal
+      [11,3,1,0,'left'],   // 16 grandL
+      [12,3,1,164,'right'],// 17 grandV
+      [13,4,1,164,'right'],// 18 varPos
+      [14,4,1,164,'right'],// 19 varNeg
+      [8,4,1,164,'right'], // 20 varZ
+      [15,4,1,0,'center'], // 21 stOpen
+      [16,4,1,0,'center'], // 22 stAppr
+      [17,4,1,0,'center'], // 23 stInv
+      [18,4,1,0,'center'], // 24 stPaid
+      [19,4,1,0,'center'], // 25 stVoid
+      [20,3,0,0,'left'],   // 26 pcEnv
+      [16,4,1,0,'center'], // 27 check
+    ];
+    const xfs=xfDef.map(([fi,fli,bi,nfi,h])=>{
+      const nf=nfi?` numFmtId="${nfi}" applyNumberFormat="1"`:' numFmtId="0"';
+      return `<xf fontId="${fi}" fillId="${fli}" borderId="${bi}"${nf} applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="center"/></xf>`;
+    });
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="${numFmts.length}">${numFmts.join('')}</numFmts><fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="${borders.length}">${borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs></styleSheet>`;
+  }
+
+  function wbXml(names){return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${names.map((n,i)=>`<sheet name="${escX(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`;}
+  function wbRels(n){let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';for(let i=0;i<n;i++)x+=`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`;return x+'</Relationships>';}
+  function ctXml(n){let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>';for(let i=0;i<n;i++)x+=`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`;return x+'</Types>';}
+
+  // ── CRC32 ──────────────────────────────────────────────────────────────────
+  function crc32(buf){
+    if(!crc32._t){const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}crc32._t=t;}
+    let c=0xFFFFFFFF;for(let i=0;i<buf.length;i++)c=crc32._t[(c^buf[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;
+  }
+
+  // ── ZIP builder (stored) ───────────────────────────────────────────────────
+  function makeZip(files){
+    const enc=new TextEncoder();
+    const localParts=[], cdParts=[];
+    let offset=0;
+    files.forEach(({name,data})=>{
+      const nb=enc.encode(name);
+      const db=typeof data==='string'?enc.encode(data):data;
+      const crc=crc32(db);
+      // Local file header (30 + name)
+      const lh=new Uint8Array(30+nb.length);
+      const lv=new DataView(lh.buffer);
+      lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0,true);
+      lv.setUint16(8,0,true);lv.setUint16(10,0,true);lv.setUint16(12,0,true);
+      lv.setUint32(14,crc,true);lv.setUint32(18,db.length,true);lv.setUint32(22,db.length,true);
+      lv.setUint16(26,nb.length,true);lv.setUint16(28,0,true);lh.set(nb,30);
+      localParts.push(lh,db);
+      // Central dir
+      const cd=new Uint8Array(46+nb.length);
+      const cv=new DataView(cd.buffer);
+      cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);
+      cv.setUint16(8,0,true);cv.setUint16(10,0,true);cv.setUint16(12,0,true);cv.setUint16(14,0,true);
+      cv.setUint32(16,crc,true);cv.setUint32(20,db.length,true);cv.setUint32(24,db.length,true);
+      cv.setUint16(28,nb.length,true);cv.setUint16(30,0,true);cv.setUint16(32,0,true);
+      cv.setUint16(34,0,true);cv.setUint16(36,0,true);cv.setUint32(38,0,true);cv.setUint32(42,offset,true);
+      cd.set(nb,46);cdParts.push(cd);
+      offset+=lh.length+db.length;
+    });
+    const cdData=merge(cdParts);
+    const eocd=new Uint8Array(22);const ev=new DataView(eocd.buffer);
+    ev.setUint32(0,0x06054b50,true);ev.setUint16(4,0,true);ev.setUint16(6,0,true);
+    ev.setUint16(8,cdParts.length,true);ev.setUint16(10,cdParts.length,true);
+    ev.setUint32(12,cdData.length,true);ev.setUint32(16,offset,true);ev.setUint16(20,0,true);
+    return merge([...localParts,cdData,eocd]);
+  }
+  function merge(arrs){const tot=arrs.reduce((s,a)=>s+a.length,0),out=new Uint8Array(tot);let off=0;arrs.forEach(a=>{out.set(a,off);off+=a.length;});return out;}
+
+  // ── Assemble ───────────────────────────────────────────────────────────────
   try {
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, makeBudgetSheet(),     'Budget');
-    XLSX.utils.book_append_sheet(wb, makeCostReportSheet(), 'Cost Report');
-    XLSX.utils.book_append_sheet(wb, makePOSheet(),         'Purchase Orders');
-    XLSX.utils.book_append_sheet(wb, makePCSheet(),         'Petty Cash');
-    const safeName = (b.name||'Budget').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'_').slice(0,40);
-    XLSX.writeFile(wb, `${safeName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    const sheets=[
+      {name:'Budget',          sd:budgetSheet()},
+      {name:'Cost Report',     sd:costSheet()},
+      {name:'Purchase Orders', sd:poSheet()},
+      {name:'Petty Cash',      sd:pcSheet()},
+    ];
+    // wsXml calls si() which populates _sst — must run before sstXml()
+    const wsXmls=sheets.map(s=>wsXml(s.sd));
+
+    const files=[
+      {name:'[Content_Types].xml',         data:ctXml(sheets.length)},
+      {name:'_rels/.rels',                 data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+      {name:'xl/workbook.xml',             data:wbXml(sheets.map(s=>s.name))},
+      {name:'xl/_rels/workbook.xml.rels',  data:wbRels(sheets.length)},
+      {name:'xl/styles.xml',               data:stylesXml()},
+      {name:'xl/sharedStrings.xml',        data:sstXml()},
+    ];
+    wsXmls.forEach((xml,i)=>files.push({name:`xl/worksheets/sheet${i+1}.xml`,data:xml}));
+
+    const blob=new Blob([makeZip(files)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const safe=(b.name||'Budget').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'_').slice(0,40);
+    a.href=url; a.download=`${safe}_${new Date().toISOString().slice(0,10)}.xlsx`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
   } catch(err) {
-    console.error('Excel export error:', err);
-    cmAlert('Export Failed', 'Something went wrong: ' + err.message);
+    console.error('Excel export error:',err);
+    cmAlert('Export Failed','Something went wrong: '+err.message);
   }
 }
 
