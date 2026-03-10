@@ -2432,10 +2432,15 @@ async function authResetPassword() {
   btn.disabled = false; btn.textContent = 'UPDATE PASSWORD';
 }
 async function authSignOut() {
-  if (_supa) await _supa.auth.signOut();
+  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  // Clear state immediately — don't wait for Supabase
   _currentUser = null;
+  _devMode = false;
+  budgets=[]; folders=[]; rateCards=[]; templates=[]; snapshots=[]; contacts=[]; companies=[];
   authShowPanel('signin');
   showAuthScreen();
+  // Fire signout in background — don't block UI
+  if (_supa) { try { _supa.auth.signOut().catch(()=>{}); } catch(e){} }
 }
 function updateUserUI() {
   if (!_currentUser) return;
@@ -9656,6 +9661,7 @@ function saveRateCard() {
 }
 
 async function loadRateCard(id, isBuiltin) {
+  if (!gateRateCard()) return;
   const allCards = [...BUILTIN_RATE_CARDS, ...rateCards];
   const rc = allCards.find(r=>r.id===id); if(!rc) return;
   const b = active(); if(!b) return;
@@ -11121,6 +11127,7 @@ const RATE_CARD_DEFAULTS = JSON.parse(JSON.stringify(BUILTIN_RATE_CARDS.map(rc=>
 let _rceOpenCardId = null;
 
 function openRCE(cardId) {
+  if (!gateRateCard()) return;
   _rceOpenCardId = cardId || null;
   renderRCE();
   document.getElementById('rce-modal').style.display = 'flex';
