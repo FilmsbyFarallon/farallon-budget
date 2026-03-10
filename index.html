@@ -2336,6 +2336,7 @@ async function deleteAccount() {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
+        'apikey': SUPA_KEY,
         'Content-Type': 'application/json'
       }
     });
