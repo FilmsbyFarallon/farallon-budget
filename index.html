@@ -9029,7 +9029,6 @@ function searchLineItems(query) {
 
   // --- Restore ---
   if (!q) {
-    // Restore pre-search expand state
     if (_searchPreExpandState) {
       SECTIONS.forEach(s => { expanded[s.code] = !!_searchPreExpandState[s.code]; });
       _searchPreExpandState = null;
@@ -9049,20 +9048,49 @@ function searchLineItems(query) {
   if (!_searchPreExpandState) {
     _searchPreExpandState = {};
     SECTIONS.forEach(s => { _searchPreExpandState[s.code] = !!expanded[s.code]; expanded[s.code] = true; });
-    renderContent(); // re-render with all sections open
+    renderContent();
+  }
+
+  // --- Build a set of line IDs that match via vendor/contact data (not in DOM) ---
+  const b = active();
+  const vendorMatchIds = new Set();
+  if (b) {
+    // Match lines by their assigned vendor name
+    const meta = b.lineMeta || {};
+    Object.entries(meta).forEach(([lineId, m]) => {
+      if (m.vendor && m.vendor.toLowerCase().includes(q)) vendorMatchIds.add(lineId);
+    });
+    // Also match by contact name or role from the contacts library
+    (typeof contacts !== 'undefined' ? contacts : []).forEach(c => {
+      const nameHit = c.name && c.name.toLowerCase().includes(q);
+      const roleHit = c.role && c.role.toLowerCase().includes(q);
+      if (!nameHit && !roleHit) return;
+      // Find all lines this contact is assigned to
+      Object.entries(meta).forEach(([lineId, m]) => {
+        if (m.contactId === c.id) vendorMatchIds.add(lineId);
+      });
+      // Also surface lines whose name matches the contact's role (unassigned)
+      if (nameHit && c.role) {
+        SECTIONS.forEach(sec => {
+          sec.lines.forEach(l => {
+            if (l.name === c.role) vendorMatchIds.add(l.id);
+          });
+        });
+      }
+    });
   }
 
   let matchCount = 0;
 
-  // --- Match .line-item divs on their first text node (the line name area) ---
+  // --- Match .line-item divs: by DOM text OR by vendor data ---
   document.querySelectorAll('.line-item').forEach(item => {
-    const text = (item.textContent || '').toLowerCase();
-    const match = text.includes(q);
+    const text    = (item.textContent || '').toLowerCase();
+    const lineId  = item.querySelector('[data-lineid]')?.dataset?.lineid || '';
+    const match   = text.includes(q) || vendorMatchIds.has(lineId);
     if (match) {
       item.classList.add('search-match');
       item.style.display = '';
       matchCount++;
-      // Make sure parent section-body is visible
       const body = item.closest('.section-body');
       if (body) body.style.display = '';
       const card = item.closest('.section-card');
@@ -9078,13 +9106,11 @@ function searchLineItems(query) {
     if (visible.length === 0) {
       card.style.display = 'none';
     } else {
-      // Expand the card body if collapsed so matches are visible
       const body = card.querySelector('.section-body');
       if (body) body.style.display = '';
     }
   });
 
-  // --- Indicate match state on the input border ---
   if (wrap) {
     wrap.style.borderColor = matchCount > 0 ? 'var(--green)' : 'var(--red)';
   }
@@ -9402,13 +9428,10 @@ function spotlightInput(query) {
       }).join('');
 
       // One assign button per matching line, from the vendor's own role
+      const sectionNames = {A:'Prep Crew',B:'Shoot Crew',L:'ATL',C:'Production',D:'Art Dept',E:'Wardrobe',F:'Props',G:'Locations',H:'Studio'};
       const assignBtns = r.roleLines.map(ml => {
         const isAssigned = ml.assigned;
-        const sectionLabel = ml.secCode === 'A' ? 'Prep' : ml.secCode === 'B' ? 'Shoot' : ml.secCode;
-        // For multi-section roles (Gaffer in Prep + Shoot), label with section; otherwise just the role name
-        const btnLabel = r.roleLines.length > 1
-          ? `${esc(ml.lineName)} <span style="opacity:.6;font-size:8px">${sectionLabel}</span>`
-          : esc(ml.lineName);
+        const secLabel   = sectionNames[ml.secCode] || ('Section ' + ml.secCode);
         return `<button onclick="event.stopPropagation();spotlightAssign('${esc(r.contactId)}','${esc(ml.lineId)}','${esc(ml.secCode)}',this)"
           style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;font-size:10px;
           font-family:var(--mono);letter-spacing:.03em;border-radius:3px;cursor:pointer;
@@ -9418,8 +9441,8 @@ function spotlightInput(query) {
             : 'background:rgba(108,142,240,.15);border:1px solid rgba(108,142,240,.35);color:var(--accent);'
           }">
           ${isAssigned
-            ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> ${btnLabel}`
-            : `<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4.5" y1="1" x2="4.5" y2="8"/><line x1="1" y1="4.5" x2="8" y2="4.5"/></svg> Add to Budget`
+            ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> Added · ${esc(secLabel)}`
+            : `<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4.5" y1="1" x2="4.5" y2="8"/><line x1="1" y1="4.5" x2="8" y2="4.5"/></svg> Add to ${esc(secLabel)}`
           }
         </button>`;
       }).join('');
@@ -9985,6 +10008,27 @@ function lpAssignContact(contact) {
   refreshTotals(b);
 }
 
+// Remove the assigned vendor/contact from the current line panel's line item
+function lpUnassignContact() {
+  if(!_panelLineId) return;
+  const b = active(); if(!b) return;
+  if(!b.lineMeta || !b.lineMeta[_panelLineId]) return;
+  const meta = b.lineMeta[_panelLineId];
+  delete meta.contactId;
+  delete meta.vendorCompany;
+  meta.vendor = '';
+  // Clear the vendor input field too
+  const inp = document.getElementById('lp-vendor');
+  if(inp) inp.value = '';
+  save();
+  // Re-render the contact info card (will clear it)
+  const ciEl = document.getElementById('lp-contact-info');
+  if(ciEl) ciEl.innerHTML = '';
+  _refreshPanelSection();
+  refreshTotals(b);
+  renderContactsPanel && renderContactsPanel();
+}
+
 function openLinePanel(lineId, secCode) {
   const b = active(); if(!b) return;
   const sec = SECTIONS.find(s=>s.code===secCode);
@@ -10033,6 +10077,14 @@ function openLinePanel(lineId, secCode) {
           <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"><circle cx="7" cy="5" r="2.5"/><path d="M2 12.5c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
           <span style="font-weight:600;color:var(--text2);font-size:11px">${esc(contact.name)}</span>
           <span style="font-size:9px;color:var(--accent);margin-left:auto;cursor:pointer" onclick="switchTab('contacts')">View in contacts</span>
+          <button onclick="lpUnassignContact()" title="Remove vendor from this line"
+            style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;font-size:9px;font-family:var(--mono);
+            background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red,#ef4444);
+            border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:opacity .12s"
+            onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>
+            Remove
+          </button>
         </div>
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0">${details}</div>
       </div>`;
