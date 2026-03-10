@@ -12088,7 +12088,15 @@ function exportExcel() {
   const S={title:0,sub:1,meta:2,blank:3,colHdr:4,colHdrR:5,secHdr:6,secHdrR:7,
     grpHdr:8,dataL:9,dataR:10,dataN:11,dataC:12,dataPct:13,totLbl:14,totVal:15,
     grandL:16,grandV:17,varPos:18,varNeg:19,varZ:20,stOpen:21,stAppr:22,stInv:23,
-    stPaid:24,stVoid:25,pcEnv:26,check:27};
+    stPaid:24,stVoid:25,pcEnv:26,check:27,
+    // new
+    colHdrGoldB:28,  // col header with gold bottom border (last header row)
+    colHdrRGoldB:29, // col header right-align with gold bottom border
+    totSepL:30,      // totals separator left (gold top border)
+    totSepV:31,      // totals separator value (gold top border + currency)
+    grandSepL:32,    // grand total with gold top border left
+    grandSepV:33,    // grand total with gold top border right
+  };
 
   // ── Cell constructors ──────────────────────────────────────────────────────
   const cs=(v,s)=>({v:String(v==null?'':v),s,t:'s'});
@@ -12098,11 +12106,15 @@ function exportExcel() {
   // ── Sheet data builders ────────────────────────────────────────────────────
   function budgetSheet() {
     const nc=6, B=()=>Array(nc).fill(ce(S.blank)), rows=[];
-    rows.push([cs(`${company}  ·  ${b.name||'Untitled Budget'}`,S.title),...Array(nc-1).fill(ce(S.title))]);
-    rows.push([cs(b.client||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
-    rows.push([cs(`Project: ${b.project||''}  ·  Shoot Days: ${b.shootDays||'—'}  ·  Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
+    // Row 0: big title (merged across all cols)
+    rows.push([cs(`${company}  ·  ${b.name||'Untitled Budget'}`,S.title),...Array(nc-1).fill(ce(S.blank))]);
+    // Row 1: client (if present) or blank
+    rows.push([cs(b.client?`Client: ${b.client}`:'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
+    // Row 2: project meta
+    rows.push([cs([b.project?`Project: ${b.project}`:'',b.shootDays?`Shoot Days: ${b.shootDays}`:'',`Exported: ${new Date().toLocaleDateString()}`].filter(Boolean).join('  ·  '),S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
-    rows.push([cs('CODE',S.colHdr),cs('LINE ITEM',S.colHdr),cs('QTY',S.colHdrR),cs('RATE',S.colHdrR),cs('FRINGE %',S.colHdrR),cs('TOTAL',S.colHdrR)]);
+    // Row 4: col headers with gold bottom border
+    rows.push([cs('CODE',S.colHdrGoldB),cs('LINE ITEM',S.colHdrGoldB),cs('QTY',S.colHdrRGoldB),cs('RATE',S.colHdrRGoldB),cs('FRINGE %',S.colHdrRGoldB),cs('TOTAL',S.colHdrRGoldB)]);
     let lg=null;
     SECTIONS.forEach(sec=>{
       const hd=sec.lines.some(l=>fmtN((b.values[l.id]||{}).qty)||fmtN((b.values[l.id]||{}).rate));
@@ -12128,22 +12140,31 @@ function exportExcel() {
     const cont=(btl+fee)*((parseFloat(b.markup.contingency)||0)/100);
     const grand=grandTotal(b);
     const tr=(lbl,val)=>[ce(S.totLbl),cs(lbl,S.totLbl),ce(S.totLbl),ce(S.totLbl),ce(S.totLbl),cn(val,S.totVal)];
-    rows.push(B()); rows.push([cs('TOTALS',S.secHdr),...Array(nc-1).fill(ce(S.secHdr))]);
-    if(atl) rows.push(tr('ATL (Above the Line)',atl));
-    rows.push(tr('BTL (Below the Line)',btl));
-    if(parseFloat(b.markup.prodFee)) rows.push(tr(`Production Fee (${b.markup.prodFee}%)`,fee));
-    if(parseFloat(b.markup.contingency)) rows.push(tr(`Contingency (${b.markup.contingency}%)`,cont));
-    rows.push([ce(S.grandL),cs('GRAND TOTAL',S.grandL),ce(S.grandL),ce(S.grandL),ce(S.grandL),cn(grand,S.grandV)]);
-    return {rows,cols:[8,36,7,13,10,14],freeze:5,af:-1,landscape:false,hdrRow:5};
+    rows.push(B());
+    // TOTALS section header
+    rows.push([cs('TOTALS',S.secHdr),...Array(nc-1).fill(ce(S.secHdr))]);
+    // First totals row gets gold-top separator border
+    const trSep=(lbl,val)=>[ce(S.totSepL),cs(lbl,S.totSepL),ce(S.totSepL),ce(S.totSepL),ce(S.totSepL),cn(val,S.totSepV)];
+    const trN=(lbl,val)=>[ce(S.totLbl),cs(lbl,S.totLbl),ce(S.totLbl),ce(S.totLbl),ce(S.totLbl),cn(val,S.totVal)];
+    if(atl) rows.push(trSep('ATL (Above the Line)',atl));
+    else rows.push(trSep('BTL (Below the Line)',btl));
+    if(atl) rows.push(trN('BTL (Below the Line)',btl));
+    if(parseFloat(b.markup.prodFee)) rows.push(trN(`Production Fee (${b.markup.prodFee}%)`,fee));
+    if(parseFloat(b.markup.contingency)) rows.push(trN(`Contingency (${b.markup.contingency}%)`,cont));
+    rows.push([ce(S.grandSepL),cs('GRAND TOTAL',S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),cn(grand,S.grandSepV)]);
+    const lastR=rows.length-1;
+    const rh={0:36,1:22,2:16,3:6,4:22}; // row index -> height
+    const mg=[`A1:F1`,`A2:F2`,`A3:F3`,`A4:F4`]; // merge title rows full width
+    return {rows,cols:[8,40,7,13,10,15],freeze:5,af:-1,landscape:false,hdrRow:5,rowHeights:rh,merges:mg};
   }
 
   function costSheet() {
     const nc=5,B=()=>Array(nc).fill(ce(S.blank)),rows=[];
-    rows.push([cs(`${company}  ·  COST REPORT`,S.title),...Array(nc-1).fill(ce(S.title))]);
+    rows.push([cs(`${company}  ·  COST REPORT`,S.title),...Array(nc-1).fill(ce(S.blank))]);
     rows.push([cs(b.name||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
     rows.push([cs(`Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
-    rows.push([cs('CODE',S.colHdr),cs('SECTION',S.colHdr),cs('BID',S.colHdrR),cs('ACTUAL',S.colHdrR),cs('VARIANCE',S.colHdrR)]);
+    rows.push([cs('CODE',S.colHdrGoldB),cs('SECTION',S.colHdrGoldB),cs('BID',S.colHdrRGoldB),cs('ACTUAL',S.colHdrRGoldB),cs('VARIANCE',S.colHdrRGoldB)]);
     let lg=null;
     SECTIONS.forEach(sec=>{
       const bid=sectionTotal(sec,b)+sectionFringeTotal(sec,b);
@@ -12159,31 +12180,35 @@ function exportExcel() {
     });
     const bg=grandTotal(b),ag=actualGrand(b),tv=ag-bg;
     rows.push(B());
-    rows.push([ce(S.grandL),cs('GRAND TOTAL',S.grandL),cn(bg,S.grandV),cn(ag,S.grandV),cn(tv,tv>0?S.varPos:S.varNeg)]);
-    return {rows,cols:[8,34,14,14,14],freeze:5,af:-1,landscape:false,hdrRow:5};
+    rows.push([ce(S.grandSepL),cs('GRAND TOTAL',S.grandSepL),cn(bg,S.grandSepV),cn(ag,S.grandSepV),cn(tv,tv>0?S.varPos:S.varNeg)]);
+    const rh={0:36,1:22,2:16,3:6,4:22};
+    const mg=[`A1:E1`,`A2:E2`,`A3:E3`,`A4:E4`];
+    return {rows,cols:[8,38,15,15,15],freeze:5,af:-1,landscape:false,hdrRow:5,rowHeights:rh,merges:mg};
   }
 
   function poSheet() {
     const pos=b.pos||[],nc=10,B=()=>Array(nc).fill(ce(S.blank));
     const sm={open:S.stOpen,approved:S.stAppr,invoiced:S.stInv,paid:S.stPaid,cancelled:S.stVoid};
     const rows=[];
-    rows.push([cs(`${company}  ·  PURCHASE ORDERS`,S.title),...Array(nc-1).fill(ce(S.title))]);
+    rows.push([cs(`${company}  ·  PURCHASE ORDERS`,S.title),...Array(nc-1).fill(ce(S.blank))]);
     rows.push([cs(b.name||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
     rows.push([cs(`${pos.length} PO${pos.length!==1?'s':''}  ·  Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
-    rows.push([cs('PO #',S.colHdr),cs('DATE',S.colHdr),cs('VENDOR',S.colHdr),cs('DEPT',S.colHdr),cs('DESCRIPTION',S.colHdr),cs('PO AMOUNT',S.colHdrR),cs('INVOICE AMT',S.colHdrR),cs('INV DATE',S.colHdr),cs('STATUS',S.colHdr),cs('NOTES',S.colHdr)]);
+    rows.push([cs('PO #',S.colHdrGoldB),cs('DATE',S.colHdrGoldB),cs('VENDOR',S.colHdrGoldB),cs('DEPT',S.colHdrGoldB),cs('DESCRIPTION',S.colHdrGoldB),cs('PO AMOUNT',S.colHdrRGoldB),cs('INVOICE AMT',S.colHdrRGoldB),cs('INV DATE',S.colHdrGoldB),cs('STATUS',S.colHdrGoldB),cs('NOTES',S.colHdrGoldB)]);
     pos.forEach(po=>{
       const st=poStatus(po.status);
       rows.push([cs(po.number||'',S.dataC),cs(po.date||'',S.dataC),cs(po.vendor||'',S.dataL),cs(po.department||'',S.dataL),cs(po.description||'',S.dataL),cn(fmtN(po.amount),S.dataR),po.invoiceAmount?cn(fmtN(po.invoiceAmount),S.dataR):ce(S.dataC),cs(po.invoiceDate||'',S.dataC),cs(st.label,sm[po.status]||S.dataC),cs(po.notes||'',S.dataL)]);
     });
     rows.push(B());
-    rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('TOTAL COMMITTED',S.grandL),cn(poTotal(b),S.grandV),...Array(nc-6).fill(ce(S.grandL))]);
-    return {rows,cols:[8,11,22,14,36,14,14,11,11,28],freeze:5,af:4,landscape:true,hdrRow:5};
+    rows.push([ce(S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),cs('TOTAL COMMITTED',S.grandSepL),cn(poTotal(b),S.grandSepV),...Array(nc-6).fill(ce(S.grandSepL))]);
+    const rh={0:36,1:22,2:16,3:6,4:22};
+    const mg=[`A1:J1`,`A2:J2`,`A3:J3`,`A4:J4`];
+    return {rows,cols:[7,10,24,14,38,13,13,10,10,26],freeze:5,af:4,landscape:true,hdrRow:5,rowHeights:rh,merges:mg};
   }
 
   function pcSheet() {
     const envs=b.pettyCash||[],nc=6,B=()=>Array(nc).fill(ce(S.blank)),rows=[];
-    rows.push([cs(`${company}  ·  PETTY CASH RECONCILIATION`,S.title),...Array(nc-1).fill(ce(S.title))]);
+    rows.push([cs(`${company}  ·  PETTY CASH RECONCILIATION`,S.title),...Array(nc-1).fill(ce(S.blank))]);
     rows.push([cs(b.name||'',S.sub),...Array(nc-1).fill(ce(S.sub))]);
     rows.push([cs(`Exported: ${new Date().toLocaleDateString()}`,S.meta),...Array(nc-1).fill(ce(S.meta))]);
     envs.forEach(env=>{
@@ -12200,27 +12225,29 @@ function exportExcel() {
     rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Total Issued',S.grandL),cn(ti,S.grandV),ce(S.grandL)]);
     rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Total Spent',S.grandL),cn(ts,S.grandV),ce(S.grandL)]);
     rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Net Remaining',S.grandL),cn(ti-ts,S.grandV),ce(S.grandL)]);
-    return {rows,cols:[8,12,22,32,14,9],freeze:0,af:-1,landscape:false,hdrRow:3};
+    const rh={0:36,1:22,2:16};
+    const mg=[`A1:F1`,`A2:F2`,`A3:F3`];
+    return {rows,cols:[8,12,22,34,14,9],freeze:0,af:-1,landscape:false,hdrRow:3,rowHeights:rh,merges:mg};
   }
 
   // ── XML generators ─────────────────────────────────────────────────────────
   function colLetter(n){let s='';for(n++;n>0;n=Math.floor((n-1)/26))s=String.fromCharCode(((n-1)%26)+65)+s;return s;}
 
   function wsXml(sd) {
-    const {rows,freeze,af,landscape,hdrRow}=sd;
+    const {rows,freeze,af,landscape,merges,rowHeights}=sd;
     const orient=landscape?'landscape':'portrait';
-    const lastCol=colLetter((rows[0]||[[]]).length-1);
     let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
       +' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
     x+=freeze>0
       ?`<sheetViews><sheetView workbookViewId="0"><pane ySplit="${freeze}" topLeftCell="A${freeze+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`
       :'<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
-    x+='<sheetFormatPr defaultRowHeight="18" customHeight="1"/>';
+    x+='<sheetFormatPr defaultRowHeight="20" customHeight="1"/>';
     x+=`<cols>${sd.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`;
     x+='<sheetData>';
     rows.forEach((row,r)=>{
-      x+=`<row r="${r+1}" ht="18" customHeight="1">`;
+      const ht=(rowHeights&&rowHeights[r])||20;
+      x+=`<row r="${r+1}" ht="${ht}" customHeight="1">`;
       row.forEach((cell,c)=>{
         const addr=`${colLetter(c)}${r+1}`;
         if(cell.t==='n') x+=`<c r="${addr}" s="${cell.s}" t="n"><v>${isNaN(cell.v)?0:cell.v}</v></c>`;
@@ -12230,6 +12257,9 @@ function exportExcel() {
     });
     x+='</sheetData>';
     if(af>=0){const lc=colLetter((rows[af]||rows[0]).length-1);x+=`<autoFilter ref="A${af+1}:${lc}${af+1}"/>`;}
+    if(merges&&merges.length){
+      x+=`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`;
+    }
     x+='<printOptions headings="0" gridLines="0"/>';
     x+='<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>';
     x+=`<pageSetup paperSize="1" orientation="${orient}" fitToWidth="1" fitToHeight="0" fitToPage="1"/>`;
@@ -12278,9 +12308,14 @@ function exportExcel() {
       `<fill><patternFill patternType="solid"><fgColor rgb="${tot}"/></patternFill></fill>`,
     ];
     const tb=`<left style="thin"><color rgb="${bclr}"/></left><right style="thin"><color rgb="${bclr}"/></right><top style="thin"><color rgb="${bclr}"/></top><bottom style="thin"><color rgb="${bclr}"/></bottom>`;
+    const gb=`<bottom style="medium"><color rgb="${gold}"/></bottom>`;  // gold bottom
+    const gt=`<top style="medium"><color rgb="${gold}"/></top>`;        // gold top
     const borders=[
-      '<border><left/><right/><top/><bottom/><diagonal/></border>',
-      `<border>${tb}<diagonal/></border>`,
+      '<border><left/><right/><top/><bottom/><diagonal/></border>',           // 0 none
+      `<border>${tb}<diagonal/></border>`,                                     // 1 thin dark
+      `<border><left/><right/><top/>${gb}<diagonal/></border>`,                // 2 gold bottom
+      `<border><left style="thin"><color rgb="${bclr}"/></left><right style="thin"><color rgb="${bclr}"/></right>${gt}<bottom style="thin"><color rgb="${bclr}"/></bottom><diagonal/></border>`, // 3 gold top + side borders
+      `<border><left/><right/><top/>${gt}<diagonal/></border>`,                // 4 gold top only
     ];
     const numFmts=[
       '<numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0.00"/>',
@@ -12318,6 +12353,13 @@ function exportExcel() {
       [19,4,1,0,'center'], // 25 stVoid
       [20,3,0,0,'left'],   // 26 pcEnv
       [16,4,1,0,'center'], // 27 check
+      // NEW — gold border variants
+      [4,3,2,0,'left'],    // 28 colHdrGoldB   (gold bottom border)
+      [4,3,2,0,'right'],   // 29 colHdrRGoldB  (gold bottom border right)
+      [9,5,3,0,'left'],    // 30 totSepL       (gold top + side borders)
+      [10,5,3,164,'right'],// 31 totSepV       (gold top + side borders + currency)
+      [11,3,4,0,'left'],   // 32 grandSepL     (gold top border)
+      [12,3,4,164,'right'],// 33 grandSepV     (gold top border + currency)
     ];
     const xfs=xfDef.map(([fi,fli,bi,nfi,h])=>{
       const nf=nfi?` numFmtId="${nfi}" applyNumberFormat="1"`:' numFmtId="0"';
