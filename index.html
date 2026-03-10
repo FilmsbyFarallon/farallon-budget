@@ -984,6 +984,7 @@ body{margin:0;padding:0}
 .sp-vendor-item:hover, .sp-vendor-item.sp-active { background:rgba(108,142,240,.08); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <!-- AUTH SCREEN -->
@@ -8965,6 +8966,11 @@ function renderSmartPanel(b) {
             Full Detail
             <div style="font-size:9px;color:var(--text4);margin-top:2px">Internal. All line items and rates.</div>
           </button>
+          <div style="padding:8px 14px 4px;font-size:9px;letter-spacing:.12em;color:#c8a96e;font-family:var(--mono);border-top:1px solid var(--border);margin-top:2px">SPREADSHEET</div>
+          <button onclick="exportExcel();toggleExportMenu()" style="display:block;width:100%;text-align:left;padding:9px 14px;font-size:11px;font-family:var(--mono);background:transparent;border:none;border-top:1px solid var(--border);color:var(--text2);cursor:pointer;transition:background .1s" onmouseover="this.style.background='rgba(200,169,110,.06)'" onmouseout="this.style.background='transparent'">
+            Excel Workbook
+            <div style="font-size:9px;color:var(--text4);margin-top:2px">Budget · Cost Report · POs · Petty Cash</div>
+          </button>
         </div>
       </div>
 
@@ -12056,6 +12062,252 @@ function exportWrapBook() {
   setTimeout(()=>win.print(), 500);
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXCEL WORKBOOK EXPORT
+// 4 sheets: Budget · Cost Report · Purchase Orders · Petty Cash
+// ─────────────────────────────────────────────────────────────────────────────
+function exportExcel() {
+  const b = active(); if(!b) return;
+  if(typeof XLSX === 'undefined') { cmAlert('SheetJS not loaded', 'The spreadsheet library is still loading. Please try again in a moment.'); return; }
+
+  const wb = XLSX.utils.book_new();
+  const company = getCompanyForBudget(b)?.name || 'Production';
+  const fmtN = v => parseFloat(v)||0;
+  const fmtD = v => v || '';
+  const cur = v => fmtN(v); // raw number — Excel will format
+
+  // ── Style helpers ──────────────────────────────────────────────────────────
+  // SheetJS CE (free) doesn't support cell styles — we use the !cols / !rows
+  // width/height metadata and encode column widths. Full styling requires xlsx-style
+  // or the pro version, so we get clean data + column widths.
+  // To add color we write an HTML-based approach via XLSX.utils.aoa_to_sheet
+  // and attach a cell metadata object.
+
+  const $ = (v, t='s') => ({ v, t }); // cell builder
+  const $n = v => ({ v: fmtN(v), t:'n' });
+  const $cur = v => ({ v: fmtN(v), t:'n', z:'$#,##0.00' });
+  const $pct = v => ({ v: fmtN(v)/100, t:'n', z:'0.0%' });
+  const $bold = (v, t='s') => ({ v, t, s:{ font:{ bold:true } } });
+  const $hdr = (v) => ({ v, t:'s', s:{ font:{ bold:true, color:{ rgb:'C8A96E' } }, fill:{ fgColor:{ rgb:'0E0E1A' } } } });
+  const $sec = (v) => ({ v, t:'s', s:{ font:{ bold:true, color:{ rgb:'FFFFFF' } }, fill:{ fgColor:{ rgb:'1A1A2E' } } } });
+  const $tot = (v) => ({ v: fmtN(v), t:'n', z:'$#,##0.00', s:{ font:{ bold:true, color:{ rgb:'C8A96E' } } } });
+
+  // ── Sheet 1: BUDGET ────────────────────────────────────────────────────────
+  function makeBudgetSheet() {
+    const rows = [];
+    // Title block
+    rows.push([$bold(company), null, null, null, null, null]);
+    rows.push([$bold(b.name || 'Untitled Budget'), null, null, null, null, null]);
+    rows.push([$(b.client||''), null, null, null, null, null]);
+    rows.push([$(b.project||''), null, null, null, null, null]);
+    rows.push([null]);
+    // Column headers
+    rows.push([$hdr('CODE'), $hdr('LINE ITEM'), $hdr('QTY'), $hdr('RATE'), $hdr('FRINGE %'), $hdr('TOTAL')]);
+
+    const allSecs = SECTIONS;
+    let lastGroup = null;
+
+    allSecs.forEach(sec => {
+      // Group label (ATL / BTL)
+      if(sec.group !== lastGroup) {
+        lastGroup = sec.group;
+        const label = sec.group === 'atl' ? 'ABOVE THE LINE' : sec.group === 'production' ? 'BELOW THE LINE — PRODUCTION' : sec.group === 'talent' ? 'TALENT' : 'POST PRODUCTION';
+        rows.push([null]);
+        rows.push([$sec(label), null, null, null, null, null]);
+      }
+
+      // Section header row
+      const secTot = sectionTotal(sec, b) + sectionFringeTotal(sec, b);
+      if(secTot > 0 || sec.lines.some(l=>(b.values[l.id]?.qty||b.values[l.id]?.rate))) {
+        rows.push([$sec(sec.code), $sec(sec.name), null, null, null, $tot(secTot)]);
+
+        sec.lines.forEach(line => {
+          const v = b.values[line.id]||{};
+          const qty = fmtN(v.qty);
+          const rate = fmtN(v.rate);
+          if(qty === 0 && rate === 0) return; // skip empty lines
+          const fringeCode = b.fringes?.[line.id] || '';
+          const fringePct = FRINGE_RATES[fringeCode] || 0;
+          const lineTot = lineTotal(line, b);
+          const frTot = lineFringeAmt(line, b);
+          const totalWithFringe = lineTot + frTot;
+
+          rows.push([
+            $(line.id),
+            $(line.name || line.id),
+            line.unit === 'flat' ? null : $n(qty),
+            $cur(rate),
+            fringePct > 0 ? $pct(fringePct) : null,
+            $cur(totalWithFringe),
+          ]);
+        });
+      }
+    });
+
+    // Totals block
+    const btl = btlSubtotal(b);
+    const atl = groupSubtotal('atl', b);
+    const fee = btl * ((parseFloat(b.markup.prodFee)||0)/100);
+    const fringesAdj = btl * ((parseFloat(b.markup.fringes)||0)/100);
+    const cont = (btl+fee) * ((parseFloat(b.markup.contingency)||0)/100);
+    const grand = grandTotal(b);
+
+    rows.push([null]);
+    rows.push([$sec('TOTALS'), null, null, null, null, null]);
+    rows.push([null, $('ATL (Above the Line)'), null, null, null, $cur(atl)]);
+    rows.push([null, $('BTL (Below the Line)'), null, null, null, $cur(btl)]);
+    if(parseFloat(b.markup.prodFee)||0) rows.push([null, $(`Production Fee (${b.markup.prodFee}%)`), null, null, null, $cur(fee)]);
+    if(parseFloat(b.markup.contingency)||0) rows.push([null, $(`Contingency (${b.markup.contingency}%)`), null, null, null, $cur(cont)]);
+    rows.push([null, $bold('GRAND TOTAL'), null, null, null, $tot(grand)]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:8},{wch:36},{wch:8},{wch:12},{wch:10},{wch:14}];
+    return ws;
+  }
+
+  // ── Sheet 2: COST REPORT ───────────────────────────────────────────────────
+  function makeCostReportSheet() {
+    const rows = [];
+    rows.push([$bold('COST REPORT'), null, null, null, null]);
+    rows.push([$bold(b.name || 'Untitled'), null, null, null, null]);
+    rows.push([$(new Date().toLocaleDateString()), null, null, null, null]);
+    rows.push([null]);
+    rows.push([$hdr('SECTION'), $hdr('DESCRIPTION'), $hdr('BID'), $hdr('ACTUAL'), $hdr('VARIANCE')]);
+
+    SECTIONS.forEach(sec => {
+      const bid = sectionTotal(sec, b) + sectionFringeTotal(sec, b);
+      const actual = actualSectionTotal(sec, b);
+      const variance = actual - bid;
+      if(bid === 0 && actual === 0) return;
+      rows.push([
+        $(sec.code),
+        $(sec.name),
+        $cur(bid),
+        $cur(actual),
+        { v: variance, t:'n', z:'$#,##0.00', s: { font:{ color:{ rgb: variance > 0 ? 'E05555' : '34D399' } } } },
+      ]);
+    });
+
+    // Summary rows
+    const bidGrand = grandTotal(b);
+    const actualTotal = actualGrand(b);
+    const totalVar = actualTotal - bidGrand;
+    rows.push([null]);
+    rows.push([null, $bold('GRAND TOTAL'), $tot(bidGrand), $tot(actualTotal),
+      { v: totalVar, t:'n', z:'$#,##0.00', s:{ font:{ bold:true, color:{ rgb: totalVar > 0 ? 'E05555' : '34D399' } } } }
+    ]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:8},{wch:34},{wch:14},{wch:14},{wch:14}];
+    return ws;
+  }
+
+  // ── Sheet 3: PURCHASE ORDERS ───────────────────────────────────────────────
+  function makePOSheet() {
+    const pos = b.pos || [];
+    const rows = [];
+    rows.push([$bold('PURCHASE ORDERS'), null, null, null, null, null, null, null, null]);
+    rows.push([$bold(b.name || 'Untitled'), null, null, null, null, null, null, null, null]);
+    rows.push([null]);
+    rows.push([
+      $hdr('PO #'), $hdr('DATE'), $hdr('VENDOR'), $hdr('DEPT'), $hdr('DESCRIPTION'),
+      $hdr('PO AMOUNT'), $hdr('INVOICE AMT'), $hdr('INVOICE DATE'), $hdr('STATUS'), $hdr('NOTES')
+    ]);
+
+    pos.forEach(po => {
+      const st = poStatus(po.status);
+      rows.push([
+        $(po.number||''),
+        $(fmtD(po.date)),
+        $(po.vendor||''),
+        $(po.department||''),
+        $(po.description||''),
+        $cur(po.amount),
+        po.invoiceAmount ? $cur(po.invoiceAmount) : $('' ),
+        $(fmtD(po.invoiceDate)),
+        $(st.label),
+        $(po.notes||''),
+      ]);
+    });
+
+    // Total row
+    const total = poTotal(b);
+    rows.push([null, null, null, null, $bold('TOTAL'), $tot(total), null, null, null, null]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:8},{wch:11},{wch:22},{wch:14},{wch:34},{wch:14},{wch:14},{wch:12},{wch:10},{wch:28}];
+    return ws;
+  }
+
+  // ── Sheet 4: PETTY CASH ────────────────────────────────────────────────────
+  function makePCSheet() {
+    const envelopes = b.pettyCash || [];
+    const rows = [];
+    rows.push([$bold('PETTY CASH RECONCILIATION'), null, null, null, null, null]);
+    rows.push([$bold(b.name || 'Untitled'), null, null, null, null, null]);
+    rows.push([null]);
+
+    envelopes.forEach(env => {
+      const issued = fmtN(env.amount);
+      const spent = (env.distributions||[]).reduce((s,d)=>s+fmtN(d.amount), 0);
+      const remaining = issued - spent;
+
+      // Envelope header
+      rows.push([$sec(`[${env.code}] ${env.name}`), null, null, null, null, null]);
+      rows.push([
+        $('Issued to: ' + (env.issuedTo||'')),
+        null,
+        null,
+        $('Issued:'),
+        $cur(issued),
+        null,
+      ]);
+      rows.push([null, $hdr('DATE'), $hdr('VENDOR'), $hdr('DESCRIPTION'), $hdr('AMOUNT'), $hdr('RECEIPT')]);
+
+      (env.distributions||[]).forEach(d => {
+        rows.push([
+          null,
+          $(fmtD(d.date)),
+          $(d.vendor||''),
+          $(d.description||''),
+          $cur(d.amount),
+          $(d.receipt ? 'Yes' : 'No'),
+        ]);
+      });
+
+      rows.push([null, null, null, $bold('Spent'), $tot(spent), null]);
+      rows.push([null, null, null, $bold('Remaining'), $tot(remaining), null]);
+      rows.push([null]);
+    });
+
+    // Grand summary
+    const totalIssued = envelopes.reduce((s,e)=>s+fmtN(e.amount), 0);
+    const totalSpent = envelopes.reduce((s,e)=>s+(e.distributions||[]).reduce((ss,d)=>ss+fmtN(d.amount),0), 0);
+    rows.push([$sec('SUMMARY'), null, null, null, null, null]);
+    rows.push([null, $('Total Issued'), null, null, $tot(totalIssued), null]);
+    rows.push([null, $('Total Spent'), null, null, $tot(totalSpent), null]);
+    rows.push([null, $('Net Remaining'), null, null, $tot(totalIssued - totalSpent), null]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:20},{wch:12},{wch:22},{wch:28},{wch:14},{wch:8}];
+    return ws;
+  }
+
+  // ── Assemble workbook ──────────────────────────────────────────────────────
+  try {
+    XLSX.utils.book_append_sheet(wb, makeBudgetSheet(),     'Budget');
+    XLSX.utils.book_append_sheet(wb, makeCostReportSheet(), 'Cost Report');
+    XLSX.utils.book_append_sheet(wb, makePOSheet(),         'Purchase Orders');
+    XLSX.utils.book_append_sheet(wb, makePCSheet(),         'Petty Cash');
+
+    const safeName = (b.name||'Budget').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'_').slice(0,40);
+    const dateStr = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `${safeName}_${dateStr}.xlsx`);
+  } catch(err) {
+    cmAlert('Export Failed', 'Something went wrong generating the spreadsheet: ' + err.message);
+  }
+}
 
 function openCompare() {
   const b = active();
