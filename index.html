@@ -3007,16 +3007,40 @@ function tourStart() {
 }
 
 function tourSkip() {
-  const welcome = _tourEl('tour-welcome');
-  if (welcome) welcome.style.display = 'none';
-  const finish = _tourEl('tour-finish');
-  if (finish) finish.style.display = 'none';
+  // Hide welcome + finish overlays (use both style and class to be safe)
+  ['tour-welcome','tour-finish'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
+  });
+  // Hide tour overlay/spotlight/tooltip
   _tourHide();
-  _tourCleanup();
-  // Revert to first real budget if any
-  const realBudget = budgets.find(b=>!b._isDemo);
-  if (realBudget) { activeId = realBudget.id; render(); }
-  else { activeId = null; render(); }
+  // Delete demo budget + demo contacts regardless of whether cloudLoad ran
+  budgets = budgets.filter(b => !b._isDemo);
+  contacts = contacts.filter(c => !c.id.startsWith('DEMO_CT'));
+  if (_tourDemoBudgetId) {
+    try { cloudDelete && cloudDelete('budgets', _tourDemoBudgetId); } catch(e){}
+    if (_supa && _currentUser && !_devMode) {
+      try {
+        _supa.from('contacts').delete()
+          .eq('user_id', _currentUser.id)
+          .like('id', 'DEMO_CT%')
+          .then(()=>{}).catch(()=>{});
+      } catch(e){}
+    }
+    _tourDemoBudgetId = null;
+  }
+  if (_poBatchMode) exitPOBatchMode();
+  // Set tour_complete so it doesn't re-trigger
+  if (_currentUser && !_devMode) {
+    try {
+      _supa.auth.updateUser({ data: { tour_complete: true } }).catch(()=>{});
+    } catch(e){}
+  }
+  // Switch to first real budget or null
+  const realBudget = budgets.find(b => !b._isDemo);
+  activeId = realBudget ? realBudget.id : null;
+  save();
+  render();
 }
 
 function tourNext() {
