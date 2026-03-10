@@ -1085,6 +1085,78 @@ body{margin:0;padding:0}
   </div>
 </div>
 
+<!-- PRICING / TIER PAGE -->
+<div id="pricing-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:3000;overflow-y:auto;font-family:var(--sans)">
+  <div style="max-width:860px;margin:0 auto;padding:48px 24px 64px">
+
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:48px">
+      <div style="font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--text);margin-bottom:6px">VILLAGER</div>
+      <div style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:10px">Choose your plan</div>
+      <div style="font-size:13px;color:var(--text3)" data-pricing-reason>Start free. Upgrade when you're ready.</div>
+    </div>
+
+    <!-- Tier cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px">
+
+      <!-- FREE -->
+      <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:28px 24px;display:flex;flex-direction:column">
+        <div style="font-size:10px;font-family:var(--mono);letter-spacing:.18em;color:var(--text3);margin-bottom:10px">FREE</div>
+        <div style="font-size:30px;font-weight:700;color:var(--text);margin-bottom:4px">$0</div>
+        <div style="font-size:11px;color:var(--text4);margin-bottom:24px">forever</div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>1 budget</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Full line-item budgeting</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Contact &amp; company book</div>
+          <div style="font-size:12px;color:var(--text4);display:flex;gap:8px"><span style="color:#555">✗</span>PDF &amp; Excel export</div>
+          <div style="font-size:12px;color:var(--text4);display:flex;gap:8px"><span style="color:#555">✗</span>Rate cards &amp; templates</div>
+          <div style="font-size:12px;color:var(--text4);display:flex;gap:8px"><span style="color:#555">✗</span>Unlimited budgets</div>
+        </div>
+        <button onclick="selectFreePlan()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer">START FREE</button>
+      </div>
+
+      <!-- PRO -->
+      <div style="background:var(--bg1);border:2px solid var(--accent);border-radius:8px;padding:28px 24px;display:flex;flex-direction:column;position:relative">
+        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.15em;padding:3px 12px;border-radius:10px">MOST POPULAR</div>
+        <div style="font-size:10px;font-family:var(--mono);letter-spacing:.18em;color:var(--accent);margin-bottom:10px">PRO</div>
+        <div style="font-size:30px;font-weight:700;color:var(--text);margin-bottom:4px">$19.99</div>
+        <div style="font-size:11px;color:var(--text4);margin-bottom:24px">per month</div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Unlimited budgets</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Full line-item budgeting</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>PDF &amp; Excel export</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Rate cards &amp; templates</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Contact &amp; company book</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Priority support</div>
+        </div>
+        <button onclick="selectProPlan()" style="width:100%;padding:11px;background:var(--accent);border:none;border-radius:4px;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer;font-weight:600">UPGRADE TO PRO →</button>
+      </div>
+
+      <!-- MAX -->
+      <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:28px 24px;display:flex;flex-direction:column;opacity:0.7">
+        <div style="font-size:10px;font-family:var(--mono);letter-spacing:.18em;color:var(--text3);margin-bottom:10px">MAX</div>
+        <div style="font-size:30px;font-weight:700;color:var(--text);margin-bottom:4px">TBD</div>
+        <div style="font-size:11px;color:var(--text4);margin-bottom:24px">coming soon</div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Everything in Pro</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Team collaboration</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Multi-user access</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Admin dashboard</div>
+          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Custom integrations</div>
+        </div>
+        <button disabled style="width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text4);font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:not-allowed">COMING SOON</button>
+      </div>
+
+    </div>
+
+    <!-- Footer note -->
+    <div style="text-align:center;font-size:11px;color:var(--text4);font-family:var(--mono)">
+      Test card: 4242 4242 4242 4242 &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; Billed securely via Stripe
+    </div>
+
+  </div>
+</div>
+
 <!-- DEV BACKDOOR MODAL -->
 <div id="dev-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;font-family:var(--mono)">
   <div style="background:#0d0d14;border:1px solid #ff4444;border-radius:8px;padding:28px 32px;width:300px;box-shadow:0 0 40px rgba(255,68,68,0.15)">
@@ -2037,6 +2109,83 @@ function isPro() {
   return false;
 }
 
+// ── PRICING PAGE ─────────────────────────────────────────────────────────────
+function showPricingScreen(reason) {
+  // reason: 'new_user' | 'budget_limit' | 'export' | 'rate_card'
+  const el = document.getElementById('pricing-screen');
+  if (!el) return;
+  // Update header subtitle based on reason
+  const sub = el.querySelector('[data-pricing-reason]');
+  if (sub) {
+    const msgs = {
+      budget_limit: "You've reached the free plan limit of 1 budget. Upgrade to create more.",
+      export: 'PDF and Excel export is a Pro feature. Upgrade to unlock it.',
+      rate_card: 'Rate cards and templates are a Pro feature. Upgrade to unlock them.',
+      new_user: "Start free. Upgrade when you're ready.",
+    };
+    sub.textContent = msgs[reason] || msgs.new_user;
+  }
+  el.style.display = 'block';
+}
+
+function hidePricingScreen() {
+  const el = document.getElementById('pricing-screen');
+  if (el) el.style.display = 'none';
+}
+
+function selectFreePlan() {
+  // Mark plan selected so pricing doesn't re-show on next login
+  if (_currentUser && !_devMode) {
+    try { _supa.auth.updateUser({ data: { plan_selected: true } }).catch(()=>{}); } catch(e){}
+  }
+  hidePricingScreen();
+  hideAuthScreen();
+}
+
+async function selectProPlan() {
+  hidePricingScreen();
+  await startCheckout();
+}
+
+// Show pricing after new signup (no budgets + no plan_selected)
+function maybShowPricing() {
+  if (_devMode) return false;
+  const meta = _currentUser?.user_metadata || {};
+  if (meta.plan_selected) return false;
+  const realBudgets = budgets.filter(b => !b._isDemo);
+  if (realBudgets.length === 0) {
+    showPricingScreen('new_user');
+    return true;
+  }
+  return false;
+}
+
+// Gate: block if over free budget limit
+function gateNewBudget() {
+  if (isPro()) return true;
+  const realBudgets = budgets.filter(b => !b._isDemo);
+  if (realBudgets.length >= 1) {
+    showPricingScreen('budget_limit');
+    return false;
+  }
+  return true;
+}
+
+// Gate: block export
+function gateExport() {
+  if (isPro()) return true;
+  showPricingScreen('export');
+  return false;
+}
+
+// Gate: block rate cards / templates
+function gateRateCard() {
+  if (isPro()) return true;
+  showPricingScreen('rate_card');
+  return false;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function startCheckout() {
   document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
   if (!_currentUser) return;
@@ -2158,7 +2307,8 @@ function hideAuthScreen() {
   if (ap) ap.style.display = 'flex';
   updateUserUI();
   render();
-  // Show tour for new users
+  // Show pricing page for brand new users, otherwise show tour
+  if (maybShowPricing()) return;
   setTimeout(tourLaunch, 600);
   // Show success banner if returning from Stripe checkout
   if (window.__checkoutSuccess) {
@@ -4621,11 +4771,13 @@ function createBudget() {
 }
 
 function createBlankBudget() {
+  if (!gateNewBudget()) return;
   document.getElementById('new-budget-modal')?.remove();
   const b=newBudget(); budgets.unshift(b); activeId=b.id; activeTab='budget'; expanded={}; render(); flashNewBudget();
 }
 
 function createBlankThenApply(tplId) {
+  if (!gateNewBudget()) return;
   document.getElementById('new-budget-modal')?.remove();
   const tpl = BUILTIN_TEMPLATES.find(t=>t.id===tplId);
   const b = newBudget();
@@ -9487,6 +9639,7 @@ async function copySectionRates(fromCode, toCode) {
 }
 
 function saveRateCard() {
+  if (!gateRateCard()) return;
   const b = active(); if(!b) return;
   const name = prompt('Name this rate card (e.g. "SF Union — Tight Budget"):');
   if(!name?.trim()) return;
@@ -9528,6 +9681,7 @@ async function deleteRateCard(id) {
 }
 
 function saveTemplate() {
+  if (!gateRateCard()) return;
   const b = active(); if(!b) return;
   const name = prompt('Name this template:');
   if(!name?.trim()) return;
@@ -10242,6 +10396,7 @@ function toggleExportMenu() {
 }
 
 function exportPDF(mode) {
+  if (!gateExport()) return;
   document.getElementById('export-menu').style.display = 'none';
   const b = active(); if(!b) return;
 
@@ -12307,6 +12462,7 @@ function exportWrapBook() {
 // Full dark theme styling: gold headers, colored status, section backgrounds
 // ─────────────────────────────────────────────────────────────────────────────
 function exportExcel() {
+  if (!gateExport()) return;
   const b = active(); if(!b) return;
   const company = getCompanyForBudget(b)?.name || 'Production';
   const fmtN = v => parseFloat(v)||0;
