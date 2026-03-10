@@ -12134,7 +12134,7 @@ function exportExcel() {
     if(parseFloat(b.markup.prodFee)) rows.push(tr(`Production Fee (${b.markup.prodFee}%)`,fee));
     if(parseFloat(b.markup.contingency)) rows.push(tr(`Contingency (${b.markup.contingency}%)`,cont));
     rows.push([ce(S.grandL),cs('GRAND TOTAL',S.grandL),ce(S.grandL),ce(S.grandL),ce(S.grandL),cn(grand,S.grandV)]);
-    return {rows,cols:[8,36,7,13,10,14],freeze:5,af:-1};
+    return {rows,cols:[8,36,7,13,10,14],freeze:5,af:-1,landscape:false,hdrRow:5};
   }
 
   function costSheet() {
@@ -12160,7 +12160,7 @@ function exportExcel() {
     const bg=grandTotal(b),ag=actualGrand(b),tv=ag-bg;
     rows.push(B());
     rows.push([ce(S.grandL),cs('GRAND TOTAL',S.grandL),cn(bg,S.grandV),cn(ag,S.grandV),cn(tv,tv>0?S.varPos:S.varNeg)]);
-    return {rows,cols:[8,34,14,14,14],freeze:5,af:-1};
+    return {rows,cols:[8,34,14,14,14],freeze:5,af:-1,landscape:false,hdrRow:5};
   }
 
   function poSheet() {
@@ -12178,7 +12178,7 @@ function exportExcel() {
     });
     rows.push(B());
     rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('TOTAL COMMITTED',S.grandL),cn(poTotal(b),S.grandV),...Array(nc-6).fill(ce(S.grandL))]);
-    return {rows,cols:[8,11,22,14,36,14,14,11,11,28],freeze:5,af:4};
+    return {rows,cols:[8,11,22,14,36,14,14,11,11,28],freeze:5,af:4,landscape:true,hdrRow:5};
   }
 
   function pcSheet() {
@@ -12200,16 +12200,23 @@ function exportExcel() {
     rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Total Issued',S.grandL),cn(ti,S.grandV),ce(S.grandL)]);
     rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Total Spent',S.grandL),cn(ts,S.grandV),ce(S.grandL)]);
     rows.push([ce(S.grandL),ce(S.grandL),ce(S.grandL),cs('Net Remaining',S.grandL),cn(ti-ts,S.grandV),ce(S.grandL)]);
-    return {rows,cols:[8,12,22,32,14,9],freeze:0,af:-1};
+    return {rows,cols:[8,12,22,32,14,9],freeze:0,af:-1,landscape:false,hdrRow:3};
   }
 
   // ── XML generators ─────────────────────────────────────────────────────────
   function colLetter(n){let s='';for(n++;n>0;n=Math.floor((n-1)/26))s=String.fromCharCode(((n-1)%26)+65)+s;return s;}
 
   function wsXml(sd) {
-    const {rows,freeze,af}=sd;
-    let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
-    x+=freeze>0?`<sheetViews><sheetView workbookViewId="0"><pane ySplit="${freeze}" topLeftCell="A${freeze+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`:'<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
+    const {rows,freeze,af,landscape,hdrRow}=sd;
+    const orient=landscape?'landscape':'portrait';
+    const lastCol=colLetter((rows[0]||[[]]).length-1);
+    let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
+      +' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+    x+=freeze>0
+      ?`<sheetViews><sheetView workbookViewId="0"><pane ySplit="${freeze}" topLeftCell="A${freeze+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`
+      :'<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
+    x+='<sheetFormatPr defaultRowHeight="18" customHeight="1"/>';
     x+=`<cols>${sd.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`;
     x+='<sheetData>';
     rows.forEach((row,r)=>{
@@ -12223,6 +12230,9 @@ function exportExcel() {
     });
     x+='</sheetData>';
     if(af>=0){const lc=colLetter((rows[af]||rows[0]).length-1);x+=`<autoFilter ref="A${af+1}:${lc}${af+1}"/>`;}
+    x+='<printOptions headings="0" gridLines="0"/>';
+    x+='<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>';
+    x+=`<pageSetup paperSize="1" orientation="${orient}" fitToWidth="1" fitToHeight="0" fitToPage="1"/>`;
     return x+'</worksheet>';
   }
 
