@@ -5416,9 +5416,11 @@ function createContact() {
 }
 
 async function deleteContact(id) {
-  if(!await cmDanger('Delete contact','This will permanently remove this contact from your library.','Delete Contact')) return;
+  if(!await cmDanger('Delete contact','This will permanently remove this contact from your library. This cannot be undone.','Delete Contact')) return;
   contacts = contacts.filter(c=>c.id!==id);
   save();
+  // Hard-delete from Supabase so cloudLoad can't restore it
+  cloudDelete('contacts', id);
   renderContactsPanel();
 }
 
@@ -9223,6 +9225,48 @@ function spotlightAssign(contactId, lineId, secCode, btnEl) {
   }
 }
 
+// Remove a vendor from a specific line directly from spotlight, with confirmation flash
+function spotlightUnassign(contactId, lineId, secCode, btnEl) {
+  const b = active(); if (!b) return;
+  if (!b.lineMeta || !b.lineMeta[lineId]) return;
+  const meta = b.lineMeta[lineId];
+  // Only remove if this contact is the one assigned
+  if (meta.contactId !== contactId) return;
+  delete meta.contactId;
+  delete meta.vendorCompany;
+  meta.vendor = '';
+  save();
+
+  // Refresh the budget section if visible
+  const sec = SECTIONS.find(s => s.code === secCode);
+  if (sec) {
+    const el = document.getElementById('sec-' + secCode);
+    if (el && expanded[secCode]) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderSection(sec, b, b.mode === 'actual');
+      el.replaceWith(tmp.firstElementChild);
+    }
+  }
+  refreshTotals(b);
+  renderContactsPanel && renderContactsPanel();
+
+  // Flash the button to show removal, then re-render
+  if (btnEl) {
+    btnEl.innerHTML = '<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg> Removed';
+    btnEl.style.background    = 'rgba(239,68,68,.1)';
+    btnEl.style.borderColor   = 'rgba(239,68,68,.3)';
+    btnEl.style.color         = '#ef4444';
+    btnEl.style.pointerEvents = 'none';
+    setTimeout(() => {
+      const input = document.getElementById('spotlight-input');
+      if (input) spotlightInput(input.value);
+    }, 900);
+  } else {
+    const input = document.getElementById('spotlight-input');
+    if (input) spotlightInput(input.value);
+  }
+}
+
 // Create a new vendor pre-filled with the search query name, then navigate to Vendors
 function spotlightCreateVendor(name) {
   spotlightClose();
@@ -9428,11 +9472,22 @@ function spotlightInput(query) {
       }).join('');
 
       // One assign button per matching line, from the vendor's own role
-      const sectionNames = {A:'Prep Crew',B:'Shoot Crew',L:'ATL',C:'Production',D:'Art Dept',E:'Wardrobe',F:'Props',G:'Locations',H:'Studio'};
+      const sectionNames = {
+        L:'Director\'s Fees', A:'Prep Crew', B:'Shoot Crew',
+        C:'Prep & Wrap Expenses', D:'Location Expenses', E:'Props, Wardrobe & Animals',
+        F:'Studio Costs', G:'Art Department Labor', H:'Art Department Expenses',
+        I:'Equipment Rental', J:'Media', K:'Misc Production Costs',
+        M:'Talent', N:'Talent Expenses', O:'Editorial',
+        P:'Post Production', Q:'Color & VFX', R:'Audio & Music', S:'Finishing & Delivery'
+      };
       const assignBtns = r.roleLines.map(ml => {
         const isAssigned = ml.assigned;
         const secLabel   = sectionNames[ml.secCode] || ('Section ' + ml.secCode);
-        return `<button onclick="event.stopPropagation();spotlightAssign('${esc(r.contactId)}','${esc(ml.lineId)}','${esc(ml.secCode)}',this)"
+        // Assigned: clicking again removes; unassigned: clicking adds
+        const clickFn = isAssigned
+          ? `event.stopPropagation();spotlightUnassign('${esc(r.contactId)}','${esc(ml.lineId)}','${esc(ml.secCode)}',this)`
+          : `event.stopPropagation();spotlightAssign('${esc(r.contactId)}','${esc(ml.lineId)}','${esc(ml.secCode)}',this)`;
+        return `<button onclick="${clickFn}"
           style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;font-size:10px;
           font-family:var(--mono);letter-spacing:.03em;border-radius:3px;cursor:pointer;
           transition:all .15s;font-weight:600;
@@ -9441,7 +9496,7 @@ function spotlightInput(query) {
             : 'background:rgba(108,142,240,.15);border:1px solid rgba(108,142,240,.35);color:var(--accent);'
           }">
           ${isAssigned
-            ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> Added · ${esc(secLabel)}`
+            ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> Added · ${esc(secLabel)} <span style="opacity:.55;font-size:8px;margin-left:2px">✕ remove</span>`
             : `<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4.5" y1="1" x2="4.5" y2="8"/><line x1="1" y1="4.5" x2="8" y2="4.5"/></svg> Add to ${esc(secLabel)}`
           }
         </button>`;
