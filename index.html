@@ -2642,12 +2642,12 @@ function openLegalModal() {
   overlay.innerHTML = `
     <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.85)">
       <!-- Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;flex-shrink:0">
         <div style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--text)">Legal & Privacy</div>
         <button onclick="document.getElementById('legal-modal').remove()" style="background:transparent;border:none;color:var(--text4);cursor:pointer;font-size:18px;padding:4px 8px;line-height:1" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text4)'">✕</button>
       </div>
       <!-- Tabs -->
-      <div style="display:flex;gap:0;padding:16px 24px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;gap:0;padding:16px 24px 0;border-bottom:1px solid var(--border);flex-shrink:0">
         ${['Terms of Service','Privacy Policy','Refund Policy'].map((t,i)=>`
           <button id="legal-tab-${i}" onclick="legalShowTab(${i})" style="background:transparent;border:none;border-bottom:2px solid ${i===0?'var(--accent)':'transparent'};color:${i===0?'var(--text)':'var(--text3)'};font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:6px 14px 10px;cursor:pointer;transition:all .15s">${t.toUpperCase()}</button>
         `).join('')}
@@ -2657,7 +2657,7 @@ function openLegalModal() {
 
         <!-- TERMS -->
         <div id="legal-panel-0">
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2025 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2025</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2026 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2026</div>
           <p>These Terms of Service ("Terms") govern your access to and use of Villager Pro, a software product operated by <strong style="color:var(--text)">Farallon Studios LLC</strong> ("Company," "we," "us," or "our"). By creating an account or using the Service, you agree to these Terms.</p>
 
           <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">1. The Service</div>
@@ -2690,7 +2690,7 @@ function openLegalModal() {
 
         <!-- PRIVACY -->
         <div id="legal-panel-1" style="display:none">
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2025 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2025</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2026 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2026</div>
           <p>Farallon Studios LLC ("we," "us," "our") operates Villager Pro. This Privacy Policy explains what information we collect, how we use it, and your rights regarding that information.</p>
 
           <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Information We Collect</div>
@@ -2723,7 +2723,7 @@ function openLegalModal() {
 
         <!-- REFUND -->
         <div id="legal-panel-2" style="display:none">
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2025 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2025</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2026 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2026</div>
 
           <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">7-Day Money-Back Guarantee</div>
           <p>If you are not satisfied with Villager Pro for any reason, contact us within <strong style="color:var(--text)">7 days of your initial purchase</strong> and we will issue a full refund — no questions asked.</p>
@@ -2740,7 +2740,7 @@ function openLegalModal() {
 
       </div>
       <!-- Footer -->
-      <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
         <div style="font-size:10px;color:var(--text4);font-family:var(--mono)">© ${new Date().getFullYear()} FARALLON STUDIOS LLC &nbsp;·&nbsp; VILLAGER PRO</div>
         <button onclick="document.getElementById('legal-modal').remove()" style="padding:5px 16px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.06em" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">CLOSE</button>
       </div>
