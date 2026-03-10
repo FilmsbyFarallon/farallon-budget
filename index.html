@@ -1281,7 +1281,7 @@ body{margin:0;padding:0}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Rate Source</div>
-            <select id="lp-ratesource" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:7px 8px;outline:none;border-radius:2px" onchange="saveLinePanelField('rateSource',this.value)">
+            <select id="lp-ratesource" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:7px 5px;outline:none;border-radius:2px" onchange="saveLinePanelField('rateSource',this.value)">
               <option value="">—</option>
               <option value="estimate">Estimate</option>
               <option value="quoted">Quoted</option>
@@ -1291,7 +1291,7 @@ body{margin:0;padding:0}
           </div>
           <div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Union Status</div>
-            <select id="lp-unionstatus" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:7px 8px;outline:none;border-radius:2px" onchange="saveLinePanelField('unionStatus',this.value)">
+            <select id="lp-unionstatus" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:7px 5px;outline:none;border-radius:2px" onchange="saveLinePanelField('unionStatus',this.value)">
               <option value="">—</option>
               <option value="non-union">Non-Union</option>
               <option value="iatse">IATSE</option>
@@ -1311,7 +1311,7 @@ body{margin:0;padding:0}
           </div>
           <div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:4px">OT / Guarantee</div>
-            <select id="lp-ot" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:7px 8px;outline:none;border-radius:2px" onchange="saveLinePanelField('otFlag',this.value)">
+            <select id="lp-ot" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:7px 5px;outline:none;border-radius:2px" onchange="saveLinePanelField('otFlag',this.value)">
               <option value="">Standard</option>
               <option value="likely-ot">Likely OT</option>
               <option value="guaranteed-10">Gtd 10hr</option>
@@ -4450,40 +4450,40 @@ function renderPOPanel(b) {
   <div style="flex:1;overflow-y:auto;overflow-x:auto">
   <table style="width:100%;border-collapse:collapse;table-layout:fixed">
     <colgroup>
-      <col style="width:90px">   <!-- PO NUMBER -->
-      <col style="width:112px">  <!-- DATE -->
-      <col style="min-width:120px;width:auto"> <!-- VENDOR flex -->
-      <col style="width:128px">  <!-- DEPARTMENT -->
-      <col style="width:96px">   <!-- LINE REF -->
-      <col style="min-width:120px;width:auto"> <!-- DESCRIPTION flex -->
-      <col style="width:124px">  <!-- PO AMT -->
-      <col style="width:124px">  <!-- INVOICE -->
-      <col style="width:112px">  <!-- INV DATE -->
-      <col style="width:36px">   <!-- VAR -->
-      <col style="width:84px">   <!-- CHECK # -->
-      <col style="width:112px">  <!-- PAY DATE -->
-      <col style="width:84px">   <!-- METHOD -->
-      <col style="width:100px">  <!-- STATUS -->
-      <col style="min-width:80px;width:auto">  <!-- NOTES flex -->
-      <col style="width:48px">   <!-- ACTIONS -->
+      <col style="width:80px">   <!-- PO # -->
+      <col style="width:100px">  <!-- DATE -->
+      <col style="width:auto">   <!-- VENDOR flex -->
+      <col style="width:110px">  <!-- DEPARTMENT -->
+      <col style="width:60px">   <!-- LINE REF -->
+      <col style="width:auto">   <!-- DESCRIPTION flex -->
+      <col style="width:110px">  <!-- PO AMT -->
+      <col style="width:110px">  <!-- INVOICE -->
+      <col style="width:100px">  <!-- INV DATE -->
+      <col style="width:28px">   <!-- VAR -->
+      <col style="width:72px">   <!-- CHECK # -->
+      <col style="width:100px">  <!-- PAY DATE -->
+      <col style="width:72px">   <!-- METHOD -->
+      <col style="width:90px">   <!-- STATUS -->
+      <col style="width:auto">   <!-- NOTES flex -->
+      <col style="width:40px">   <!-- ACTIONS -->
     </colgroup>
     <thead>
       <tr style="background:var(--bg2);border-bottom:1px solid var(--border2)">
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left;overflow:hidden;white-space:nowrap">PO #</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">DATE</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">VENDOR</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">DEPARTMENT</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">LINE REF</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">DESCRIPTION</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:right">PO AMT</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:right">INVOICE</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">INV DATE</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left;overflow:hidden;white-space:nowrap">PO #</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">DATE</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">VENDOR</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">DEPARTMENT</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">LINE REF</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">DESCRIPTION</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:right">PO AMT</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:right">INVOICE</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">INV DATE</th>
         <th style="padding:7px 4px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:center">VAR</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">CHECK #</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">PAY DATE</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">METHOD</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">STATUS</th>
-        <th style="padding:7px 8px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">NOTES</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">CHECK #</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">PAY DATE</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">METHOD</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">STATUS</th>
+        <th style="padding:7px 5px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;color:var(--text4);text-align:left">NOTES</th>
         <th style="width:48px"></th>
       </tr>
     </thead>
@@ -4498,15 +4498,15 @@ function renderPOPanel(b) {
       const st = poStatus(po.status);
       const rowBg = idx%2===0 ? 'var(--bg1)' : 'var(--bg2)';
       html += `<tr class="po-row" data-id="${po.id}" style="background:${rowBg};border-bottom:1px solid var(--border)">
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" value="${esc(po.number||'')}" style="font-size:11px;font-family:var(--mono);color:var(--text2);font-weight:600"
             onchange="updatePO('${b.id}','${po.id}','number',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" type="date" value="${esc(po.date||'')}" style="font-size:11px;font-family:var(--mono);color:var(--text3)"
             onchange="updatePO('${b.id}','${po.id}','date',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field po-vendor" value="${esc(po.vendor||'')}" placeholder="Vendor name"
             onchange="updatePO('${b.id}','${po.id}','vendor',this.value)"
             oninput="acOpen(this,{deptField:this.closest('tr').querySelector('select')});acUpdate()"
@@ -4515,33 +4515,33 @@ function renderPOPanel(b) {
             onblur="setTimeout(acClose,150)"
             autocomplete="off">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <select class="po-field" onchange="updatePO('${b.id}','${po.id}','department',this.value)" style="font-size:11px">
             <option value="">— Dept —</option>
             ${PO_DEPARTMENTS.map(d=>`<option value="${d}"${po.department===d?' selected':''}>${d}</option>`).join('')}
           </select>
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" value="${esc(po.lineRef||'')}" placeholder="Ref"
             style="font-size:11px;color:var(--text3)"
             onchange="updatePO('${b.id}','${po.id}','lineRef',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" value="${esc(po.description||'')}" placeholder="Description"
             style="font-size:11px"
             onchange="updatePO('${b.id}','${po.id}','description',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" type="number" value="${po.amount||''}" placeholder="0.00" step="0.01"
             style="text-align:right;color:var(--gold);font-size:12px;font-weight:600"
             onchange="updatePO('${b.id}','${po.id}','amount',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" type="number" value="${po.invoiceAmount||''}" placeholder="0.00" step="0.01"
             style="text-align:right;color:var(--text2);font-size:12px"
             onchange="updatePO('${b.id}','${po.id}','invoiceAmount',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" type="date" value="${esc(po.invoiceDate||'')}"
             style="font-size:11px;color:var(--text3)"
             onchange="updatePO('${b.id}','${po.id}','invoiceDate',this.value)">
@@ -4549,29 +4549,29 @@ function renderPOPanel(b) {
         <td style="padding:7px 4px;text-align:center;font-size:11px;font-family:var(--mono)">
           ${(()=>{ const pa=parseFloat(po.amount)||0; const ia=parseFloat(po.invoiceAmount)||0; if(!ia) return '<span style="color:var(--text4)">\u2014</span>'; const d=ia-pa; return d>0?'<span style="color:var(--red)" title="Invoice exceeds PO by $'+Math.abs(d).toFixed(2)+'">\u25B2</span>':d<0?'<span style="color:var(--green)" title="Invoice under PO by $'+Math.abs(d).toFixed(2)+'">\u25BC</span>':'<span style="color:var(--text4)" title="Invoice matches PO">\u2713</span>'; })()}
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" value="${esc(po.checkNumber||'')}" placeholder="Check #"
             style="font-size:11px;color:var(--text3)"
             onchange="updatePO('${b.id}','${po.id}','checkNumber',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" type="date" value="${esc(po.paymentDate||'')}"
             style="font-size:11px;color:${po.paymentDate?'var(--text3)':'var(--text4)'}"
             onchange="updatePO('${b.id}','${po.id}','paymentDate',this.value)">
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <select class="po-field" onchange="updatePO('${b.id}','${po.id}','paymentMethod',this.value)"
             style="font-size:11px;color:${po.paymentMethod?'var(--text2)':'var(--text4)'}">
             <option value="">—</option>
             ${['Check','ACH','Wire','Card','Cash'].map(m=>`<option value="${m}"${po.paymentMethod===m?' selected':''}>${m}</option>`).join('')}
           </select>
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <select class="po-field po-status-sel" onchange="updatePO('${b.id}','${po.id}','status',this.value);this.style.color=poStatus(this.value).color" style="color:${st.color};font-size:11px;font-weight:600">
             ${PO_STATUSES.map(s=>`<option value="${s.key}"${po.status===s.key?' selected':''}>${s.label}</option>`).join('')}
           </select>
         </td>
-        <td style="padding:7px 8px;overflow:hidden">
+        <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" value="${esc(po.notes||'')}" placeholder="Notes"
             style="font-size:11px"
             onchange="updatePO('${b.id}','${po.id}','notes',this.value)">
@@ -5928,7 +5928,7 @@ function renderContactsPanel() {
             }).join('')}
           </div>
         </td>
-        <td style="padding:7px 8px;text-align:center">
+        <td style="padding:7px 5px;text-align:center">
           ${b ? (() => {
             let assignHtml = '';
             // Show assigned lines with unassign buttons
@@ -5962,7 +5962,7 @@ function renderContactsPanel() {
             return assignHtml;
           })() : ''}
         </td>
-        <td style="padding:7px 8px;text-align:center">
+        <td style="padding:7px 5px;text-align:center">
           <button onclick="deleteContact('${c.id}')" style="width:22px;height:22px;border:none;background:transparent;color:var(--text4);cursor:pointer;border-radius:2px;font-size:14px;display:flex;align-items:center;justify-content:center;transition:color .12s,background .12s" onmouseover="this.style.color='var(--red)';this.style.background='rgba(248,113,113,.08)'" onmouseout="this.style.color='var(--text4)';this.style.background='transparent'" title="Delete contact">&times;</button>
         </td>
       </tr>`;
@@ -7698,13 +7698,13 @@ function renderDetailPanel(b) {
       <tfoot style="position:sticky;bottom:0;background:var(--bg2);border-top:2px solid var(--border2)">
         <tr>
           <td colspan="7" style="padding:7px 10px;font-size:10px;font-family:var(--mono);color:var(--text4);letter-spacing:.08em">TOTALS — ${visible.length} lines</td>
-          <td style="padding:7px 8px;font-size:11px;font-family:var(--mono);color:var(--text2);text-align:right;font-weight:700">${fmt(totSub)}</td>
-          <td style="padding:7px 8px;font-size:11px;font-family:var(--mono);color:var(--amber);text-align:right;font-weight:700">${fmt(totFringe)}</td>
-          <td style="padding:7px 8px;font-size:13px;font-family:var(--mono);color:var(--gold);text-align:right;font-weight:800">${fmt(totBid)}</td>
-          <td style="padding:7px 8px;font-size:13px;font-family:var(--mono);color:var(--accent);text-align:right;font-weight:800">${fmt(totCommit)}</td>
+          <td style="padding:7px 5px;font-size:11px;font-family:var(--mono);color:var(--text2);text-align:right;font-weight:700">${fmt(totSub)}</td>
+          <td style="padding:7px 5px;font-size:11px;font-family:var(--mono);color:var(--amber);text-align:right;font-weight:700">${fmt(totFringe)}</td>
+          <td style="padding:7px 5px;font-size:13px;font-family:var(--mono);color:var(--gold);text-align:right;font-weight:800">${fmt(totBid)}</td>
+          <td style="padding:7px 5px;font-size:13px;font-family:var(--mono);color:var(--accent);text-align:right;font-weight:800">${fmt(totCommit)}</td>
           ${isActual ? `
-          <td style="padding:7px 8px;font-size:13px;font-family:var(--mono);color:var(--text);text-align:right;font-weight:800">${fmt(totActual)}</td>
-          <td style="padding:7px 8px;font-size:13px;font-family:var(--mono);color:${totVar>0?'var(--red)':totVar<0?'var(--green)':'var(--text3)'};text-align:right;font-weight:800">${totVar>=0?'+':''}${fmt(totVar)}</td>` : ''}
+          <td style="padding:7px 5px;font-size:13px;font-family:var(--mono);color:var(--text);text-align:right;font-weight:800">${fmt(totActual)}</td>
+          <td style="padding:7px 5px;font-size:13px;font-family:var(--mono);color:${totVar>0?'var(--red)':totVar<0?'var(--green)':'var(--text3)'};text-align:right;font-weight:800">${totVar>=0?'+':''}${fmt(totVar)}</td>` : ''}
         </tr>
       </tfoot>
     </table>
@@ -8755,7 +8755,7 @@ function spToggle(id) {
           <div style="font-size:10px;color:var(--text4);margin-top:2px">${dateStr} &nbsp;·&nbsp; ${grandTotal}</div>
         </div>
         <button onclick="restoreSnapshot('${s.id}')" style="padding:7px 10px;font-size:10px;font-family:var(--mono);border:none;border-left:1px solid var(--border2);background:transparent;color:var(--gold);cursor:pointer;white-space:nowrap">restore</button>
-        <button onclick="deleteSnapshot('${s.id}')" style="padding:7px 8px;font-size:10px;border:none;border-left:1px solid var(--border2);background:transparent;color:var(--text4);cursor:pointer">&#10005;</button>
+        <button onclick="deleteSnapshot('${s.id}')" style="padding:7px 5px;font-size:10px;border:none;border-left:1px solid var(--border2);background:transparent;color:var(--text4);cursor:pointer">&#10005;</button>
       </div>`;
     }).join('');
     inner = `<div style="display:flex;flex-direction:column;gap:8px">
@@ -9700,7 +9700,7 @@ function exportPDF(mode) {
     table.summary td.name { padding-left:4px; }
     table.summary tr.atl td { color:#8a7a60; font-style:italic; background:#faf8f3; }
     table.summary tr.markup td { background:#f5f2eb; color:#6b6245; font-size:9px; }
-    table.summary tfoot tr td { background:#1a1810; color:#fff; font-weight:700; font-family:monospace; font-size:11px; padding:7px 8px; border:none; }
+    table.summary tfoot tr td { background:#1a1810; color:#fff; font-weight:700; font-family:monospace; font-size:11px; padding:7px 5px; border:none; }
     table.summary tfoot tr td.r { color:#c8973a; font-size:13px; }
 
     /* ── DETAIL: SECTION BAND ── */
