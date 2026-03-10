@@ -2055,12 +2055,12 @@ async function cloudLoad() {
       _supa.from('contacts').select('data').eq('user_id',uid),
       _supa.from('companies').select('data').eq('user_id',uid),
     ]);
-    budgets   = (bR.data||[]).map(r=>r.data);
+    budgets   = (bR.data||[]).map(r=>r.data).filter(b=>!b._isDemo);
     folders   = (fR.data||[]).map(r=>r.data);
     rateCards = (rcR.data||[]).map(r=>r.data);
     templates = (tR.data||[]).map(r=>r.data);
     snapshots = (sR.data||[]).map(r=>r.data);
-    contacts  = (ctR.data||[]).map(r=>r.data);
+    contacts  = (ctR.data||[]).map(r=>r.data).filter(c=>!c.id.startsWith('DEMO_CT'));
     companies = (coR.data||[]).map(r=>r.data);
     // Load prefs from localStorage
     try {
@@ -2092,7 +2092,7 @@ async function cloudSave() {
     if (rateCards.length) ops.push(_supa.from('rate_cards').upsert(rateCards.map(r=>({id:r.id,user_id:uid,data:r,updated_at:ts})),{onConflict:'id'}));
     if (templates.length) ops.push(_supa.from('templates').upsert(templates.map(t=>({id:t.id,user_id:uid,data:t,updated_at:ts})),{onConflict:'id'}));
     if (snapshots.length) ops.push(_supa.from('snapshots').upsert(snapshots.map(s=>({id:s.id,user_id:uid,budget_id:s.budgetId||null,data:s,label:s.label||null,updated_at:ts})),{onConflict:'id'}));
-    if (contacts.length)  ops.push(_supa.from('contacts').upsert(contacts.map(c=>({id:c.id,user_id:uid,data:c,updated_at:ts})),{onConflict:'id'}));
+    if (contacts.length)  ops.push(_supa.from('contacts').upsert(contacts.filter(c=>!c.id.startsWith('DEMO_CT')).map(c=>({id:c.id,user_id:uid,data:c,updated_at:ts})),{onConflict:'id'}));
     if (companies.length) ops.push(_supa.from('companies').upsert(companies.map(c=>({id:c.id,user_id:uid,data:c,updated_at:ts})),{onConflict:'id'}));
     const results = await Promise.all(ops);
     const errs = results.filter(r=>r.error);
@@ -2369,8 +2369,19 @@ function _tourCleanup() {
       if (activeId === _tourDemoBudgetId) activeId = budgets[0]?.id || null;
     }
   }
-  // Remove demo contacts
+  // Remove demo contacts locally
   contacts = contacts.filter(c=>!c.id.startsWith('DEMO_CT'));
+  // Hard-delete demo contacts from Supabase so cloudLoad can't restore them
+  if (_supa && _currentUser) {
+    try {
+      _supa.from('contacts')
+        .delete()
+        .eq('user_id', _currentUser.id)
+        .like('id', 'DEMO_CT%')
+        .then(()=>{})
+        .catch(()=>{});
+    } catch(e) {}
+  }
   save();
   _tourDemoBudgetId = null;
 }
@@ -2886,7 +2897,7 @@ function load() {
 }
 function save() {
   if (_currentUser && _supa) { cloudSaveDebounced(); } 
-  else { localStorage.setItem(KEY, JSON.stringify({budgets, folders, rateCards, templates, snapshots, contacts, companies, onboardDismissed, prefs})); }
+  else { localStorage.setItem(KEY, JSON.stringify({budgets: budgets.filter(b=>!b._isDemo), folders, rateCards, templates, snapshots, contacts: contacts.filter(c=>!c.id.startsWith('DEMO_CT')), companies, onboardDismissed, prefs})); }
 }
 function active() {
   const b = budgets.find(b=>b.id===activeId)||null;
