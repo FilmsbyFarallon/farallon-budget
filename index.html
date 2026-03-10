@@ -3007,6 +3007,10 @@ function tourStart() {
 }
 
 function tourSkip() {
+  const welcome = _tourEl('tour-welcome');
+  if (welcome) welcome.style.display = 'none';
+  const finish = _tourEl('tour-finish');
+  if (finish) finish.style.display = 'none';
   _tourHide();
   _tourCleanup();
   // Revert to first real budget if any
