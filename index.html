@@ -398,12 +398,12 @@ body{margin:0;padding:0}
 .po-field:focus{background:var(--bg3);outline:1px solid var(--border2)}
 .po-field option{background:var(--bg2);color:var(--text)}
 .po-row:hover{background:rgba(108,142,240,.03) !important}
-.po-batch-mode .po-row{cursor:pointer}
-.po-batch-mode .po-row:hover{background:rgba(200,169,110,.05) !important}
-.po-batch-mode .po-row input,
-.po-batch-mode .po-row select,
-.po-batch-mode .po-row button,
-.po-batch-mode .po-row .po-text-preview{pointer-events:none !important;user-select:none}
+#po-panel.po-batch-mode .po-row{cursor:pointer}
+#po-panel.po-batch-mode .po-row:hover{background:rgba(200,169,110,.05) !important}
+#po-panel.po-batch-mode .po-row input,
+#po-panel.po-batch-mode .po-row select,
+#po-panel.po-batch-mode .po-row button,
+#po-panel.po-batch-mode .po-row .po-text-preview{pointer-events:none !important;user-select:none}
 .po-row.selected{background:rgba(200,169,110,.07) !important;box-shadow:inset 3px 0 0 var(--gold)}
 .po-row.selected:hover{background:rgba(200,169,110,.11) !important}
 #po-batch-bar{
@@ -4566,13 +4566,11 @@ let _poBatchMode = false;
 function enterPOBatchMode() {
   _poBatchMode = true;
   _poSelected.clear();
+  const panel = document.getElementById('po-panel');
+  if(panel) panel.classList.add('po-batch-mode');
   const bar = document.getElementById('po-batch-bar');
   if(bar) bar.classList.add('visible');
-  // Add batch-mode class to table for cursor styling
-  const table = document.querySelector('#po-panel table');
-  if(table) table.classList.add('po-batch-mode');
   updatePOSelectionUI();
-  // Update toolbar button appearance
   const btn = document.getElementById('po-batch-mode-btn');
   if(btn) { btn.classList.add('active'); btn.textContent = 'Batch Mode On'; }
 }
@@ -4580,10 +4578,10 @@ function enterPOBatchMode() {
 function exitPOBatchMode() {
   _poBatchMode = false;
   _poSelected.clear();
+  const panel = document.getElementById('po-panel');
+  if(panel) panel.classList.remove('po-batch-mode');
   const bar = document.getElementById('po-batch-bar');
   if(bar) bar.classList.remove('visible');
-  const table = document.querySelector('#po-panel table');
-  if(table) table.classList.remove('po-batch-mode');
   document.querySelectorAll('.po-row').forEach(r => r.classList.remove('selected'));
   document.getElementById('po-batch-status-dd')?.classList.remove('open');
   const btn = document.getElementById('po-batch-mode-btn');
