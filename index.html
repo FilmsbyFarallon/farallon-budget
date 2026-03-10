@@ -670,10 +670,31 @@ body{margin:0;padding:0}
 }
 
 /* ── AUTH SCREEN ── */
-#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;align-items:center;justify-content:center;font-family:var(--sans)}
-.auth-card{background:var(--bg1);border:1px solid var(--border2);border-radius:4px;padding:40px 44px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.8)}
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;align-items:stretch;justify-content:stretch;font-family:var(--sans)}
+/* Split layout */
+.auth-split{display:flex;width:100%;height:100%}
+/* Left panel */
+.auth-left{flex:0 0 42%;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:48px 52px;overflow:hidden;background:#050508}
+.auth-left-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(108,142,240,.18) 0%, transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(168,85,247,.12) 0%, transparent 50%);pointer-events:none}
+.auth-left-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(108,142,240,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(108,142,240,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+.auth-left-glow{position:absolute;bottom:-80px;left:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(108,142,240,.12) 0%,transparent 65%);pointer-events:none}
+.auth-brand-mark{position:relative;z-index:1}
+.auth-brand-name{font-family:var(--display);font-size:15px;font-weight:700;color:var(--text);letter-spacing:.12em}
+.auth-brand-sub{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--text4);margin-top:4px}
+.auth-left-body{position:relative;z-index:1}
+.auth-tagline{font-family:var(--display);font-size:38px;font-weight:700;color:var(--text);line-height:1.15;letter-spacing:-.01em;margin-bottom:20px}
+.auth-tagline em{font-style:normal;color:var(--accent)}
+.auth-tagline-sub{font-size:13px;color:var(--text3);line-height:1.7;max-width:280px}
+.auth-left-footer{position:relative;z-index:1}
+.auth-left-pills{display:flex;gap:8px;flex-wrap:wrap}
+.auth-pill{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text4);border:1px solid var(--border);padding:4px 10px;border-radius:2px}
+/* Right panel */
+.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;background:var(--bg);border-left:1px solid var(--border)}
+.auth-card{width:100%;max-width:400px}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
 .auth-logo-sub{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--text4)}
+/* Mobile: hide left panel */
+@media(max-width:700px){.auth-left{display:none}.auth-right{padding:32px 24px}}
 .auth-title{font-size:18px;font-weight:700;font-family:var(--display);color:var(--text);margin-bottom:6px;letter-spacing:.02em}
 .auth-sub{font-size:12px;color:var(--text3);margin-bottom:24px;line-height:1.6}
 .auth-label{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.1em;margin-bottom:5px;display:block}
@@ -1091,7 +1112,7 @@ body{margin:0;padding:0}
 
     <!-- Header -->
     <div style="text-align:center;margin-bottom:48px">
-      <div style="font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--text);margin-bottom:6px">VILLAGER</div>
+      <div style="font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--text);margin-bottom:6px">VILLAGER PRO</div>
       <div style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:10px">Choose your plan</div>
       <div style="font-size:13px;color:var(--text3)" data-pricing-reason>Start free. Upgrade when you're ready.</div>
     </div>
@@ -1175,73 +1196,104 @@ body{margin:0;padding:0}
 </div>
 
 <div id="auth-screen">
-  <div class="auth-card">
-    <div class="auth-logo" id="auth-logo-tap">
-      <span style="font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);letter-spacing:.06em">VILLAGER</span>
-      <span class="auth-logo-sub">PRODUCTION BUDGET</span>
+  <div class="auth-split">
+
+    <!-- LEFT PANEL -->
+    <div class="auth-left">
+      <div class="auth-left-bg"></div>
+      <div class="auth-left-grid"></div>
+      <div class="auth-left-glow"></div>
+      <div class="auth-brand-mark">
+        <div class="auth-brand-name">VILLAGER PRO</div>
+        <div class="auth-brand-sub">PRODUCTION BUDGET</div>
+      </div>
+      <div class="auth-left-body">
+        <div class="auth-tagline">It takes a<br><em>village.</em></div>
+        <div class="auth-tagline-sub">The AICP budgeting tool built for commercial line producers. Fast, intuitive, and designed for the way you actually work.</div>
+      </div>
+      <div class="auth-left-footer">
+        <div class="auth-left-pills">
+          <div class="auth-pill">AICP STRUCTURE</div>
+          <div class="auth-pill">RATE CARDS</div>
+          <div class="auth-pill">PO MANAGEMENT</div>
+          <div class="auth-pill">COST REPORTS</div>
+          <div class="auth-pill">PETTY CASH</div>
+        </div>
+      </div>
     </div>
 
-    <!-- PANEL: Sign In -->
-    <div id="auth-panel-signin">
-      <div class="auth-title">Sign in</div>
-      <div class="auth-sub">Welcome back.</div>
-      <label class="auth-label">EMAIL</label>
-      <input id="signin-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signin-password').focus()">
-      <label class="auth-label">PASSWORD</label>
-      <input id="signin-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSignIn()">
-      <button class="auth-btn" id="signin-btn" onclick="authSignIn()">SIGN IN</button>
-      <div id="auth-msg" class="auth-msg" style="display:none"></div>
-      <div class="auth-footer"><a onclick="authShowPanel('forgot')">Forgot your password?</a></div>
-      <div class="auth-switch">Don't have an account? <a onclick="authShowPanel('signup')">Create one</a></div>
-    </div>
+    <!-- RIGHT PANEL -->
+    <div class="auth-right">
+      <div class="auth-card">
+        <div class="auth-logo" id="auth-logo-tap">
+          <span style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--text);letter-spacing:.08em">VILLAGER PRO</span>
+        </div>
 
-    <!-- PANEL: Sign Up -->
-    <div id="auth-panel-signup" style="display:none">
-      <div class="auth-title">Create account</div>
-      <div class="auth-sub">Free to start. No credit card required.</div>
-      <label class="auth-label">FULL NAME</label>
-      <input id="signup-name" class="auth-input" type="text" placeholder="Your name" autocomplete="name" onkeydown="if(event.key==='Enter')document.getElementById('signup-company').focus()">
-      <label class="auth-label">COMPANY <span style="color:var(--text4);font-size:9px">(optional)</span></label>
-      <input id="signup-company" class="auth-input" type="text" placeholder="Production company name" onkeydown="if(event.key==='Enter')document.getElementById('signup-email').focus()">
-      <label class="auth-label">EMAIL</label>
-      <input id="signup-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signup-password').focus()">
-      <label class="auth-label">PASSWORD <span style="color:var(--text4);font-size:9px">(min 8 characters)</span></label>
-      <input id="signup-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')document.getElementById('signup-password2').focus()">
-      <label class="auth-label">CONFIRM PASSWORD</label>
-      <input id="signup-password2" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authSignUp()">
-      <button class="auth-btn" id="signup-btn" onclick="authSignUp()">CREATE ACCOUNT</button>
-      <div id="auth-msg-signup" class="auth-msg" style="display:none"></div>
-      <div class="auth-switch">Already have an account? <a onclick="authShowPanel('signin')">Sign in</a></div>
-    </div>
+        <!-- PANEL: Sign In -->
+        <div id="auth-panel-signin">
+          <div class="auth-title">Sign in</div>
+          <div class="auth-sub">Welcome back.</div>
+          <label class="auth-label">EMAIL</label>
+          <input id="signin-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signin-password').focus()">
+          <label class="auth-label">PASSWORD</label>
+          <input id="signin-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSignIn()">
+          <button class="auth-btn" id="signin-btn" onclick="authSignIn()">SIGN IN</button>
+          <div id="auth-msg" class="auth-msg" style="display:none"></div>
+          <div class="auth-footer"><a onclick="authShowPanel('forgot')">Forgot your password?</a></div>
+          <div class="auth-switch">Don't have an account? <a onclick="authShowPanel('signup')">Create one</a></div>
+        </div>
 
-    <!-- PANEL: Verify email -->
-    <div id="auth-panel-verify" style="display:none">
-      <div class="auth-title">Check your email</div>
-      <div class="auth-sub">We sent a confirmation link to <strong id="verify-email"></strong>.<br>Click it to activate your account.</div>
-      <button class="auth-btn-ghost" onclick="authShowPanel('signin')">← Back to sign in</button>
-    </div>
+        <!-- PANEL: Sign Up -->
+        <div id="auth-panel-signup" style="display:none">
+          <div class="auth-title">Create account</div>
+          <div class="auth-sub">Free to start. No credit card required.</div>
+          <label class="auth-label">FULL NAME</label>
+          <input id="signup-name" class="auth-input" type="text" placeholder="Your name" autocomplete="name" onkeydown="if(event.key==='Enter')document.getElementById('signup-company').focus()">
+          <label class="auth-label">COMPANY <span style="color:var(--text4);font-size:9px">(optional)</span></label>
+          <input id="signup-company" class="auth-input" type="text" placeholder="Production company name" onkeydown="if(event.key==='Enter')document.getElementById('signup-email').focus()">
+          <label class="auth-label">EMAIL</label>
+          <input id="signup-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signup-password').focus()">
+          <label class="auth-label">PASSWORD <span style="color:var(--text4);font-size:9px">(min 8 characters)</span></label>
+          <input id="signup-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')document.getElementById('signup-password2').focus()">
+          <label class="auth-label">CONFIRM PASSWORD</label>
+          <input id="signup-password2" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authSignUp()">
+          <button class="auth-btn" id="signup-btn" onclick="authSignUp()">CREATE ACCOUNT</button>
+          <div id="auth-msg-signup" class="auth-msg" style="display:none"></div>
+          <div class="auth-switch">Already have an account? <a onclick="authShowPanel('signin')">Sign in</a></div>
+        </div>
 
-    <!-- PANEL: Forgot password -->
-    <div id="auth-panel-forgot" style="display:none">
-      <div class="auth-title">Reset password</div>
-      <div class="auth-sub">Enter your email and we'll send you a reset link.</div>
-      <label class="auth-label">EMAIL</label>
-      <input id="forgot-email" class="auth-input" type="email" placeholder="you@company.com" onkeydown="if(event.key==='Enter')authForgotPassword()">
-      <button class="auth-btn" id="forgot-btn" onclick="authForgotPassword()">SEND RESET LINK</button>
-      <div id="auth-msg-forgot" class="auth-msg" style="display:none"></div>
-      <button class="auth-btn-ghost" onclick="authShowPanel('signin')">← Back to sign in</button>
-    </div>
+        <!-- PANEL: Verify email -->
+        <div id="auth-panel-verify" style="display:none">
+          <div class="auth-title">Check your email</div>
+          <div class="auth-sub">We sent a confirmation link to <strong id="verify-email"></strong>.<br>Click it to activate your account.</div>
+          <button class="auth-btn-ghost" onclick="authShowPanel('signin')">&#8592; Back to sign in</button>
+        </div>
 
-    <!-- PANEL: Reset password (after clicking email link) -->
-    <div id="auth-panel-reset" style="display:none">
-      <div class="auth-title">Set new password</div>
-      <div class="auth-sub">Choose a new password for your account.</div>
-      <label class="auth-label">NEW PASSWORD</label>
-      <input id="reset-password" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')document.getElementById('reset-password2').focus()">
-      <label class="auth-label">CONFIRM NEW PASSWORD</label>
-      <input id="reset-password2" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authResetPassword()">
-      <button class="auth-btn" id="reset-btn" onclick="authResetPassword()">UPDATE PASSWORD</button>
-      <div id="auth-msg-reset" class="auth-msg" style="display:none"></div>
+        <!-- PANEL: Forgot password -->
+        <div id="auth-panel-forgot" style="display:none">
+          <div class="auth-title">Reset password</div>
+          <div class="auth-sub">Enter your email and we'll send you a reset link.</div>
+          <label class="auth-label">EMAIL</label>
+          <input id="forgot-email" class="auth-input" type="email" placeholder="you@company.com" onkeydown="if(event.key==='Enter')authForgotPassword()">
+          <button class="auth-btn" id="forgot-btn" onclick="authForgotPassword()">SEND RESET LINK</button>
+          <div id="auth-msg-forgot" class="auth-msg" style="display:none"></div>
+          <button class="auth-btn-ghost" onclick="authShowPanel('signin')">&#8592; Back to sign in</button>
+        </div>
+
+        <!-- PANEL: Reset password -->
+        <div id="auth-panel-reset" style="display:none">
+          <div class="auth-title">Set new password</div>
+          <div class="auth-sub">Choose a new password for your account.</div>
+          <label class="auth-label">NEW PASSWORD</label>
+          <input id="reset-password" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')document.getElementById('reset-password2').focus()">
+          <label class="auth-label">CONFIRM NEW PASSWORD</label>
+          <input id="reset-password2" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authResetPassword()">
+          <button class="auth-btn" id="reset-btn" onclick="authResetPassword()">UPDATE PASSWORD</button>
+          <div id="auth-msg-reset" class="auth-msg" style="display:none"></div>
+        </div>
+
+        <div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);font-size:10px;color:var(--text4);font-family:var(--mono);text-align:center">&#169; 2026 FARALLON STUDIOS LLC</div>
+      </div>
     </div>
 
   </div>
@@ -1256,7 +1308,7 @@ body{margin:0;padding:0}
       <!-- Brand + collapse row (matches topbar height) -->
       <div class="sb-brand-row">
         <div class="sb-brand">
-          <span style="font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);letter-spacing:.06em">VILLAGER</span>
+          <span style="font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);letter-spacing:.06em">VILLAGER PRO</span>
 
         </div>
         <button class="sb-collapse-btn" onclick="toggleSidebar()" id="sidebar-toggle" title="Collapse sidebar">
