@@ -2105,8 +2105,7 @@ function devLogin() {
 // Global billing gate — always true in dev mode; Stripe check added later
 function isPro() {
   if (_devMode) return true;
-  // TODO: return real Stripe subscription status
-  return false;
+  return !!(_currentUser?.user_metadata?.is_pro);
 }
 
 // ── PRICING PAGE ─────────────────────────────────────────────────────────────
@@ -2336,13 +2335,38 @@ function hideAuthScreen() {
   // Show success banner if returning from Stripe checkout
   if (window.__checkoutSuccess) {
     window.__checkoutSuccess = false;
-    setTimeout(() => {
-      const t = document.createElement('div');
-      t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid #4caf50;color:#4caf50;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:10px 22px;border-radius:4px;z-index:9999;pointer-events:none;transition:opacity .4s';
-      t.textContent = '⚡ VILLAGER PRO ACTIVATED — welcome to the full app';
-      document.body.appendChild(t);
-      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 4000);
-    }, 800);
+    // Poll for is_pro to appear in user metadata (webhook may take a moment)
+    let attempts = 0;
+    const pollForPro = async () => {
+      attempts++;
+      if (!_supa) return;
+      try {
+        // Force token refresh to get latest user_metadata from Supabase
+        const { data: refreshData } = await _supa.auth.refreshSession();
+        if (refreshData?.session?.user) {
+          _currentUser = refreshData.session.user;
+        } else {
+          const { data: { session } } = await _supa.auth.getSession();
+          if (session?.user) _currentUser = session.user;
+        }
+      } catch(e) {}
+
+      if (isPro()) {
+        // Success — show banner
+        const t = document.createElement('div');
+        t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid #4caf50;color:#4caf50;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:10px 22px;border-radius:4px;z-index:9999;pointer-events:none;transition:opacity .4s';
+        t.textContent = '⚡ VILLAGER PRO ACTIVATED — welcome to the full app';
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 4000);
+        // Hide upgrade button in user menu
+        const upgradeBtn = document.getElementById('user-menu-upgrade-btn');
+        if (upgradeBtn) upgradeBtn.style.display = 'none';
+      } else if (attempts < 8) {
+        // Retry up to 8 times (every 2 seconds = 16 seconds total)
+        setTimeout(pollForPro, 2000);
+      }
+    };
+    setTimeout(pollForPro, 1500);
   }
 }
 function authShowPanel(panel) {
