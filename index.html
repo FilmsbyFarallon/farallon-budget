@@ -2582,10 +2582,11 @@ function showUserMenu(e) {
       <div style="font-size:10px;font-family:var(--mono);color:var(--text4)">${esc(email)}</div>
     </div>
     <hr class="sb-ctx-sep">
-    ${!isPro() ? `<div class="sb-ctx-item" onclick="startCheckout()" style="color:#7c9ef8;font-weight:600">⚡ Upgrade to Pro</div><hr class="sb-ctx-sep">` : (() => { const ca = meta.cancel_at; const cancelLine = ca ? `<div style="font-size:9px;font-family:var(--mono);color:#e07070;letter-spacing:.06em;padding:0 14px 6px;margin-top:-4px">cancels ${new Date(ca*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>` : ''; return `<div class="sb-ctx-item" onclick="openBillingPortal()" style="color:#4caf50;font-weight:600">⚡ Pro${ca?' — cancels '+new Date(ca*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</div>${ca?cancelLine:''}<hr class="sb-ctx-sep">`; })()}
+    ${!isPro() ? `<div class="sb-ctx-item" onclick="startCheckout()" style="color:#7c9ef8;font-weight:600">⚡ Upgrade to Pro</div><hr class="sb-ctx-sep">` : `<div class="sb-ctx-item" onclick="openBillingPortal()" style="color:#4caf50;font-weight:600">⚡ Manage Subscription</div><hr class="sb-ctx-sep">`}
     <div class="sb-ctx-item" onclick="openProfileModal()">✎ Edit profile</div>
     <div class="sb-ctx-item" onclick="tourRestart()">⟳ Restart tour</div>
     <div class="sb-ctx-item" onclick="downloadBackup()">⬇ Download backup</div>
+    <div class="sb-ctx-item" onclick="openLegalModal()">⚖ Legal & Privacy</div>
     <hr class="sb-ctx-sep">
     <div class="sb-ctx-item danger" onclick="authSignOut()">Sign out</div>
   `;
@@ -2629,6 +2630,136 @@ function openProfileModal() {
   `;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+function openLegalModal() {
+  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  const existing = document.getElementById('legal-modal');
+  if (existing) { existing.remove(); return; }
+  const overlay = document.createElement('div');
+  overlay.id = 'legal-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.85)">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0">
+        <div style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--text)">Legal & Privacy</div>
+        <button onclick="document.getElementById('legal-modal').remove()" style="background:transparent;border:none;color:var(--text4);cursor:pointer;font-size:18px;padding:4px 8px;line-height:1" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text4)'">✕</button>
+      </div>
+      <!-- Tabs -->
+      <div style="display:flex;gap:0;padding:16px 24px 0;border-bottom:1px solid var(--border)">
+        ${['Terms of Service','Privacy Policy','Refund Policy'].map((t,i)=>`
+          <button id="legal-tab-${i}" onclick="legalShowTab(${i})" style="background:transparent;border:none;border-bottom:2px solid ${i===0?'var(--accent)':'transparent'};color:${i===0?'var(--text)':'var(--text3)'};font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:6px 14px 10px;cursor:pointer;transition:all .15s">${t.toUpperCase()}</button>
+        `).join('')}
+      </div>
+      <!-- Body -->
+      <div style="overflow-y:auto;padding:24px;flex:1;line-height:1.7;font-size:12px;color:var(--text2)">
+
+        <!-- TERMS -->
+        <div id="legal-panel-0">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2025 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2025</div>
+          <p>These Terms of Service ("Terms") govern your access to and use of Villager Pro, a software product operated by <strong style="color:var(--text)">Farallon Studios LLC</strong> ("Company," "we," "us," or "our"). By creating an account or using the Service, you agree to these Terms.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">1. The Service</div>
+          <p>Villager Pro is a cloud-based production budgeting tool for commercial and branded content producers. We offer a free tier and a paid Pro subscription. Features available on each tier are described on our pricing page and within the application.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">2. Your Account</div>
+          <p>You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your login credentials and for all activity under your account. You must be at least 18 years old to use the Service.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">3. Subscriptions & Billing</div>
+          <p>Pro subscriptions are billed monthly. Your subscription renews automatically unless cancelled before the renewal date. All payments are processed securely by Stripe. Farallon Studios LLC does not store your payment card information. You may cancel your subscription at any time through the Manage Subscription option in your account menu.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">4. Your Data</div>
+          <p>You retain full ownership of all budget data, contacts, and content you create within Villager Pro. We do not claim any ownership rights over your data. You may export or delete your data at any time. If you delete your account, all associated data is permanently removed from our systems.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">5. Acceptable Use</div>
+          <p>You agree not to misuse the Service, attempt to gain unauthorized access to any systems, reverse engineer the application, or use the Service for any unlawful purpose. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">6. Availability & Disclaimers</div>
+          <p>We strive for high availability but do not guarantee uninterrupted access to the Service. The Service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, Farallon Studios LLC is not liable for any indirect, incidental, or consequential damages arising from your use of the Service.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">7. Changes to Terms</div>
+          <p>We may update these Terms from time to time. We will notify you of material changes by posting a notice in the application. Continued use of the Service after changes constitutes acceptance of the updated Terms.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">8. Governing Law</div>
+          <p>These Terms are governed by the laws of the State of California, without regard to conflict of law principles. Any disputes shall be resolved in the courts of Los Angeles County, California.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">9. Contact</div>
+          <p>Questions about these Terms? Contact us at <span style="color:var(--accent)">support@villagerpro.io</span></p>
+        </div>
+
+        <!-- PRIVACY -->
+        <div id="legal-panel-1" style="display:none">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2025 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2025</div>
+          <p>Farallon Studios LLC ("we," "us," "our") operates Villager Pro. This Privacy Policy explains what information we collect, how we use it, and your rights regarding that information.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Information We Collect</div>
+          <p><strong style="color:var(--text)">Account information:</strong> When you register, we collect your name, email address, and company name. This information is used to create and manage your account.</p>
+          <p><strong style="color:var(--text)">Budget data:</strong> All budgets, contacts, rate cards, templates, and other content you create are stored securely in our database. This data belongs to you.</p>
+          <p><strong style="color:var(--text)">Payment information:</strong> Payments are processed by Stripe. We do not store credit card numbers or banking details. Stripe's privacy policy governs their handling of payment data.</p>
+          <p><strong style="color:var(--text)">Usage data:</strong> We may collect basic usage information such as login timestamps and feature usage to improve the Service. We do not sell this data.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">How We Use Your Information</div>
+          <p>We use your information solely to provide and improve the Service — to authenticate you, store your data, process payments, and send essential service communications. We do not sell, rent, or share your personal information with third parties for marketing purposes.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Third-Party Services</div>
+          <p>Villager Pro uses the following third-party services to operate:</p>
+          <p><strong style="color:var(--text)">Supabase</strong> — database and authentication infrastructure. Your data is stored on Supabase servers.</p>
+          <p><strong style="color:var(--text)">Stripe</strong> — payment processing. Subject to Stripe's privacy policy.</p>
+          <p><strong style="color:var(--text)">Vercel</strong> — application hosting.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Data Retention & Deletion</div>
+          <p>Your data is retained for as long as your account is active. If you delete your account, all associated data is permanently and irreversibly deleted from our systems within 30 days. You may request deletion at any time by contacting us or using the Delete Account option in your profile settings.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Security</div>
+          <p>We use industry-standard security measures including encrypted connections (HTTPS/TLS), secure authentication via Supabase, and row-level security on all database tables to protect your data.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Your Rights</div>
+          <p>You have the right to access, correct, export, or delete your personal data at any time. California residents have additional rights under the CCPA including the right to know what data we collect and the right to opt out of data sales (we do not sell data). To exercise any of these rights, contact us at <span style="color:var(--accent)">support@villagerpro.io</span></p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Contact</div>
+          <p>Privacy questions or requests: <span style="color:var(--accent)">support@villagerpro.io</span><br>Farallon Studios LLC, Los Angeles, California</p>
+        </div>
+
+        <!-- REFUND -->
+        <div id="legal-panel-2" style="display:none">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2025 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2025</div>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">7-Day Money-Back Guarantee</div>
+          <p>If you are not satisfied with Villager Pro for any reason, contact us within <strong style="color:var(--text)">7 days of your initial purchase</strong> and we will issue a full refund — no questions asked.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Subscription Renewals</div>
+          <p>After the initial 7-day window, subscription charges are non-refundable. You may cancel your subscription at any time to prevent future charges. Cancellation takes effect at the end of your current billing period — you retain Pro access until then.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">How to Request a Refund</div>
+          <p>Email us at <span style="color:var(--accent)">support@villagerpro.io</span> with the subject line "Refund Request" and include the email address associated with your account. We process refunds within 5 business days. Refunds are returned to the original payment method.</p>
+
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">How to Cancel</div>
+          <p>You can cancel your subscription at any time by clicking your avatar in the top right of the app → Manage Subscription. No cancellation fees apply.</p>
+        </div>
+
+      </div>
+      <!-- Footer -->
+      <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:10px;color:var(--text4);font-family:var(--mono)">© ${new Date().getFullYear()} FARALLON STUDIOS LLC &nbsp;·&nbsp; VILLAGER PRO</div>
+        <button onclick="document.getElementById('legal-modal').remove()" style="padding:5px 16px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.06em" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">CLOSE</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+function legalShowTab(idx) {
+  [0,1,2].forEach(i => {
+    const panel = document.getElementById('legal-panel-'+i);
+    const tab = document.getElementById('legal-tab-'+i);
+    if (panel) panel.style.display = i===idx ? '' : 'none';
+    if (tab) {
+      tab.style.borderBottomColor = i===idx ? 'var(--accent)' : 'transparent';
+      tab.style.color = i===idx ? 'var(--text)' : 'var(--text3)';
+    }
+  });
 }
 
 async function saveProfile() {
