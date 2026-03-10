@@ -9129,7 +9129,7 @@ let _spotlightResults = [];
 // ── Global keyboard listener ──────────────────────────────────
 document.addEventListener('keydown', function(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-    if (!active() || activeTab !== 'budget') return;
+    // Global — works from any tab, any context
     e.preventDefault();
     _spotlightOpen ? spotlightClose() : spotlightOpen();
   }
@@ -9172,12 +9172,15 @@ function spotlightCommit() {
   const input = document.getElementById('spotlight-input');
   const query = (input ? input.value : '').trim();
   spotlightClose();
+
+  // Budget-tab only: deposit query into topbar search and filter lines
+  if (activeTab !== 'budget') return;
+
   const wrap   = document.getElementById('topbar-search-wrap');
   const btn    = document.getElementById('topbar-search-btn');
   const topInp = document.getElementById('topbar-search-input');
   if (!wrap || !btn || !topInp) return;
   if (!query) {
-    // Empty commit = clear the filter entirely
     closeSearch();
     return;
   }
@@ -9355,7 +9358,8 @@ function spotlightInput(query) {
   const b = active();
   _spotlightResults = [];
 
-  // ── 1. Budget line matches ────────────────────────────────
+  // ── 1. Budget line matches (only when on the Budget tab) ──
+  if (activeTab === 'budget') {
   SECTIONS.forEach(sec => {
     sec.lines.forEach(line => {
       if (!line.name || !line.name.toLowerCase().includes(q)) return;
@@ -9375,6 +9379,7 @@ function spotlightInput(query) {
       });
     });
   });
+  }
 
   // ── 2. Vendor matches — search by name OR role ────────────
   // contacts is the global array; search both name and role fields
@@ -9549,9 +9554,10 @@ function spotlightInput(query) {
   }
 
   const lc = lineResults.length, vc = vendorResults.length;
+  const enterHint = activeTab === 'budget' && lc > 0 ? '↵ filter budget &nbsp;·&nbsp; ' : '';
   html += `<div id="spotlight-footer">
-    <span id="spotlight-match-count">${lc} line${lc===1?'':'s'} · ${vc} vendor${vc===1?'':'s'}</span>
-    <span>↑↓ navigate &nbsp;·&nbsp; ↵ filter budget &nbsp;·&nbsp; esc close</span>
+    <span id="spotlight-match-count">${lc > 0 ? lc+' line'+(lc===1?'':'s')+' · ' : ''}${vc} vendor${vc===1?'':'s'}</span>
+    <span>↑↓ navigate &nbsp;·&nbsp; ${enterHint}esc close</span>
   </div>`;
 
   results.innerHTML = html;
@@ -11857,7 +11863,7 @@ function renderCompareView(ids) {
         <svg width="17" height="17" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
       </div>
       <input id="spotlight-input" type="text" autocomplete="off" spellcheck="false"
-        placeholder="Search line items…"
+        placeholder="Search vendors, roles, budget lines…"
         oninput="spotlightInput(this.value)"
         onkeydown="spotlightKeydown(event)"
       >
