@@ -2392,21 +2392,22 @@ function hideAuthScreen() {
       } catch(e) {}
 
       if (isPro()) {
-        // Success — show banner
+        // Success — force full re-render so all gates, lock icons, and buttons update immediately
+        updateUserUI();
+        render();
+        // Show success banner
         const t = document.createElement('div');
         t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid #4caf50;color:#4caf50;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:10px 22px;border-radius:4px;z-index:9999;pointer-events:none;transition:opacity .4s';
         t.textContent = '⚡ VILLAGER PRO ACTIVATED — welcome to the full app';
         document.body.appendChild(t);
         setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 4000);
-        // Hide upgrade button in user menu
-        const upgradeBtn = document.getElementById('user-menu-upgrade-btn');
-        if (upgradeBtn) upgradeBtn.style.display = 'none';
-      } else if (attempts < 8) {
-        // Retry up to 8 times (every 2 seconds = 16 seconds total)
-        setTimeout(pollForPro, 2000);
+      } else if (attempts < 12) {
+        // Retry up to 12 times (every 1 second = 12 seconds total)
+        setTimeout(pollForPro, 1000);
       }
     };
-    setTimeout(pollForPro, 1500);
+    // Start polling quickly — webhook is usually fast
+    setTimeout(pollForPro, 500);
   }
 
   // Returning from Stripe billing portal — refresh session to pick up any plan changes
@@ -3285,10 +3286,19 @@ function tourRestart() {
       renderSidebar();
     }
   }
+  // Always reset all tour UI state before showing welcome
+  _tourHide();
+  ['tour-welcome','tour-finish'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.style.visibility = ''; }
+  });
+  const overlay = _tourEl('tour-overlay');
+  if (overlay) overlay.classList.remove('active');
+  // Use longer timeout to ensure any in-progress render completes
   setTimeout(()=>{
     const welcome = _tourEl('tour-welcome');
     if (welcome) { welcome.style.display = 'flex'; }
-  }, 60);
+  }, 200);
 }
 
 function tourStart() {
