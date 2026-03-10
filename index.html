@@ -1154,11 +1154,11 @@ body{margin:0;padding:0}
       <div class="topbar-right">
 
         <!-- Search button / expandable input -->
-        <div id="topbar-search-area" style="display:flex;align-items:center;gap:5px">
-          <button class="tb-icon-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search line items (⌘K)">
+        <div id="topbar-search-area" style="display:flex;align-items:center;gap:0">
+          <button class="tb-icon-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search line items (⌘K)" style="position:relative">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
+            <span style="position:absolute;bottom:-1px;right:-1px;font-size:7px;font-family:var(--mono);color:var(--text4);line-height:1;pointer-events:none;letter-spacing:0">⌘K</span>
           </button>
-          <span id="topbar-search-kbd" onclick="spotlightOpen()" style="font-size:9px;font-family:var(--mono);color:var(--text4);background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:2px 5px;cursor:pointer;letter-spacing:.04em;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--text4)';this.style.borderColor='var(--border2)'">⌘K</span>
         </div>
         <div id="topbar-search-wrap" style="display:none;align-items:center;overflow:hidden;border:1px solid var(--accent);border-radius:3px;background:var(--bg3)">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" stroke-width="1.4" stroke-linecap="round" style="margin:0 8px;flex-shrink:0"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
@@ -3661,12 +3661,10 @@ function renderContent() {
   // and close it cleanly if the user switches tabs while it's open
   const searchArea  = document.getElementById('topbar-search-area');
   const searchBtn   = document.getElementById('topbar-search-btn');
-  const searchKbd   = document.getElementById('topbar-search-kbd');
   const searchWrap  = document.getElementById('topbar-search-wrap');
   const onBudget    = activeTab === 'budget';
   if(searchArea) searchArea.style.display = (b && onBudget) ? 'flex' : 'none';
   if(searchBtn)  searchBtn.style.display  = (b && onBudget) ? 'flex' : 'none';
-  if(searchKbd)  searchKbd.style.display  = (b && onBudget && !_searchOpen) ? 'inline' : 'none';
   if(!onBudget && _searchOpen) closeSearch();
   // Tab button active states
   document.getElementById('tab-budget').className  = 'tab-btn'+(activeTab==='budget'?' active':'');
@@ -8983,8 +8981,6 @@ function toggleTopbarSearch() {
     _searchOpen = true;
     wrap.style.display = 'flex';
     btn.style.display  = 'none';
-    const kbd = document.getElementById('topbar-search-kbd');
-    if (kbd) kbd.style.display = 'none';
     setTimeout(() => {
       const inp = document.getElementById('topbar-search-input');
       if (inp) inp.focus();
@@ -9016,10 +9012,8 @@ function closeSearch() {
 
   const wrap = document.getElementById('topbar-search-wrap');
   const btn  = document.getElementById('topbar-search-btn');
-  const kbd  = document.getElementById('topbar-search-kbd');
   if (wrap) wrap.style.display = 'none';
   if (btn)  btn.style.display  = 'flex';
-  if (kbd)  kbd.style.display  = 'inline';
   document.removeEventListener('click', _searchOutsideHandler);
   const inp = document.getElementById('topbar-search-input');
   if (inp) inp.value = '';
@@ -9284,8 +9278,8 @@ function spotlightInput(query) {
     sec.lines.forEach(line => {
       if (!line.name || !line.name.toLowerCase().includes(q)) return;
       const vals = b ? (b.values||{})[line.id] : null;
-      const qty  = parseFloat(vals?.qty  || 0);
-      const rate = parseFloat(vals?.rate || 0);
+      const qty  = parseFloat((vals && vals.qty)  || 0);
+      const rate = parseFloat((vals && vals.rate) || 0);
       const meta = b ? (b.lineMeta||{})[line.id] : null;
       _spotlightResults.push({
         type:              'line',
@@ -9294,22 +9288,33 @@ function spotlightInput(query) {
         lineId:            line.id,
         lineName:          line.name,
         total:             qty * rate,
-        assignedVendor:    meta?.vendor || '',
-        assignedContactId: meta?.contactId || null,
+        assignedVendor:    (meta && meta.vendor) || '',
+        assignedContactId: (meta && meta.contactId) || null,
       });
     });
   });
 
-  // ── 2. Vendor matches — name or role ──────────────────────
-  const exactNameMatch = contacts.some(c => c.name && c.name.toLowerCase() === q);
+  // ── 2. Vendor matches — search by name OR role ────────────
+  // contacts is the global array; search both name and role fields
+  const allContacts = (typeof contacts !== 'undefined') ? contacts : [];
+  let exactNameMatch = false;
 
-  contacts.forEach(c => {
-    const nameMatch = c.name && c.name.toLowerCase().includes(q);
-    const roleMatch = c.role && c.role.toLowerCase().includes(q);
-    if (!nameMatch && !roleMatch) return;
+  allContacts.forEach(c => {
+    const name = (c.name || '').toLowerCase();
+    const role = (c.role || '').toLowerCase();
+    const company = (c.company || '').toLowerCase();
 
-    // Resolve which budget lines this vendor maps to via their assigned role
-    const roleLines = _spotlightRoleLines(c);
+    const nameMatch    = name.includes(q);
+    const roleMatch    = role.includes(q);
+    const companyMatch = company.includes(q);
+
+    if (nameMatch && name === q) exactNameMatch = true;
+
+    if (!nameMatch && !roleMatch && !companyMatch) return;
+
+    // Determine which budget lines this vendor maps to via their role
+    let roleLines = [];
+    try { roleLines = _spotlightRoleLines(c); } catch(e) { roleLines = []; }
 
     _spotlightResults.push({
       type:           'vendor',
@@ -9319,19 +9324,14 @@ function spotlightInput(query) {
       contactCompany: c.company || '',
       contactRate:    c.dayRate || '',
       tags:           c.tags || [],
-      roleLines,       // lines derived strictly from their role
+      roleLines,
     });
   });
 
-  // ── 3. "Add as new vendor" row (if no exact name match) ──
-  const hasVendorResults = _spotlightResults.some(r => r.type === 'vendor');
+  // ── 3. "Add as new vendor" if no exact name match ────────
   if (!exactNameMatch) {
-    // Capitalise each word for the name suggestion
     const suggested = q.replace(/\b\w/g, ch => ch.toUpperCase());
-    _spotlightResults.push({
-      type:        'new_vendor',
-      suggestedName: suggested,
-    });
+    _spotlightResults.push({ type: 'new_vendor', suggestedName: suggested });
   }
 
   _spotlightActiveIdx = _spotlightResults.length > 0 ? 0 : -1;
@@ -9341,7 +9341,10 @@ function spotlightInput(query) {
   // ── Render ────────────────────────────────────────────────
   const fmtMoney = v => v > 0 ? '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
   const safeQ    = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const highlight = str => esc(str).replace(new RegExp('('+safeQ+')','gi'), '<mark>$1</mark>');
+  const highlight = str => {
+    if (!str) return '';
+    return esc(str).replace(new RegExp('('+safeQ+')','gi'), '<mark>$1</mark>');
+  };
 
   const lineResults      = _spotlightResults.filter(r => r.type === 'line');
   const vendorResults    = _spotlightResults.filter(r => r.type === 'vendor');
@@ -9349,7 +9352,7 @@ function spotlightInput(query) {
 
   let html = '';
 
-  // Budget lines — grouped by section
+  // ── Budget lines grouped by section ──
   if (lineResults.length > 0) {
     const grouped = {};
     lineResults.forEach(r => {
@@ -9375,38 +9378,32 @@ function spotlightInput(query) {
     html += `</div>`;
   }
 
-  // Vendors — one card per contact, assign buttons from their role only
+  // ── Vendors ──
   if (vendorResults.length > 0) {
     html += `<div class="sp-result-group"><div class="sp-result-group-label">VENDORS</div>`;
     vendorResults.forEach(r => {
-      const idx = _spotlightResults.indexOf(r);
+      const idx      = _spotlightResults.indexOf(r);
       const isActive = idx === _spotlightActiveIdx;
-      const tagDots = (r.tags||[]).map(t => {
-        const tObj = CT_TAGS.find(x => x.key === t);
+      const tagDots  = (r.tags||[]).map(t => {
+        const tObj = (typeof CT_TAGS !== 'undefined') ? CT_TAGS.find(x => x.key === t) : null;
         return tObj ? `<span style="width:6px;height:6px;border-radius:50%;background:${tObj.color};flex-shrink:0;display:inline-block"></span>` : '';
       }).join('');
 
-      // Assign buttons — derived strictly from the vendor's own role
+      // One assign button per matching line, all from the vendor's own role
       const assignBtns = r.roleLines.map(ml =>
-        `<button onclick="spotlightAssign('${r.contactId}','${ml.lineId}','${ml.secCode}')"
+        `<button onclick="event.stopPropagation();spotlightAssign('${esc(r.contactId)}','${esc(ml.lineId)}','${esc(ml.secCode)}')"
           style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:9px;
           font-family:var(--mono);letter-spacing:.04em;border-radius:2px;cursor:pointer;
           transition:opacity .12s;
-          background:${ml.assigned ? 'rgba(52,211,153,.12)' : 'rgba(108,142,240,.1)'};
-          border:1px solid ${ml.assigned ? 'rgba(52,211,153,.3)' : 'rgba(108,142,240,.25)'};
-          color:${ml.assigned ? 'var(--green)' : 'var(--accent)'}"
-          onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'">
+          background:${ml.assigned?'rgba(52,211,153,.12)':'rgba(108,142,240,.1)'};
+          border:1px solid ${ml.assigned?'rgba(52,211,153,.3)':'rgba(108,142,240,.25)'};
+          color:${ml.assigned?'var(--green)':'var(--accent)'}">
           ${ml.assigned
             ? `<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 4l2 2 4-4"/></svg>`
             : `<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="1" x2="4" y2="7"/><line x1="1" y1="4" x2="7" y2="4"/></svg>`}
           ${esc(ml.lineName)}
         </button>`
       ).join('');
-
-      // If vendor has no role set, show a nudge
-      const noRoleMsg = !r.contactRole
-        ? `<span style="font-size:9px;font-family:var(--mono);color:var(--text4);font-style:italic">No role assigned in Vendor Library</span>`
-        : '';
 
       html += `<div class="sp-result-item sp-vendor-item${isActive?' sp-active':''}" data-idx="${idx}"
         onmouseenter="spotlightHover(${idx})">
@@ -9417,39 +9414,44 @@ function spotlightInput(query) {
             ${r.contactRate ? `<span class="sp-result-total" style="font-size:10px">$${esc(r.contactRate)}/day</span>` : ''}
           </div>
           ${r.contactRole
-            ? `<div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:10px;font-family:var(--mono);color:var(--accent);font-weight:600">${highlight(r.contactRole)}</span>
+            ? `<div style="display:flex;align-items:center;gap:6px;margin-top:1px">
+                <span style="font-size:10px;font-family:var(--mono);color:var(--accent);font-weight:600">${esc(r.contactRole)}</span>
                 ${r.contactCompany ? `<span style="font-size:10px;font-family:var(--mono);color:var(--text4)">· ${esc(r.contactCompany)}</span>` : ''}
                </div>`
-            : `<div>${noRoleMsg}</div>`}
+            : `<div style="font-size:9px;font-family:var(--mono);color:var(--text4);font-style:italic;margin-top:1px">No role assigned — visit Vendor Library to set</div>`}
           ${r.roleLines.length > 0
-            ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:3px">${assignBtns}</div>`
-            : (r.contactRole ? `<div style="font-size:9px;font-family:var(--mono);color:var(--text4);margin-top:2px">No matching budget line for this role</div>` : '')}
+            ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">${assignBtns}</div>`
+            : (r.contactRole
+                ? `<div style="font-size:9px;font-family:var(--mono);color:var(--text4);margin-top:3px;font-style:italic">Role not found in this budget template</div>`
+                : '')}
         </div>
       </div>`;
     });
     html += `</div>`;
   }
 
-  // "Add as new vendor" row
+  // ── Add new vendor row ──
   if (newVendorResults.length > 0) {
-    const nv  = newVendorResults[0];
-    const idx = _spotlightResults.indexOf(nv);
+    const nv       = newVendorResults[0];
+    const idx      = _spotlightResults.indexOf(nv);
     const isActive = idx === _spotlightActiveIdx;
+    const safeName = nv.suggestedName.replace(/'/g,"\\'");
     html += `<div class="sp-result-group" style="border-top:1px solid var(--border)">
       <div class="sp-result-item${isActive?' sp-active':''}" data-idx="${idx}"
         onmouseenter="spotlightHover(${idx})"
-        onclick="spotlightCreateVendor('${nv.suggestedName.replace(/'/g,"\\'")}')">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(108,142,240,.15);border:1px solid rgba(108,142,240,.3);flex-shrink:0">
-          <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><line x1="4" y1="1" x2="4" y2="7"/><line x1="1" y1="4" x2="7" y2="4"/></svg>
+        onclick="spotlightCreateVendor('${safeName}')">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+          border-radius:50%;background:rgba(108,142,240,.15);border:1px solid rgba(108,142,240,.3);flex-shrink:0">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round">
+            <line x1="4" y1="1" x2="4" y2="7"/><line x1="1" y1="4" x2="7" y2="4"/>
+          </svg>
         </span>
         <span style="font-size:11px;font-family:var(--mono);color:var(--text2)">Add <strong style="color:var(--accent)">${esc(nv.suggestedName)}</strong> as a new vendor</span>
       </div>
     </div>`;
   }
 
-  const lc = lineResults.length;
-  const vc = vendorResults.length;
+  const lc = lineResults.length, vc = vendorResults.length;
   html += `<div id="spotlight-footer">
     <span id="spotlight-match-count">${lc} line${lc===1?'':'s'} · ${vc} vendor${vc===1?'':'s'}</span>
     <span>↑↓ navigate &nbsp;·&nbsp; ↵ filter budget &nbsp;·&nbsp; esc close</span>
