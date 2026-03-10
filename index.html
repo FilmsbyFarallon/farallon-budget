@@ -2653,7 +2653,7 @@ function _tourShowStep(idx) {
   _tourEl('tour-next-btn').textContent       = idx===total-1 ? 'Finish →' : 'Next →';
 
   // Position after settle delay
-  setTimeout(()=>_tourDoPosition(step), idx===0 ? 200 : 140);
+  setTimeout(()=>_tourPosition(step), idx===0 ? 200 : 140);
 }
 
 function _tourRunAction(action) {
