@@ -4512,14 +4512,14 @@ function renderPOPanel(b) {
           <input class="po-field" value="${esc(po.description||'')}" placeholder="Description"
             onchange="updatePO('${b.id}','${po.id}','description',this.value)">
         </td>
-        <td style="padding:7px 12px;text-align:right">
+        <td style="padding:7px 6px;text-align:right">
           <input class="po-field" type="number" value="${po.amount||''}" placeholder="0.00" step="0.01"
-            style="text-align:right;color:var(--gold);font-size:12px;font-weight:600"
+            style="text-align:right;color:var(--gold);font-size:12px;font-weight:600;width:100%"
             onchange="updatePO('${b.id}','${po.id}','amount',this.value)">
         </td>
-        <td style="padding:7px 12px;text-align:right">
+        <td style="padding:7px 6px;text-align:right">
           <input class="po-field" type="number" value="${po.invoiceAmount||''}" placeholder="0.00" step="0.01"
-            style="text-align:right;color:var(--text2);font-size:11px"
+            style="text-align:right;color:var(--text2);font-size:11px;width:100%"
             onchange="updatePO('${b.id}','${po.id}','invoiceAmount',this.value)">
         </td>
         <td style="padding:7px 12px">
