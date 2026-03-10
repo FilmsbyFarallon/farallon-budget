@@ -2610,6 +2610,8 @@ function _tourCreateDemoContacts() {
 
 // ── Cleanup: remove demo budget and contacts ────────────────────
 function _tourCleanup() {
+  // Always exit batch mode when tour ends
+  if (_poBatchMode) exitPOBatchMode();
   if (_tourDemoBudgetId) {
     const b = budgets.find(x=>x.id===_tourDemoBudgetId);
     if (b) {
@@ -2715,7 +2717,18 @@ const TOUR_STEPS = [
     title: 'Inside the PO table',
     body: 'Each PO has a <strong>number, vendor, department, description, and authorized amount</strong>. Track the invoice amount separately from the PO — so you know when actuals differ from what was approved. Status moves <em>Open → Approved → Invoiced → Paid</em> as the job progresses. Export any PO as a print-ready PDF.',
   },
-  // 13 — Petty cash tab
+  // 13 — Batch Mode intro
+  { target:'#po-batch-mode-btn', place:'below', tab:'po',
+    action: 'enterTourBatchMode',
+    title: 'Batch Actions',
+    body: 'Need to update multiple POs at once? Hit <strong>Batch Actions</strong> to enter selection mode. The entire interface switches — fields lock so you can\'t accidentally edit data, and every row becomes a click target. Select one, a few, or all of them.',
+  },
+  // 14 — Batch Mode in action
+  { target:'#po-batch-bar', place:'below', tab:'po',
+    action: 'selectTourBatchRows',
+    title: 'The batch action bar',
+    body: 'With rows selected, the action bar appears. <strong>Set Status</strong> updates all selected POs at once — useful when a round of invoices comes in. <strong>Export PDF</strong> generates a clean summary table of everything selected. <strong>Delete Selected</strong> removes them after confirmation. Hit <strong>Exit Batch Mode</strong> when you\'re done to return to normal editing.',
+  },
   { target:'#tab-pc', place:'below', tab:'pc',
     action: null,
     title: 'Petty Cash',
@@ -3010,8 +3023,33 @@ function _tourRunAction(action) {
     switchTab('contacts');
     setTimeout(()=>{ renderContactsPanel && renderContactsPanel(); }, 120);
   }
-}
 
+  if (action === 'enterTourBatchMode') {
+    // Make sure we're on the PO tab with the demo budget rendered
+    if (!b) return;
+    // Exit any existing batch mode first (clean state)
+    if (_poBatchMode) exitPOBatchMode();
+    setTimeout(() => {
+      enterPOBatchMode();
+      // Scroll PO table to top so rows are visible
+      const scrollEl = document.querySelector('#po-panel div[style*="overflow-y"]');
+      if (scrollEl) scrollEl.scrollTop = 0;
+    }, 160);
+  }
+
+  if (action === 'selectTourBatchRows') {
+    if (!b || !_poBatchMode) return;
+    setTimeout(() => {
+      // Select the first 4 PO rows to demonstrate batch selection
+      const rows = document.querySelectorAll('.po-row');
+      rows.forEach((row, i) => { if (i < 4) _poSelected.add(row.dataset.id); });
+      updatePOSelectionUI();
+      // Scroll batch bar into view
+      const bar = document.getElementById('po-batch-bar');
+      if (bar) bar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 160);
+  }
+}
 
 function _tourPosition(step) {
   const spot = _tourEl('tour-spotlight');
