@@ -1155,15 +1155,14 @@ body{margin:0;padding:0}
 
         <!-- Search button / expandable input -->
         <div id="topbar-search-area" style="display:flex;align-items:center;gap:0">
-          <button class="tb-icon-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search line items (⌘K)" style="position:relative">
+          <button class="tb-icon-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search line items">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
-            <span style="position:absolute;bottom:-1px;right:-1px;font-size:7px;font-family:var(--mono);color:var(--text4);line-height:1;pointer-events:none;letter-spacing:0">⌘K</span>
           </button>
         </div>
         <div id="topbar-search-wrap" style="display:none;align-items:center;overflow:hidden;border:1px solid var(--accent);border-radius:3px;background:var(--bg3)">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" stroke-width="1.4" stroke-linecap="round" style="margin:0 8px;flex-shrink:0"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
-          <input id="topbar-search-input" type="text" placeholder="Search line items…" autocomplete="off"
-            style="background:transparent;border:none;outline:none;color:var(--text);font-size:11px;font-family:var(--mono);padding:5px 4px 5px 0;width:180px;letter-spacing:0.04em"
+          <input id="topbar-search-input" type="text" placeholder="Search line items… or use ⌘K" autocomplete="off"
+            style="background:transparent;border:none;outline:none;color:var(--text);font-size:11px;font-family:var(--mono);padding:5px 4px 5px 0;width:210px;letter-spacing:0.04em"
             oninput="searchLineItems(this.value)"
             onkeydown="if(event.key==='Escape'){toggleTopbarSearch();}"
           >
@@ -9162,14 +9161,14 @@ function spotlightCommit() {
   setTimeout(() => topInp.focus(), 80);
 }
 
-// Assign a vendor to a specific line directly from spotlight
-// lineId/secCode come from the vendor's own role mapping — not fuzzy
-function spotlightAssign(contactId, lineId, secCode) {
+// Assign a vendor to a specific line directly from spotlight, with confirmation flash
+function spotlightAssign(contactId, lineId, secCode, btnEl) {
   const b = active(); if (!b) return;
   const c = contacts.find(x => x.id === contactId); if (!c) return;
   _assignSingleLine(b, c, lineId);
   save();
-  // Refresh the section if visible
+
+  // Refresh the budget section if visible
   const sec = SECTIONS.find(s => s.code === secCode);
   if (sec) {
     const el = document.getElementById('sec-' + secCode);
@@ -9180,9 +9179,22 @@ function spotlightAssign(contactId, lineId, secCode) {
     }
   }
   refreshTotals(b);
-  // Re-render spotlight results live to show updated assignment state
-  const input = document.getElementById('spotlight-input');
-  if (input) spotlightInput(input.value);
+
+  // Flash confirmation on the button before re-rendering results
+  if (btnEl) {
+    btnEl.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> Added';
+    btnEl.style.background    = 'rgba(52,211,153,.2)';
+    btnEl.style.borderColor   = 'rgba(52,211,153,.5)';
+    btnEl.style.color         = 'var(--green)';
+    btnEl.style.pointerEvents = 'none';
+    setTimeout(() => {
+      const input = document.getElementById('spotlight-input');
+      if (input) spotlightInput(input.value);
+    }, 1200);
+  } else {
+    const input = document.getElementById('spotlight-input');
+    if (input) spotlightInput(input.value);
+  }
 }
 
 // Create a new vendor pre-filled with the search query name, then navigate to Vendors
@@ -9389,21 +9401,28 @@ function spotlightInput(query) {
         return tObj ? `<span style="width:6px;height:6px;border-radius:50%;background:${tObj.color};flex-shrink:0;display:inline-block"></span>` : '';
       }).join('');
 
-      // One assign button per matching line, all from the vendor's own role
-      const assignBtns = r.roleLines.map(ml =>
-        `<button onclick="event.stopPropagation();spotlightAssign('${esc(r.contactId)}','${esc(ml.lineId)}','${esc(ml.secCode)}')"
-          style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:9px;
-          font-family:var(--mono);letter-spacing:.04em;border-radius:2px;cursor:pointer;
-          transition:opacity .12s;
-          background:${ml.assigned?'rgba(52,211,153,.12)':'rgba(108,142,240,.1)'};
-          border:1px solid ${ml.assigned?'rgba(52,211,153,.3)':'rgba(108,142,240,.25)'};
-          color:${ml.assigned?'var(--green)':'var(--accent)'}">
-          ${ml.assigned
-            ? `<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 4l2 2 4-4"/></svg>`
-            : `<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="1" x2="4" y2="7"/><line x1="1" y1="4" x2="7" y2="4"/></svg>`}
-          ${esc(ml.lineName)}
-        </button>`
-      ).join('');
+      // One assign button per matching line, from the vendor's own role
+      const assignBtns = r.roleLines.map(ml => {
+        const isAssigned = ml.assigned;
+        const sectionLabel = ml.secCode === 'A' ? 'Prep' : ml.secCode === 'B' ? 'Shoot' : ml.secCode;
+        // For multi-section roles (Gaffer in Prep + Shoot), label with section; otherwise just the role name
+        const btnLabel = r.roleLines.length > 1
+          ? `${esc(ml.lineName)} <span style="opacity:.6;font-size:8px">${sectionLabel}</span>`
+          : esc(ml.lineName);
+        return `<button onclick="event.stopPropagation();spotlightAssign('${esc(r.contactId)}','${esc(ml.lineId)}','${esc(ml.secCode)}',this)"
+          style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;font-size:10px;
+          font-family:var(--mono);letter-spacing:.03em;border-radius:3px;cursor:pointer;
+          transition:all .15s;font-weight:600;
+          ${isAssigned
+            ? 'background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.35);color:var(--green);'
+            : 'background:rgba(108,142,240,.15);border:1px solid rgba(108,142,240,.35);color:var(--accent);'
+          }">
+          ${isAssigned
+            ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg> ${btnLabel}`
+            : `<svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4.5" y1="1" x2="4.5" y2="8"/><line x1="1" y1="4.5" x2="8" y2="4.5"/></svg> Add to Budget`
+          }
+        </button>`;
+      }).join('');
 
       html += `<div class="sp-result-item sp-vendor-item${isActive?' sp-active':''}" data-idx="${idx}"
         onmouseenter="spotlightHover(${idx})">
