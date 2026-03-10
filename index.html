@@ -2208,6 +2208,41 @@ function gateSnapshot() {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+async function openBillingPortal() {
+  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
+  if (!_currentUser) return;
+  const customerId = _currentUser.user_metadata?.stripe_customer_id;
+  if (!customerId) {
+    alert('No billing account found. Please contact support.');
+    return;
+  }
+  const btn = document.createElement('div');
+  btn.id = 'portal-loading';
+  btn.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--text2);letter-spacing:.08em';
+  btn.textContent = 'Opening billing portal...';
+  document.body.appendChild(btn);
+  try {
+    const res = await fetch(`${SUPA_URL}/functions/v1/stripe-portal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer_id: customerId,
+        return_url: window.location.origin
+      })
+    });
+    const data = await res.json();
+    document.getElementById('portal-loading')?.remove();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Could not open billing portal: ' + (data.error || 'Unknown error'));
+    }
+  } catch(e) {
+    document.getElementById('portal-loading')?.remove();
+    alert('Could not open billing portal. Please try again.');
+  }
+}
+
 async function startCheckout() {
   document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
   if (!_currentUser) return;
@@ -2526,7 +2561,7 @@ function showUserMenu(e) {
       <div style="font-size:10px;font-family:var(--mono);color:var(--text4)">${esc(email)}</div>
     </div>
     <hr class="sb-ctx-sep">
-    ${!isPro() ? `<div class="sb-ctx-item" onclick="startCheckout()" style="color:#7c9ef8;font-weight:600">⚡ Upgrade to Pro</div><hr class="sb-ctx-sep">` : ''}
+    ${!isPro() ? `<div class="sb-ctx-item" onclick="startCheckout()" style="color:#7c9ef8;font-weight:600">⚡ Upgrade to Pro</div><hr class="sb-ctx-sep">` : `<div class="sb-ctx-item" onclick="openBillingPortal()" style="color:#4caf50;font-weight:600">⚡ Manage Subscription</div><hr class="sb-ctx-sep">`}
     <div class="sb-ctx-item" onclick="openProfileModal()">✎ Edit profile</div>
     <div class="sb-ctx-item" onclick="tourRestart()">⟳ Restart tour</div>
     <div class="sb-ctx-item" onclick="downloadBackup()">⬇ Download backup</div>
