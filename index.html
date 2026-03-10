@@ -2121,6 +2121,8 @@ function showPricingScreen(reason) {
       budget_limit: "You've reached the free plan limit of 1 budget. Upgrade to create more.",
       export: 'PDF and Excel export is a Pro feature. Upgrade to unlock it.',
       rate_card: 'Rate cards and templates are a Pro feature. Upgrade to unlock them.',
+      template: 'Templates are a Pro feature. Upgrade to save and apply templates.',
+      snapshot: 'Snapshots are a Pro feature. Upgrade to save and restore budget versions.',
       new_user: "Start free. Upgrade when you're ready.",
     };
     sub.textContent = msgs[reason] || msgs.new_user;
@@ -2182,6 +2184,17 @@ function gateExport() {
 function gateRateCard() {
   if (isPro()) return true;
   showPricingScreen('rate_card');
+  return false;
+}
+function gateTemplate() {
+  if (isPro()) return true;
+  showPricingScreen('template');
+  return false;
+}
+
+function gateSnapshot() {
+  if (isPro()) return true;
+  showPricingScreen('snapshot');
   return false;
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4662,6 +4675,7 @@ function renderSticky() {
 // ACTIONS
 // ─────────────────────────────────────────────────────────────────────────────
 function applyBuiltinTemplate(tplId) {
+  if (!gateTemplate()) return;
   const tpl = BUILTIN_TEMPLATES.find(t=>t.id===tplId);
   if(!tpl) return;
   const b = active(); if(!b) return;
@@ -9465,6 +9479,14 @@ function spToggle(id) {
   }
 
   else if (id === 'templates') {
+    if (!isPro()) {
+      inner = `<div style="text-align:center;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="font-size:18px">🔒</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">PRO FEATURE</div>
+        <div style="font-size:11px;color:var(--text4);line-height:1.5">Save full budget structures and apply them to new jobs instantly.</div>
+        <button onclick="showPricingScreen('template');spClose()" style="margin-top:4px;padding:8px 18px;background:var(--accent);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer">UPGRADE TO PRO</button>
+      </div>`;
+    } else {
     const tplBtns = templates.map(t =>
       `<span style="display:inline-flex;align-items:center;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:2px;overflow:hidden">
         <button onclick="createFromTemplate('${t.id}');spClose()" style="padding:6px 12px;font-size:11px;font-family:var(--mono);border:none;background:transparent;color:var(--gold);cursor:pointer;white-space:nowrap">+ ${esc(t.name)}</button>
@@ -9493,9 +9515,18 @@ function spToggle(id) {
         <button onclick="saveTemplate();spRefresh('templates')" style="font-size:10px;font-family:var(--mono);background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px">+ Save current budget as template</button>
       </div>
     </div>`;
+    } // end isPro check
   }
 
   else if (id === 'snapshots') {
+    if (!isPro()) {
+      inner = `<div style="text-align:center;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div style="font-size:18px">🔒</div>
+        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">PRO FEATURE</div>
+        <div style="font-size:11px;color:var(--text4);line-height:1.5">Save named versions of your budget and restore them at any time.</div>
+        <button onclick="showPricingScreen('snapshot');spClose()" style="margin-top:4px;padding:8px 18px;background:var(--accent);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer">UPGRADE TO PRO</button>
+      </div>`;
+    } else {
     const budgetSnaps = snapshots.filter(s=>s.budgetId===b.id);
     const snapRows = budgetSnaps.map(s => {
       const ts = new Date(s.ts);
@@ -9527,6 +9558,7 @@ function spToggle(id) {
         <button onclick="saveSnapshot()" style="font-size:10px;font-family:var(--mono);background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px">+ Save snapshot now</button>
       </div>
     </div>`;
+    } // end isPro check
   }
 
   // Position dropdown under trigger button
@@ -9687,7 +9719,7 @@ async function deleteRateCard(id) {
 }
 
 function saveTemplate() {
-  if (!gateRateCard()) return;
+  if (!gateTemplate()) return;
   const b = active(); if(!b) return;
   const name = prompt('Name this template:');
   if(!name?.trim()) return;
@@ -9697,6 +9729,7 @@ function saveTemplate() {
 }
 
 function createFromTemplate(id) {
+  if (!gateTemplate()) return;
   const t = templates.find(x=>x.id===id); if(!t) return;
   const b = newBudget(t); budgets.unshift(b); activeId=b.id; activeTab='budget'; expanded={}; render(); flashNewBudget();
 }
@@ -9710,6 +9743,7 @@ async function deleteTemplate(id) {
 // SNAPSHOTS — named version saves for the active budget
 // ─────────────────────────────────────────────────────────────────────────────
 function saveSnapshot() {
+  if (!gateSnapshot()) return;
   const b = active(); if(!b) return;
   const label = prompt('Name this snapshot (e.g. "v1 agency send", "after director call"):');
   if(!label?.trim()) return;
@@ -9732,6 +9766,7 @@ function saveSnapshot() {
 }
 
 async function restoreSnapshot(id) {
+  if (!gateSnapshot()) return;
   const snap = snapshots.find(s=>s.id===id); if(!snap) return;
   const b = active(); if(!b) return;
   const ts = new Date(snap.ts);
