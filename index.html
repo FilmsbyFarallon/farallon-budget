@@ -400,6 +400,10 @@ body{margin:0;padding:0}
 .po-row:hover{background:rgba(108,142,240,.03) !important}
 .po-batch-mode .po-row{cursor:pointer}
 .po-batch-mode .po-row:hover{background:rgba(200,169,110,.05) !important}
+.po-batch-mode .po-row input,
+.po-batch-mode .po-row select,
+.po-batch-mode .po-row button,
+.po-batch-mode .po-row .po-text-preview{pointer-events:none !important;user-select:none}
 .po-row.selected{background:rgba(200,169,110,.07) !important;box-shadow:inset 3px 0 0 var(--gold)}
 .po-row.selected:hover{background:rgba(200,169,110,.11) !important}
 #po-batch-bar{
@@ -4645,7 +4649,9 @@ function deleteSelectedPOs() {
   const panel = document.getElementById('po-panel');
   if(!panel || !panel._poBudgetId || _poSelected.size === 0) return;
   const b = budgets.find(x => x.id === panel._poBudgetId); if(!b) return;
-  customConfirm(`Delete ${_poSelected.size} selected PO${_poSelected.size > 1 ? 's' : ''}? This cannot be undone.`, 'danger', () => {
+  const n = _poSelected.size;
+  cmDanger('Delete Selected POs', `Delete ${n} selected PO${n > 1 ? 's' : ''}? This cannot be undone.`, 'Delete').then(ok => {
+    if(!ok) return;
     b.pos = (b.pos||[]).filter(po => !_poSelected.has(po.id));
     save();
     exitPOBatchMode();
@@ -4658,8 +4664,9 @@ function deleteAllPOs() {
   if(!panel || !panel._poBudgetId) return;
   const b = budgets.find(x => x.id === panel._poBudgetId); if(!b) return;
   const count = (b.pos||[]).length;
-  if(count === 0) return;
-  customConfirm(`Delete all ${count} PO${count > 1 ? 's' : ''}? This cannot be undone.`, 'danger', () => {
+  if(count === 0) { cmAlert('No POs', 'There are no purchase orders to delete.'); return; }
+  cmDanger('Clear All POs', `Delete all ${count} PO${count > 1 ? 's' : ''}? This cannot be undone.`, 'Delete All').then(ok => {
+    if(!ok) return;
     b.pos = [];
     save();
     exitPOBatchMode();
