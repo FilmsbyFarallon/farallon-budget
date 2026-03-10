@@ -793,7 +793,7 @@ body{margin:0;padding:0}
 
 #spotlight-box {
   position:relative;z-index:1;
-  width:580px;max-width:calc(100vw - 32px);
+  width:640px;max-width:calc(100vw - 32px);
   margin-top:18vh;
   transform:translateY(-12px) scale(0.97);
   opacity:0;
@@ -898,6 +898,8 @@ body{margin:0;padding:0}
   font-size:9px;font-family:var(--mono);color:var(--text4);
 }
 #spotlight-match-count { color:var(--text3); }
+.sp-vendor-item { align-items:flex-start; padding:10px 18px; }
+.sp-vendor-item:hover, .sp-vendor-item.sp-active { background:rgba(108,142,240,.08); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1152,9 +1154,12 @@ body{margin:0;padding:0}
       <div class="topbar-right">
 
         <!-- Search button / expandable input -->
-        <button class="tb-icon-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search line items (⌘K)">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
-        </button>
+        <div id="topbar-search-area" style="display:flex;align-items:center;gap:5px">
+          <button class="tb-icon-btn" id="topbar-search-btn" onclick="toggleTopbarSearch()" title="Search line items (⌘K)">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
+          </button>
+          <span id="topbar-search-kbd" onclick="spotlightOpen()" style="font-size:9px;font-family:var(--mono);color:var(--text4);background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:2px 5px;cursor:pointer;letter-spacing:.04em;transition:color .15s,border-color .15s" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--text4)';this.style.borderColor='var(--border2)'">⌘K</span>
+        </div>
         <div id="topbar-search-wrap" style="display:none;align-items:center;overflow:hidden;border:1px solid var(--accent);border-radius:3px;background:var(--bg3)">
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="var(--text3)" stroke-width="1.4" stroke-linecap="round" style="margin:0 8px;flex-shrink:0"><circle cx="6" cy="6" r="4.2"/><path d="M9.5 9.5L13 13"/></svg>
           <input id="topbar-search-input" type="text" placeholder="Search line items…" autocomplete="off"
@@ -2652,7 +2657,13 @@ const TOUR_STEPS = [
     title: 'Your vendor and crew library',
     body: 'Each vendor has a name, role, company, phone, email, and day rate. Tag them as <strong>crew</strong> or <strong>vendor</strong> for quick filtering. Use the search bar to find anyone instantly. Vendors you add here are available across every budget you create.',
   },
-  // 22 — Export
+  // 22 — Quick Search
+  { target:'#topbar-search-area', place:'below', tab:'budget',
+    action: null,
+    title: 'Quick Search — ⌘K',
+    body: 'Press <em>⌘K</em> anywhere in the budget to open the <strong>Quick Search</strong> overlay. Type a role name, vendor, or line item — results appear instantly across both your budget and your Vendor list. Hit <strong>↵ Enter</strong> to filter the budget, or click an assign button to attach a vendor to a role directly from search.',
+  },
+  // 23 — Export
   { target:'#export-wrap', place:'left', tab:'budget',
     action: null,
     title: 'Exporting your work',
@@ -3648,10 +3659,14 @@ function renderContent() {
 
   // Topbar search is only meaningful on the Budget tab — hide it everywhere else
   // and close it cleanly if the user switches tabs while it's open
-  const searchBtn  = document.getElementById('topbar-search-btn');
-  const searchWrap = document.getElementById('topbar-search-wrap');
-  const onBudget   = activeTab === 'budget';
+  const searchArea  = document.getElementById('topbar-search-area');
+  const searchBtn   = document.getElementById('topbar-search-btn');
+  const searchKbd   = document.getElementById('topbar-search-kbd');
+  const searchWrap  = document.getElementById('topbar-search-wrap');
+  const onBudget    = activeTab === 'budget';
+  if(searchArea) searchArea.style.display = (b && onBudget) ? 'flex' : 'none';
   if(searchBtn)  searchBtn.style.display  = (b && onBudget) ? 'flex' : 'none';
+  if(searchKbd)  searchKbd.style.display  = (b && onBudget && !_searchOpen) ? 'inline' : 'none';
   if(!onBudget && _searchOpen) closeSearch();
   // Tab button active states
   document.getElementById('tab-budget').className  = 'tab-btn'+(activeTab==='budget'?' active':'');
@@ -8968,6 +8983,8 @@ function toggleTopbarSearch() {
     _searchOpen = true;
     wrap.style.display = 'flex';
     btn.style.display  = 'none';
+    const kbd = document.getElementById('topbar-search-kbd');
+    if (kbd) kbd.style.display = 'none';
     setTimeout(() => {
       const inp = document.getElementById('topbar-search-input');
       if (inp) inp.focus();
@@ -8999,8 +9016,10 @@ function closeSearch() {
 
   const wrap = document.getElementById('topbar-search-wrap');
   const btn  = document.getElementById('topbar-search-btn');
+  const kbd  = document.getElementById('topbar-search-kbd');
   if (wrap) wrap.style.display = 'none';
   if (btn)  btn.style.display  = 'flex';
+  if (kbd)  kbd.style.display  = 'inline';
   document.removeEventListener('click', _searchOutsideHandler);
   const inp = document.getElementById('topbar-search-input');
   if (inp) inp.value = '';
@@ -9083,13 +9102,14 @@ function searchLineItems(query) {
 // ════════════════════════════════════════════════════════════════
 let _spotlightOpen = false;
 let _spotlightActiveIdx = -1;
-let _spotlightResults = [];   // flat array of {sectionCode, sectionName, lineId, lineName, total}
+// Each entry: { type:'line'|'vendor', ...fields }
+//   line:   { sectionCode, sectionName, lineId, lineName, total, assignedVendor }
+//   vendor: { contactId, contactName, contactRole, contactCompany, contactRate, matchedLines[] }
+let _spotlightResults = [];
 
 // ── Global keyboard listener ──────────────────────────────────
 document.addEventListener('keydown', function(e) {
-  // Cmd+K (Mac) or Ctrl+K — open spotlight on Budget tab only
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-    // Only if a budget is active and we're on the budget tab
     if (!active() || activeTab !== 'budget') return;
     e.preventDefault();
     _spotlightOpen ? spotlightClose() : spotlightOpen();
@@ -9102,20 +9122,16 @@ function spotlightOpen() {
 
   const overlay = document.getElementById('spotlight-overlay');
   const input   = document.getElementById('spotlight-input');
-
   overlay.classList.add('open');
   _spotlightResults = [];
   _spotlightActiveIdx = -1;
 
-  // Carry over any existing search query from topbar
+  // Pre-populate from topbar search if already active
   const topbarInp = document.getElementById('topbar-search-input');
   const existing  = (topbarInp && _searchOpen) ? topbarInp.value : '';
   if (input) {
     input.value = existing;
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 50);
+    setTimeout(() => { input.focus(); input.select(); }, 50);
     if (existing) spotlightInput(existing);
   }
 }
@@ -9127,10 +9143,9 @@ function spotlightClose() {
   const results = document.getElementById('spotlight-results');
   const wrap    = document.getElementById('spotlight-input-wrap');
   const input   = document.getElementById('spotlight-input');
-
   overlay.classList.remove('open');
   if (results) results.style.display = 'none';
-  if (wrap)    { wrap.classList.remove('has-results','has-match','no-match'); }
+  if (wrap)    wrap.classList.remove('has-results','has-match','no-match');
   if (input)   input.value = '';
   _spotlightResults = [];
   _spotlightActiveIdx = -1;
@@ -9138,28 +9153,51 @@ function spotlightClose() {
 
 function spotlightCommit() {
   const input = document.getElementById('spotlight-input');
-  const query = input ? input.value.trim() : '';
-
-  // Close spotlight with a snappy exit
+  const query = (input ? input.value : '').trim();
   spotlightClose();
 
-  if (!query) return;
+  const wrap   = document.getElementById('topbar-search-wrap');
+  const btn    = document.getElementById('topbar-search-btn');
+  const topInp = document.getElementById('topbar-search-input');
+  if (!wrap || !btn || !topInp) return;
 
-  // Open topbar search and deposit the query
-  const wrap    = document.getElementById('topbar-search-wrap');
-  const btn     = document.getElementById('topbar-search-btn');
-  const topInp  = document.getElementById('topbar-search-input');
-
-  if (wrap && btn && topInp) {
-    _searchOpen       = true;
-    wrap.style.display = 'flex';
-    btn.style.display  = 'none';
-    topInp.value       = query;
-    // Run the search
-    searchLineItems(query);
-    // Focus topbar input so user can refine
-    setTimeout(() => topInp.focus(), 80);
+  if (!query) {
+    // Empty commit = clear the filter entirely
+    closeSearch();
+    return;
   }
+
+  // Deposit query into topbar search and run it
+  _searchOpen        = true;
+  wrap.style.display = 'flex';
+  btn.style.display  = 'none';
+  topInp.value       = query;
+  searchLineItems(query);
+  setTimeout(() => topInp.focus(), 80);
+}
+
+// Assign a vendor contact to a specific line item directly from spotlight
+function spotlightAssign(contactId, lineId, secCode) {
+  const b = active(); if (!b) return;
+  const c = contacts.find(x => x.id === contactId); if (!c) return;
+  _assignSingleLine(b, c, lineId);
+  save();
+
+  // Refresh the budget section if visible
+  const sec = SECTIONS.find(s => s.code === secCode);
+  if (sec) {
+    const el = document.getElementById('sec-' + secCode);
+    if (el && expanded[secCode]) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderSection(sec, b, b.mode === 'actual');
+      el.replaceWith(tmp.firstElementChild);
+    }
+  }
+  refreshTotals(b);
+
+  // Re-run spotlight input to reflect the assignment
+  const input = document.getElementById('spotlight-input');
+  if (input) spotlightInput(input.value);
 }
 
 function spotlightInput(query) {
@@ -9167,7 +9205,7 @@ function spotlightInput(query) {
   const results = document.getElementById('spotlight-results');
   if (!wrap || !results) return;
 
-  const q = query.trim().toLowerCase();
+  const q = (query || '').trim().toLowerCase();
 
   if (!q) {
     results.style.display = 'none';
@@ -9177,27 +9215,73 @@ function spotlightInput(query) {
     return;
   }
 
-  // Collect matches from SECTIONS data
-  const b = active();
+  const b   = active();
+  const re  = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
   _spotlightResults = [];
 
+  // ── 1. Budget line matches ──────────────────────────────────
   SECTIONS.forEach(sec => {
     sec.lines.forEach(line => {
       if (!line.name) return;
-      if (line.name.toLowerCase().includes(q)) {
-        // Calculate total for this line
-        const lineData = b ? (b.lines||{})[line.id] : null;
-        const qty  = parseFloat(lineData?.qty  || 0);
-        const rate = parseFloat(lineData?.rate || 0);
-        const total = qty * rate;
-        _spotlightResults.push({
-          sectionCode: sec.code,
-          sectionName: sec.name,
-          lineId:      line.id,
-          lineName:    line.name,
-          total:       total,
+      if (!line.name.toLowerCase().includes(q)) return;
+      const vals = b ? (b.values||{})[line.id] : null;
+      const qty  = parseFloat(vals?.qty  || 0);
+      const rate = parseFloat(vals?.rate || 0);
+      const meta = b ? (b.lineMeta||{})[line.id] : null;
+      _spotlightResults.push({
+        type:         'line',
+        sectionCode:  sec.code,
+        sectionName:  sec.name,
+        lineId:       line.id,
+        lineName:     line.name,
+        total:        qty * rate,
+        assignedVendor: meta?.vendor || '',
+        assignedContactId: meta?.contactId || null,
+      });
+    });
+  });
+
+  // ── 2. Vendor/contact matches ───────────────────────────────
+  contacts.forEach(c => {
+    const nameMatch = c.name && c.name.toLowerCase().includes(q);
+    const roleMatch = c.role && c.role.toLowerCase().includes(q);
+    if (!nameMatch && !roleMatch) return;
+
+    // Find budget lines that this vendor could be assigned to
+    // (lines whose name loosely matches the vendor's role)
+    const matchedLines = [];
+    if (b && c.role) {
+      const roleQ = c.role.toLowerCase();
+      SECTIONS.forEach(sec => {
+        sec.lines.forEach(line => {
+          if (!line.name) return;
+          const lineLower = line.name.toLowerCase();
+          // Match if line name contains significant words from the role
+          const roleWords = roleQ.split(/\s+/).filter(w => w.length > 3);
+          const hasOverlap = roleWords.some(w => lineLower.includes(w));
+          if (hasOverlap) {
+            const meta = (b.lineMeta||{})[line.id] || {};
+            matchedLines.push({
+              lineId:    line.id,
+              lineName:  line.name,
+              secCode:   sec.code,
+              assigned:  meta.contactId === c.id,
+              currentVendor: meta.vendor || '',
+            });
+          }
         });
-      }
+      });
+    }
+
+    _spotlightResults.push({
+      type:           'vendor',
+      contactId:      c.id,
+      contactName:    c.name || '',
+      contactRole:    c.role || '',
+      contactCompany: c.company || '',
+      contactRate:    c.dayRate || '',
+      tags:           c.tags || [],
+      matchedLines:   matchedLines.slice(0, 4), // cap at 4 suggested lines
     });
   });
 
@@ -9213,35 +9297,91 @@ function spotlightInput(query) {
   wrap.classList.remove('no-match');
   wrap.classList.add('has-match','has-results');
 
-  // Group by section
-  const grouped = {};
-  _spotlightResults.forEach((r, idx) => {
-    if (!grouped[r.sectionCode]) grouped[r.sectionCode] = { name: r.sectionName, items: [] };
-    grouped[r.sectionCode].items.push({ ...r, idx });
-  });
+  // ── Render ──────────────────────────────────────────────────
+  const fmtMoney = v => v > 0 ? '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+  const highlight = str => esc(str).replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'), '<mark>$1</mark>');
 
-  const fmt = v => v > 0 ? '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
-  const highlight = name => name.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'), '<mark>$1</mark>');
+  const lineResults   = _spotlightResults.filter(r => r.type === 'line');
+  const vendorResults = _spotlightResults.filter(r => r.type === 'vendor');
 
   let html = '';
-  Object.values(grouped).forEach(g => {
+
+  // Budget line section — grouped by section code
+  if (lineResults.length > 0) {
+    const grouped = {};
+    lineResults.forEach((r, i) => {
+      const idx = _spotlightResults.indexOf(r);
+      if (!grouped[r.sectionCode]) grouped[r.sectionCode] = { name: r.sectionName, items: [] };
+      grouped[r.sectionCode].items.push({ ...r, idx });
+    });
+
     html += `<div class="sp-result-group">
-      <div class="sp-result-group-label">${esc(g.name)}</div>`;
-    g.items.forEach(item => {
-      const isActive = item.idx === _spotlightActiveIdx;
-      html += `<div class="sp-result-item${isActive?' sp-active':''}" data-idx="${item.idx}" onmouseenter="spotlightHover(${item.idx})" onclick="spotlightCommit()">
-        <span class="sp-result-code">${esc(item.sectionCode)}</span>
-        <span class="sp-result-name">${highlight(esc(item.lineName))}</span>
-        ${item.total > 0 ? `<span class="sp-result-total">${fmt(item.total)}</span>` : ''}
+      <div class="sp-result-group-label">BUDGET LINES</div>`;
+    Object.values(grouped).forEach(g => {
+      g.items.forEach(item => {
+        const isActive = item.idx === _spotlightActiveIdx;
+        html += `<div class="sp-result-item${isActive?' sp-active':''}" data-idx="${item.idx}"
+          onmouseenter="spotlightHover(${item.idx})" onclick="spotlightCommit()">
+          <span class="sp-result-code">${esc(item.sectionCode)}</span>
+          <span class="sp-result-name">${highlight(item.lineName)}</span>
+          ${item.assignedVendor ? `<span class="sp-result-section" style="color:var(--accent)">${esc(item.assignedVendor)}</span>` : `<span class="sp-result-section">${esc(item.sectionName)}</span>`}
+          ${item.total > 0 ? `<span class="sp-result-total">${fmtMoney(item.total)}</span>` : ''}
+        </div>`;
+      });
+    });
+    html += `</div>`;
+  }
+
+  // Vendor section
+  if (vendorResults.length > 0) {
+    html += `<div class="sp-result-group">
+      <div class="sp-result-group-label">VENDORS</div>`;
+    vendorResults.forEach(r => {
+      const idx = _spotlightResults.indexOf(r);
+      const isActive = idx === _spotlightActiveIdx;
+      const tagDots = r.tags.map(t => {
+        const tObj = CT_TAGS.find(x => x.key === t);
+        return tObj ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${tObj.color};flex-shrink:0"></span>` : '';
+      }).join('');
+
+      html += `<div class="sp-result-item sp-vendor-item${isActive?' sp-active':''}" data-idx="${idx}"
+        onmouseenter="spotlightHover(${idx})">
+        <div style="display:flex;flex-direction:column;flex:1;min-width:0;gap:2px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="sp-result-name" style="font-size:13px">${highlight(r.contactName)}</span>
+            ${tagDots}
+            ${r.contactRate ? `<span class="sp-result-total" style="font-size:10px">$${r.contactRate}/day</span>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${r.contactRole ? `<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${highlight(r.contactRole)}</span>` : ''}
+            ${r.contactCompany ? `<span style="font-size:10px;color:var(--text4);font-family:var(--mono)">${esc(r.contactCompany)}</span>` : ''}
+          </div>
+          ${r.matchedLines.length > 0 ? `
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">
+              ${r.matchedLines.map(ml => `
+                <button onclick="spotlightAssign('${r.contactId}','${ml.lineId}','${ml.secCode}')"
+                  style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:9px;font-family:var(--mono);
+                  background:${ml.assigned ? 'rgba(52,211,153,.12)' : 'rgba(108,142,240,.1)'};
+                  border:1px solid ${ml.assigned ? 'rgba(52,211,153,.3)' : 'rgba(108,142,240,.25)'};
+                  color:${ml.assigned ? 'var(--green)' : 'var(--accent)'};
+                  border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s"
+                  onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+                  ${ml.assigned
+                    ? `<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4l2 2 4-4"/></svg> ${esc(ml.lineName)}`
+                    : `<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="1" x2="4" y2="7"/><line x1="1" y1="4" x2="7" y2="4"/></svg> ${esc(ml.lineName)}`
+                  }
+                </button>`).join('')}
+            </div>` : ''}
+        </div>
       </div>`;
     });
     html += `</div>`;
-  });
+  }
 
   const total = _spotlightResults.length;
   html += `<div id="spotlight-footer">
-    <span id="spotlight-match-count">${total} match${total===1?'':'es'}</span>
-    <span>↑↓ navigate &nbsp;·&nbsp; ↵ search &nbsp;·&nbsp; esc close</span>
+    <span id="spotlight-match-count">${lineResults.length} line${lineResults.length===1?'':'s'} · ${vendorResults.length} vendor${vendorResults.length===1?'':'s'}</span>
+    <span>↑↓ navigate &nbsp;·&nbsp; ↵ filter budget &nbsp;·&nbsp; esc close</span>
   </div>`;
 
   results.innerHTML = html;
@@ -9273,7 +9413,6 @@ function spotlightKeydown(e) {
   }
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    if (_spotlightResults.length === 0) return;
     _spotlightActiveIdx = Math.min(_spotlightActiveIdx + 1, _spotlightResults.length - 1);
     _spotlightRefreshActive();
     _spotlightScrollActive();
@@ -9281,7 +9420,6 @@ function spotlightKeydown(e) {
   }
   if (e.key === 'ArrowUp') {
     e.preventDefault();
-    if (_spotlightResults.length === 0) return;
     _spotlightActiveIdx = Math.max(_spotlightActiveIdx - 1, 0);
     _spotlightRefreshActive();
     _spotlightScrollActive();
@@ -9290,8 +9428,8 @@ function spotlightKeydown(e) {
 }
 
 function _spotlightScrollActive() {
-  const active = document.querySelector('.sp-result-item.sp-active');
-  if (active) active.scrollIntoView({ block:'nearest' });
+  const el = document.querySelector('.sp-result-item.sp-active');
+  if (el) el.scrollIntoView({ block:'nearest' });
 }
 
 function toggleExportMenu() {
