@@ -2351,6 +2351,7 @@ async function deleteAccount() {
 
     await _supa.auth.signOut();
     _currentUser = null;
+    document.getElementById('profile-modal')?.remove();
     render();
     await cmAlert('Account Deleted', 'Your account and all data have been permanently deleted.');
   } catch(err) {
