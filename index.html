@@ -398,6 +398,47 @@ body{margin:0;padding:0}
 .po-field:focus{background:var(--bg3);outline:1px solid var(--border2)}
 .po-field option{background:var(--bg2);color:var(--text)}
 .po-row:hover{background:rgba(108,142,240,.03) !important}
+.po-text-preview{
+  font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;cursor:pointer;padding:2px 4px;border-radius:2px;
+  transition:background .1s;max-width:100%;display:block;
+}
+.po-text-preview:hover{background:var(--bg3);color:var(--text2)}
+.po-text-preview.empty{color:var(--text4);font-style:italic}
+#po-text-popover{
+  position:fixed;z-index:8000;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:4px;
+  box-shadow:0 8px 32px rgba(0,0,0,.7);
+  padding:12px;width:320px;display:none;
+}
+#po-text-popover.open{display:block}
+#po-text-popover label{
+  font-size:9px;font-family:var(--mono);letter-spacing:.1em;
+  color:var(--text4);display:block;margin-bottom:6px;
+}
+#po-text-popover textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);font-size:12px;font-family:var(--sans);
+  border-radius:3px;padding:8px;resize:vertical;min-height:72px;
+  outline:none;line-height:1.5;
+}
+#po-text-popover textarea:focus{border-color:var(--border3)}
+#po-text-popover-footer{
+  display:flex;justify-content:flex-end;gap:6px;margin-top:8px;
+}
+#po-text-popover-footer button{
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  padding:5px 12px;border-radius:2px;cursor:pointer;transition:all .12s;
+}
+#po-text-popover-done{
+  background:var(--accent-dim);border:1px solid var(--accent);
+  color:var(--accent);
+}
+#po-text-popover-done:hover{background:var(--accent);color:#fff}
+#po-text-popover-cancel{
+  background:transparent;border:1px solid var(--border2);color:var(--text3);
+}
+#po-text-popover-cancel:hover{border-color:var(--text3);color:var(--text)}
 /* Petty Cash */
 .pc-field{background:transparent;border:none;outline:none;color:var(--text);font-size:11px;font-family:var(--mono);width:100%;padding:2px 4px;border-radius:2px;letter-spacing:.02em;transition:background .1s}
 .pc-field:hover{background:var(--bg3)}
@@ -959,6 +1000,14 @@ body{margin:0;padding:0}
 </div>
 
 <!-- CUSTOM CONFIRM/ALERT MODAL -->
+<div id="po-text-popover">
+  <label id="po-text-popover-label">DESCRIPTION</label>
+  <textarea id="po-text-popover-ta" rows="3"></textarea>
+  <div id="po-text-popover-footer">
+    <button id="po-text-popover-cancel" onclick="poTextPopoverClose(false)">Cancel</button>
+    <button id="po-text-popover-done" onclick="poTextPopoverClose(true)">Done</button>
+  </div>
+</div>
 <div id="custom-modal-overlay">
   <div class="custom-modal">
     <div class="custom-modal-icon" id="cm-icon"></div>
@@ -4352,6 +4401,47 @@ function updatePO(budgetId, poId, field, value) {
   renderPOTotals(b);
 }
 
+// ── PO text popover (description / notes) ──
+let _poTextCtx = null;
+function poTextPopoverOpen(el, budgetId, poId, field, labelText) {
+  const b = budgets.find(x=>x.id===budgetId); if(!b) return;
+  const po = (b.pos||[]).find(p=>p.id===poId); if(!po) return;
+  _poTextCtx = {budgetId, poId, field, el};
+  const pop = document.getElementById('po-text-popover');
+  document.getElementById('po-text-popover-label').textContent = labelText;
+  const ta = document.getElementById('po-text-popover-ta');
+  ta.value = po[field] || '';
+  // Position popover near the clicked cell
+  const rect = el.getBoundingClientRect();
+  const top = Math.min(rect.bottom + 4, window.innerHeight - 180);
+  const left = Math.min(rect.left, window.innerWidth - 336);
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+  pop.classList.add('open');
+  setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 30);
+}
+function poTextPopoverClose(save) {
+  const pop = document.getElementById('po-text-popover');
+  if(save && _poTextCtx) {
+    const val = document.getElementById('po-text-popover-ta').value;
+    updatePO(_poTextCtx.budgetId, _poTextCtx.poId, _poTextCtx.field, val);
+    // Update the preview span in the row without full re-render
+    if(_poTextCtx.el) {
+      _poTextCtx.el.textContent = val || (_poTextCtx.field === 'description' ? 'Description…' : 'Notes…');
+      _poTextCtx.el.className = 'po-text-preview' + (val ? '' : ' empty');
+    }
+  }
+  pop.classList.remove('open');
+  _poTextCtx = null;
+}
+// Close popover on outside click
+document.addEventListener('click', function(e) {
+  const pop = document.getElementById('po-text-popover');
+  if(pop && pop.classList.contains('open') && !pop.contains(e.target) && !e.target.classList.contains('po-text-preview')) {
+    poTextPopoverClose(true);
+  }
+});
+
 function renderPOTotals(b) {
   const total = poTotal(b);
   const fmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -4455,7 +4545,7 @@ function renderPOPanel(b) {
       <col style="width:auto">   <!-- VENDOR flex -->
       <col style="width:110px">  <!-- DEPARTMENT -->
       <col style="width:60px">   <!-- LINE REF -->
-      <col style="width:auto">   <!-- DESCRIPTION flex -->
+      <col style="width:80px">   <!-- DESCRIPTION preview -->
       <col style="width:110px">  <!-- PO AMT -->
       <col style="width:110px">  <!-- INVOICE -->
       <col style="width:100px">  <!-- INV DATE -->
@@ -4464,7 +4554,7 @@ function renderPOPanel(b) {
       <col style="width:100px">  <!-- PAY DATE -->
       <col style="width:72px">   <!-- METHOD -->
       <col style="width:90px">   <!-- STATUS -->
-      <col style="width:auto">   <!-- NOTES flex -->
+      <col style="width:80px">   <!-- NOTES preview -->
       <col style="width:40px">   <!-- ACTIONS -->
     </colgroup>
     <thead>
@@ -4526,10 +4616,10 @@ function renderPOPanel(b) {
             style="font-size:11px;color:var(--text3)"
             onchange="updatePO('${b.id}','${po.id}','lineRef',this.value)">
         </td>
-        <td style="padding:7px 5px;overflow:hidden">
-          <input class="po-field" value="${esc(po.description||'')}" placeholder="Description"
-            style="font-size:11px"
-            onchange="updatePO('${b.id}','${po.id}','description',this.value)">
+        <td style="padding:5px 5px;overflow:hidden">
+          <span class="po-text-preview${po.description?'':' empty'}"
+            onclick="poTextPopoverOpen(this,'${b.id}','${po.id}','description','DESCRIPTION')"
+            title="${esc(po.description||'')}">${esc(po.description||'Description…')}</span>
         </td>
         <td style="padding:7px 5px;overflow:hidden">
           <input class="po-field" type="number" value="${po.amount||''}" placeholder="0.00" step="0.01"
@@ -4571,10 +4661,10 @@ function renderPOPanel(b) {
             ${PO_STATUSES.map(s=>`<option value="${s.key}"${po.status===s.key?' selected':''}>${s.label}</option>`).join('')}
           </select>
         </td>
-        <td style="padding:7px 5px;overflow:hidden">
-          <input class="po-field" value="${esc(po.notes||'')}" placeholder="Notes"
-            style="font-size:11px"
-            onchange="updatePO('${b.id}','${po.id}','notes',this.value)">
+        <td style="padding:5px 5px;overflow:hidden">
+          <span class="po-text-preview${po.notes?'':' empty'}"
+            onclick="poTextPopoverOpen(this,'${b.id}','${po.id}','notes','NOTES')"
+            title="${esc(po.notes||'')}">${esc(po.notes||'Notes…')}</span>
         </td>
         <td style="padding:7px 4px;text-align:center;white-space:nowrap">
           <button onclick="exportPOPdf('${b.id}','${po.id}')" style="width:20px;height:20px;border:none;background:transparent;color:var(--text4);cursor:pointer;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;transition:color .12s,background .12s" onmouseover="this.style.color='var(--accent)';this.style.background='rgba(108,142,240,.08)'" onmouseout="this.style.color='var(--text4)';this.style.background='transparent'" title="Export PO as PDF">
