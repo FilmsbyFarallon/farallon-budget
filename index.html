@@ -2582,7 +2582,7 @@ function showUserMenu(e) {
       <div style="font-size:10px;font-family:var(--mono);color:var(--text4)">${esc(email)}</div>
     </div>
     <hr class="sb-ctx-sep">
-    ${!isPro() ? `<div class="sb-ctx-item" onclick="startCheckout()" style="color:#7c9ef8;font-weight:600">⚡ Upgrade to Pro</div><hr class="sb-ctx-sep">` : `<div class="sb-ctx-item" onclick="openBillingPortal()" style="color:#4caf50;font-weight:600">⚡ Manage Subscription</div><hr class="sb-ctx-sep">`}
+    ${!isPro() ? `<div class="sb-ctx-item" onclick="startCheckout()" style="color:#7c9ef8;font-weight:600">⚡ Upgrade to Pro</div><hr class="sb-ctx-sep">` : (() => { const ca = meta.cancel_at; const cancelLine = ca ? `<div style="font-size:9px;font-family:var(--mono);color:#e07070;letter-spacing:.06em;padding:0 14px 6px;margin-top:-4px">cancels ${new Date(ca*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>` : ''; return `<div class="sb-ctx-item" onclick="openBillingPortal()" style="color:#4caf50;font-weight:600">⚡ Pro${ca?' — cancels '+new Date(ca*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}</div>${ca?cancelLine:''}<hr class="sb-ctx-sep">`; })()}
     <div class="sb-ctx-item" onclick="openProfileModal()">✎ Edit profile</div>
     <div class="sb-ctx-item" onclick="tourRestart()">⟳ Restart tour</div>
     <div class="sb-ctx-item" onclick="downloadBackup()">⬇ Download backup</div>
