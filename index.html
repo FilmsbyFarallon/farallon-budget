@@ -2324,8 +2324,13 @@ async function deleteAccount() {
 
   // Step 2 — call edge function which deletes all data + auth.users row
   try {
-    const { data: { session } } = await _supa.auth.getSession();
-    if (!session) throw new Error('No active session.');
+    let { data: { session } } = await _supa.auth.getSession();
+    if (!session) {
+      // Try refreshing the session
+      const { data: refreshData } = await _supa.auth.refreshSession();
+      session = refreshData.session;
+    }
+    if (!session) throw new Error('No active session. Please sign out and sign back in, then try again.');
 
     const res = await fetch(`${SUPA_URL}/functions/v1/delete-account`, {
       method: 'POST',
