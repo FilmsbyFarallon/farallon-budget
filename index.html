@@ -4504,6 +4504,11 @@ function renderPOPanel(b) {
           </select>
         </td>
         <td style="padding:7px 12px">
+          <input class="po-field" value="${esc(po.lineRef||'')}" placeholder="Line ref"
+            style="font-size:10px;color:var(--text3)"
+            onchange="updatePO('${b.id}','${po.id}','lineRef',this.value)">
+        </td>
+        <td style="padding:7px 12px">
           <input class="po-field" value="${esc(po.description||'')}" placeholder="Description"
             onchange="updatePO('${b.id}','${po.id}','description',this.value)">
         </td>
