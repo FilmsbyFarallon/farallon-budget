@@ -2227,7 +2227,7 @@ async function openBillingPortal() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         customer_id: customerId,
-        return_url: window.location.origin
+        return_url: window.location.origin + '?portal=return'
       })
     });
     const data = await res.json();
@@ -2298,6 +2298,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.__checkoutSuccess = true;
   } else if (checkout === 'cancelled') {
     window.history.replaceState({}, '', window.location.pathname);
+  }
+  const portal = params.get('portal');
+  if (portal === 'return') {
+    window.history.replaceState({}, '', window.location.pathname);
+    window.__portalReturn = true;
   }
 })();
 
@@ -2402,6 +2407,21 @@ function hideAuthScreen() {
       }
     };
     setTimeout(pollForPro, 1500);
+  }
+
+  // Returning from Stripe billing portal — refresh session to pick up any plan changes
+  if (window.__portalReturn) {
+    window.__portalReturn = false;
+    setTimeout(async () => {
+      if (!_supa) return;
+      try {
+        const { data: refreshData } = await _supa.auth.refreshSession();
+        if (refreshData?.session?.user) _currentUser = refreshData.session.user;
+      } catch(e) {}
+      // Update UI to reflect any plan changes
+      updateUserUI();
+      render();
+    }, 1500);
   }
 }
 function authShowPanel(panel) {
