@@ -3874,8 +3874,12 @@ function _tourPosition(step) {
   }
 }
 
-
-
+// ============================================
+// SECTION: Custom Modals
+// Lines: ~3838
+// _cmOpen, cmConfirm, cmAlert, cmDanger
+// replaces browser confirm() and alert()
+// ============================================
 
 // ════════════════════════════════════════════════════════════════
 // CUSTOM MODALS — replaces browser confirm() / alert()
@@ -3906,6 +3910,13 @@ function cmAlert(title, body) {
 function cmDanger(title, body, okLabel='Delete') {
   return _cmOpen({ title, body, okLabel, okClass:'danger', icon:'danger', showCancel:true });
 }
+
+// ============================================
+// SECTION: State & Data
+// Lines: ~4050
+// Global state variables, load(), save(),
+// active(), budget and company helpers
+// ============================================
 
 // STATE
 // ─────────────────────────────────────────────────────────────────────────────
