@@ -4037,6 +4037,13 @@ function newBudget(tmpl) {
   };
 }
 
+// ============================================
+// SECTION: Calculations
+// Lines: ~4150
+// fmt, lineTotal, grandTotal, fringe math,
+// section and group subtotals
+// ============================================
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CALCULATIONS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4098,6 +4105,13 @@ function actualSectionTotal(sec, b) { return sec.lines.reduce((s,l)=>s+(parseFlo
 function actualGrand(b) {
   return SECTIONS.reduce((s,sec)=>s+actualSectionTotal(sec,b),0);
 }
+
+// ============================================
+// SECTION: Render — Sidebar
+// Lines: ~4250
+// renderSidebar, drag/drop, context menus,
+// folders, budget rows
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RENDER
@@ -4560,6 +4574,14 @@ function sbSortBudgets(by) {
   else if (by === 'total') budgets.sort((a,b)=>grandTotal(b)-grandTotal(a));
   save(); renderSidebar();
 }
+
+// ============================================
+// SECTION: Render — Budget Grid
+// Lines: ~4700
+// renderContent, renderBudget, line items,
+// sections, totals, sticky header
+// ============================================
+
 function renderContent() {
   const b = active();
 
