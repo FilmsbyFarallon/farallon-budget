@@ -12134,13 +12134,29 @@ function _navFocus(el) {
 
 function _navColOrder() { return ['qty','rate','fringe','actual']; }
 
-function _navMoveRow(col, lineId, dir) {
+function _navMoveRow(col, lineId, dir, collapseOnSectionExit) {
   var allLines = [];
   SECTIONS.forEach(function(s) { s.lines.forEach(function(l) { allLines.push({id:l.id, secCode:s.code, custom:l.custom}); }); });
   var idx = allLines.findIndex(function(l) { return l.id === lineId; });
   if (idx < 0) return;
+  var currentSecCode = allLines[idx].secCode;
   for (var i = idx + dir; i >= 0 && i < allLines.length; i += dir) {
     var nl = allLines[i];
+    // Crossing into a new section — collapse the one we just left (Enter-only behavior)
+    if (collapseOnSectionExit && nl.secCode !== currentSecCode) {
+      expanded[currentSecCode] = false;
+      var leftSec = SECTIONS.find(function(s) { return s.code === currentSecCode; });
+      var b0 = active();
+      if (leftSec && b0) {
+        var leftEl = document.getElementById('sec-' + currentSecCode);
+        if (leftEl) {
+          var tmp0 = document.createElement('div');
+          tmp0.innerHTML = renderSection(leftSec, b0, b0.mode === 'actual');
+          leftEl.replaceWith(tmp0.firstElementChild);
+        }
+      }
+      currentSecCode = nl.secCode;
+    }
     if (!expanded[nl.secCode]) {
       expanded[nl.secCode] = true;
       var sec = SECTIONS.find(function(s) { return s.code === nl.secCode; });
@@ -12272,9 +12288,10 @@ function navKey(event, el) {
   }
 
   // Enter — move to same column on next row (fast vertical data entry)
+  // Collapses the current section when crossing into the next one
   if (event.key === 'Enter') {
     event.preventDefault();
-    _navMoveRow(col, lineId, +1);
+    _navMoveRow(col, lineId, +1, true);
     return;
   }
 
