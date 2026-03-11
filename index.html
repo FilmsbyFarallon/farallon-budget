@@ -10301,6 +10301,7 @@ function renderSmartPanel(b) {
       ${trigBtn('ratecards', 'Rate Cards', rcBadge)}
       ${trigBtn('templates', 'Templates', tplBadge)}
       ${trigBtn('snapshots', 'Snapshots', snapBadge)}
+      ${trigBtn('keyboard', '⌨ Keys', '')}
     </div>
 
     <!-- RIGHT: Mode toggle + output actions -->
@@ -10535,6 +10536,47 @@ function spToggle(id) {
     } // end isPro check
   }
 
+  else if (id === 'keyboard') {
+    const kbRow = (keys, desc) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--text3)">${desc}</span>
+        <span style="display:flex;gap:4px;align-items:center;flex-shrink:0;margin-left:16px">${keys.map(k=>`<kbd style="font-family:var(--mono);font-size:10px;background:var(--bg3);border:1px solid var(--border3);border-radius:2px;padding:2px 6px;color:var(--text2);white-space:nowrap">${k}</kbd>`).join('<span style="font-size:10px;color:var(--text4);margin:0 1px">+</span>')}</span>
+      </div>`;
+    const kbSection = (title, rows) => `
+      <div style="margin-bottom:14px">
+        <div style="font-size:9px;letter-spacing:0.14em;color:var(--accent);font-family:var(--mono);margin-bottom:6px;padding-bottom:4px">${title}</div>
+        ${rows}
+      </div>`;
+    inner = `<div style="display:flex;flex-direction:column;gap:0;min-width:340px">
+      ${kbSection('CELL NAVIGATION', [
+        kbRow(['↓','Enter'], 'Move to next row (same column)'),
+        kbRow(['↑'], 'Move to previous row'),
+        kbRow(['→','Tab'], 'Move to next column'),
+        kbRow(['←','⇧Tab'], 'Move to previous column'),
+        kbRow(['Esc'], 'Deselect / exit field'),
+      ].join(''))}
+      ${kbSection('SECTION JUMPS  (⌘⇧ + letter)', [
+        kbRow(['⌘','⇧','L'], "Director's Fees"),
+        kbRow(['⌘','⇧','A'], 'Prep Crew'),
+        kbRow(['⌘','⇧','B'], 'Shoot Crew'),
+        kbRow(['⌘','⇧','G'], 'Art Dept Labor'),
+        kbRow(['⌘','⇧','M'], 'Talent'),
+      ].join(''))}
+      ${kbSection('COLUMN JUMP  (⌥ + key)', [
+        kbRow(['⌥','Q'], 'Jump to Qty column'),
+        kbRow(['⌥','R'], 'Jump to Rate column'),
+        kbRow(['⌥','A'], 'Jump to Actual column'),
+      ].join(''))}
+      ${kbSection('POWER', [
+        kbRow(['⌘','⇧','↑'], 'Jump to top of budget'),
+        kbRow(['⌘','⇧','↓'], 'Jump to Grand Total'),
+        kbRow(['⌘','K'], 'Quick Search / Spotlight'),
+        kbRow(['⌘','⇧','H'], 'This guide'),
+      ].join(''))}
+      <div style="font-size:10px;color:var(--text4);margin-top:4px">⌘ = Cmd on Mac · Ctrl on Windows</div>
+    </div>`;
+  }
+
   // Position dropdown under trigger button
   const trig = document.getElementById('sp-trig-'+id);
   const trigRect = trig ? trig.getBoundingClientRect() : null;
@@ -10552,7 +10594,7 @@ function spToggle(id) {
     box-shadow:0 8px 32px rgba(0,0,0,.6);
   `;
   panel.innerHTML = `
-    <div style="font-size:9px;letter-spacing:0.13em;color:var(--gold);font-family:var(--mono);margin-bottom:12px">${id.toUpperCase().replace('SHOOTDAYS','SHOOT DAYS').replace('RATECARDS','RATE CARDS')}</div>
+    <div style="font-size:9px;letter-spacing:0.13em;color:var(--gold);font-family:var(--mono);margin-bottom:12px">${id.toUpperCase().replace('SHOOTDAYS','SHOOT DAYS').replace('RATECARDS','RATE CARDS').replace('KEYBOARD','KEYBOARD SHORTCUTS')}</div>
     ${inner}
   `;
   bar.appendChild(panel);
@@ -10948,10 +10990,59 @@ let _spotlightResults = [];
 
 // ── Global keyboard listener ──────────────────────────────────
 document.addEventListener('keydown', function(e) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-    // Global — works from any tab, any context
+  const meta = e.metaKey || e.ctrlKey;
+
+  // ⌘K — Quick Search / Spotlight (existing)
+  if (meta && !e.shiftKey && e.key === 'k') {
     e.preventDefault();
     _spotlightOpen ? spotlightClose() : spotlightOpen();
+    return;
+  }
+
+  // Only fire budget shortcuts when Budget tab is active
+  if (typeof activeTab !== 'undefined' && activeTab !== 'budget') return;
+
+  // ⌘⇧H — Keyboard Guide
+  if (meta && e.shiftKey && e.key === 'H') {
+    e.preventDefault();
+    spToggle('keyboard');
+    return;
+  }
+
+  // ⌘⇧↑ — Jump to top of budget (first section)
+  if (meta && e.shiftKey && e.key === 'ArrowUp') {
+    e.preventDefault();
+    const firstCode = (typeof SECTIONS !== 'undefined' && SECTIONS.length) ? SECTIONS[0].code : null;
+    if (firstCode) navJumpToSection(firstCode);
+    return;
+  }
+
+  // ⌘⇧↓ — Jump to Grand Total
+  if (meta && e.shiftKey && e.key === 'ArrowDown') {
+    e.preventDefault();
+    navJumpToTotals();
+    return;
+  }
+
+  // ⌘⇧ + section letter — Jump to section
+  if (meta && e.shiftKey && typeof SECTIONS !== 'undefined') {
+    const sectionKeys = { 'L':'L', 'A':'A', 'B':'B', 'G':'G', 'M':'M',
+                          'C':'C', 'D':'D', 'E':'E', 'F':'F', 'H':'H',
+                          'I':'I', 'J':'J', 'K':'K', 'N':'N', 'O':'O',
+                          'P':'P', 'Q':'Q', 'R':'R', 'S':'S' };
+    const keyUpper = e.key.toUpperCase();
+    if (sectionKeys[keyUpper] && SECTIONS.find(s => s.code === keyUpper)) {
+      e.preventDefault();
+      navJumpToSection(keyUpper);
+      return;
+    }
+  }
+
+  // ⌥ (Alt/Option) + column shortcut — jump to column in focused row
+  if (e.altKey && !meta) {
+    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); navJumpToCol('rate'); return; }
+    if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); navJumpToCol('qty');  return; }
+    if (e.key === 'a' || e.key === 'A') { e.preventDefault(); navJumpToCol('actual'); return; }
   }
 });
 
@@ -11736,35 +11827,194 @@ function exportPDF(mode) {
 // ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
-// KEYBOARD NAVIGATION — Enter moves to next row, same column
+// KEYBOARD NAVIGATION — Full grid navigation (arrow keys, Tab, Enter)
 // ─────────────────────────────────────────────────────────────────────────────
-function navKey(event, el) {
-  if(event.key !== 'Enter') return;
-  event.preventDefault();
 
-  const col = el.dataset.col;
-  const lineId = el.dataset.lineid;
-  if(!col || !lineId) return;
+// Build a flat ordered list of all focusable budget cells
+function _navAllCells() {
+  return Array.from(document.querySelectorAll(
+    '#budget-editor [data-col][data-lineid]:not([disabled])'
+  ));
+}
 
-  // Find which section this line belongs to
-  const sec = SECTIONS.find(s => s.lines.some(l => l.id === lineId));
-  if(!sec) return;
+// Return the column order for a given cell element
+function _navColOrder() {
+  return ['qty','rate','fringe','actual'];
+}
 
-  // Get all line IDs in this section in order
-  const lineIds = sec.lines.map(l => l.id);
-  const currentIdx = lineIds.indexOf(lineId);
-  if(currentIdx < 0) return;
+// Focus a cell, expanding its section if needed, then scrolling into view
+function _navFocus(el) {
+  if (!el) return;
+  el.focus();
+  if (el.select && el.type !== 'select-one') el.select();
+  el.scrollIntoView({block:'nearest', inline:'nearest'});
+}
 
-  // Walk forward through lines until we find one with a visible field matching col
-  for(let i = currentIdx + 1; i < lineIds.length; i++) {
-    const nextId = lineIds[i];
-    const nextEl = document.querySelector(`[data-col="${col}"][data-lineid="${nextId}"]`);
-    if(nextEl) {
-      nextEl.focus();
-      if(nextEl.select) nextEl.select();
+// Move to same column, adjacent row (direction: +1 or -1), crossing section boundaries
+function _navMoveRow(col, lineId, dir) {
+  // Build flat list of all lines across all sections in order
+  const allLines = SECTIONS.flatMap(s => s.lines.map(l => ({...l, secCode: s.code})));
+  const idx = allLines.findIndex(l => l.id === lineId);
+  if (idx < 0) return;
+
+  for (let i = idx + dir; i >= 0 && i < allLines.length; i += dir) {
+    const nextLine = allLines[i];
+    // Ensure the target section is expanded
+    if (!expanded[nextLine.secCode]) {
+      expanded[nextLine.secCode] = true;
+      const sec = SECTIONS.find(s => s.code === nextLine.secCode);
+      const b = active();
+      if (sec && b) {
+        const el = document.getElementById('sec-' + nextLine.secCode);
+        if (el) {
+          const isActual = b.mode === 'actual';
+          const tmp = document.createElement('div');
+          tmp.innerHTML = renderSection(sec, b, isActual);
+          const body = tmp.querySelector('.section-body');
+          if (body) el.appendChild(body);
+          const chevron = el.querySelector('.section-chevron');
+          if (chevron) chevron.textContent = '▼';
+          chevron && chevron.classList.add('open');
+        }
+      }
+    }
+    // Small delay to let DOM update after expand, then focus
+    const nextEl = document.querySelector(`[data-col="${col}"][data-lineid="${nextLine.id}"]`);
+    if (nextEl) {
+      _navFocus(nextEl);
       return;
     }
   }
+}
+
+// Move to adjacent column in same row
+function _navMoveCol(col, lineId, dir) {
+  const order = _navColOrder();
+  const colIdx = order.indexOf(col);
+  if (colIdx < 0) return;
+
+  for (let i = colIdx + dir; i >= 0 && i < order.length; i += dir) {
+    const nextCol = order[i];
+    const nextEl = document.querySelector(`[data-col="${nextCol}"][data-lineid="${lineId}"]`);
+    if (nextEl) {
+      _navFocus(nextEl);
+      return;
+    }
+  }
+  // If at edge of columns, move to next/prev row's first/last column
+  _navMoveRow(col, lineId, dir);
+}
+
+function navKey(event, el) {
+  const col = el.dataset.col;
+  const lineId = el.dataset.lineid;
+  if (!col || !lineId) return;
+
+  switch (event.key) {
+    case 'Enter':
+    case 'ArrowDown':
+      event.preventDefault();
+      _navMoveRow(col, lineId, +1);
+      break;
+
+    case 'ArrowUp':
+      event.preventDefault();
+      _navMoveRow(col, lineId, -1);
+      break;
+
+    case 'Tab':
+      // Let Tab move to next column, or Shift+Tab to previous
+      event.preventDefault();
+      _navMoveCol(col, lineId, event.shiftKey ? -1 : +1);
+      break;
+
+    case 'ArrowRight':
+      // Only navigate if at end of input value (avoid interfering with text cursor)
+      if (el.type !== 'select-one') {
+        const atEnd = el.selectionStart === (el.value||'').length;
+        if (!atEnd) return;
+      }
+      event.preventDefault();
+      _navMoveCol(col, lineId, +1);
+      break;
+
+    case 'ArrowLeft':
+      if (el.type !== 'select-one') {
+        const atStart = el.selectionStart === 0;
+        if (!atStart) return;
+      }
+      event.preventDefault();
+      _navMoveCol(col, lineId, -1);
+      break;
+
+    case 'Escape':
+      el.blur();
+      break;
+
+    default:
+      break;
+  }
+}
+
+// Jump to a section: expand it, scroll to it, focus its first editable field
+function navJumpToSection(code) {
+  const sec = SECTIONS.find(s => s.code === code);
+  if (!sec) return;
+
+  // Expand if collapsed
+  if (!expanded[code]) {
+    expanded[code] = true;
+    const b = active();
+    const el = document.getElementById('sec-' + code);
+    if (el && b) {
+      const isActual = b.mode === 'actual';
+      const existing = el.querySelector('.section-body');
+      if (!existing) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = renderSection(sec, b, isActual);
+        const body = tmp.querySelector('.section-body');
+        if (body) el.appendChild(body);
+        const chevron = el.querySelector('.section-chevron');
+        if (chevron) { chevron.textContent = '▼'; chevron.classList.add('open'); }
+      }
+    }
+  }
+
+  // Scroll to section
+  const secEl = document.getElementById('sec-' + code);
+  if (secEl) secEl.scrollIntoView({behavior:'smooth', block:'start'});
+
+  // Focus first editable field after scroll settles
+  setTimeout(() => {
+    const first = document.querySelector(`[data-lineid][data-col="rate"][data-lineid^="${code}"]`)
+      || document.querySelector(`#sec-${code} [data-col][data-lineid]`);
+    if (first) _navFocus(first);
+  }, 120);
+}
+
+// Jump to Grand Total / Totals area
+function navJumpToTotals() {
+  const grand = document.querySelector('.topsheet-grand');
+  if (grand) {
+    grand.scrollIntoView({behavior:'smooth', block:'center'});
+  } else {
+    // Fallback: scroll to bottom of budget editor
+    const editor = document.getElementById('budget-editor');
+    if (editor) editor.lastElementChild?.scrollIntoView({behavior:'smooth', block:'end'});
+  }
+}
+
+// Jump to column for currently focused row
+function navJumpToCol(col) {
+  const focused = document.activeElement;
+  const lineId = focused?.dataset?.lineid;
+  if (lineId) {
+    const target = document.querySelector(`[data-col="${col}"][data-lineid="${lineId}"]`);
+    if (target) { _navFocus(target); return; }
+  }
+  // No focused row — focus first visible cell in that column
+  const first = document.querySelector(`[data-col="${col}"][data-lineid]`);
+  if (first) _navFocus(first);
 }
 
 // ============================================
