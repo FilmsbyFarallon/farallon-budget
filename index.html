@@ -3512,6 +3512,24 @@ const TOUR_STEPS = [
     title: 'Exporting your work',
     body: 'The <strong>Export</strong> menu generates print-ready PDFs at any stage. Export your full AICP bid, individual POs to send vendors, petty cash reports, or a complete <strong>Wrap Book</strong> — budget, cost report, all POs, and petty cash reconciliation in one document. This is the official record at end of job.',
   },
+  // 24 — Labor Guide intro
+  { target:'#sb-laborguide-btn', place:'right', tab:'labor-guide',
+    action: 'openLaborGuide',
+    title: 'Labor Guide — union rate library',
+    body: 'The <strong>Labor Guide</strong> is a built-in reference library of <em>3,300+ union scale rates</em> across 57 agreements — IATSE, DGA, SAG-AFTRA, Teamsters, AFM, WGA, and more. Use it to look up the correct minimum rate for any crew position before you set your budget.',
+  },
+  // 25 — Agreements dropdown
+  { target:'#labor-guide-panel', place:'center', tab:'labor-guide',
+    action: 'openLGDropdown',
+    title: 'Browsing agreements',
+    body: 'Use the <strong>category tabs</strong> at the top to filter by guild — LA Crew, NY Crew, DGA, SAG-AFTRA, Commercials, and more. Then pick a specific agreement from the <strong>dropdown</strong>. Each agreement lists every covered classification with its scale rate, schedule type, and effective dates.',
+  },
+  // 26 — Commercials focus
+  { target:'#labor-guide-panel', place:'center', tab:'labor-guide',
+    action: 'showLGCommercials',
+    title: 'Commercials — your key rates',
+    body: 'The <strong>Commercials</strong> category is the most relevant for this app. It includes the <em>IATSE CPA (Los Angeles & Outside LA)</em>, <em>NE Corridor</em>, <em>Bay Area Local 16</em>, <em>SAG Commercials</em>, and <em>DGA National Commercial</em> agreements. When you open a crew line in your budget, matching union rates from these agreements appear automatically in the <strong>Union Scale Reference</strong> panel.',
+  },
 ];
 
 // ── TOUR ENGINE ─────────────────────────────────────────────────
@@ -3803,6 +3821,32 @@ function _tourRunAction(action) {
       const bar = document.getElementById('po-batch-bar');
       if (bar) bar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 160);
+  }
+
+  if (action === 'openLaborGuide') {
+    // Exit batch mode if active
+    if (_poBatchMode) exitPOBatchMode();
+    switchTab('labor-guide');
+    _lgCat = 'Commercials';
+    _lgAgrIdx = 0;
+    setTimeout(() => { renderLaborGuidePanel && renderLaborGuidePanel(); }, 160);
+  }
+
+  if (action === 'openLGDropdown') {
+    // Open the agreement dropdown so the user can see the list
+    setTimeout(() => {
+      const drop = document.getElementById('lg-agr-drop');
+      if (drop) drop.style.display = 'block';
+    }, 200);
+  }
+
+  if (action === 'showLGCommercials') {
+    // Close dropdown and ensure Commercials tab is active
+    const drop = document.getElementById('lg-agr-drop');
+    if (drop) drop.style.display = 'none';
+    _lgCat = 'Commercials';
+    _lgAgrIdx = 0;
+    setTimeout(() => { renderLaborGuidePanel && renderLaborGuidePanel(); }, 120);
   }
 }
 
