@@ -8841,8 +8841,10 @@ function renderLaborGuidePanel() {
   }).join('');
 
   // ── Agreement selector ──
-  const agrOpts = catAgreements.map((a, i) => {
-    return `<option value="${i}" ${i === _lgAgrIdx ? 'selected' : ''}>${esc(a.n)}</option>`;
+  const agrName = agr ? agr.n : 'Select agreement';
+  const agrItems = catAgreements.map((a, i) => {
+    const sel = i === _lgAgrIdx;
+    return `<div onclick="event.stopPropagation();lgSetAgr(${i});document.getElementById('lg-agr-drop').style.display='none'" style="padding:7px 12px;font-size:11px;font-family:var(--mono);color:${sel?'var(--gold)':'var(--text2)'};cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .1s;background:${sel?'rgba(200,169,110,.08)':'transparent'}" onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background='${sel?'rgba(200,169,110,.08)':'transparent'}'">${esc(a.n)}</div>`;
   }).join('');
 
   // ── Dynamic column detection ──
