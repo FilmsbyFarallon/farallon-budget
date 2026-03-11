@@ -10647,14 +10647,13 @@ function spToggle(id) {
     var viewportH = window.innerHeight;
     var viewportW = window.innerWidth;
 
-    // Horizontal: right-align panel to trigger button's RIGHT edge
-    // This keeps the trigger button visible above the panel so it remains clickable
+    // Horizontal: left-align panel to trigger button's LEFT edge, clamp to viewport
     if (_isMobile) { panel.style.right = '0'; panel.style.left = '0'; panel.style.maxWidth = '100vw'; }
     else {
-      var rightEdge = trigRect ? trigRect.right : (barRect ? barRect.right : viewportW);
-      var leftPx = rightEdge - panelW;
-      if (leftPx < margin) leftPx = margin;
+      var leftPx = trigRect ? trigRect.left : (barRect ? barRect.left : 0);
+      // If panel would overflow right edge, push it left to fit
       if (leftPx + panelW > viewportW - margin) leftPx = viewportW - panelW - margin;
+      if (leftPx < margin) leftPx = margin;
       panel.style.left = leftPx + 'px';
     }
 
@@ -11967,6 +11966,22 @@ function navSelectRow(rowEl) {
   rowEl.classList.add('line-selected');
   _navLastFocusedRow = rowEl;
   rowEl.scrollIntoView({ block:'nearest' });
+  // If panel is grid-linked, update it to show this row's info
+  if (_lpGridLinked && rowEl.dataset.rowid) {
+    var lineId = rowEl.dataset.rowid;
+    var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
+    if (sec) {
+      var line = sec.lines.find(function(l){ return l.id === lineId; });
+      if (line && !line.custom) {
+        openLinePanel(lineId, sec.code);
+        // Keep grid focus — openLinePanel will re-select the row highlight
+        setTimeout(function() {
+          var r = document.querySelector('[data-rowid="' + lineId + '"]');
+          if (r) { navSelectRow._updating = true; navClearSelection(); r.classList.add('line-selected'); navSelectRow._updating = false; }
+        }, 10);
+      }
+    }
+  }
 }
 
 function navSelectSection(code) {
@@ -12321,9 +12336,15 @@ function navRowKey(event, rowEl) {
   if (event.key === 'ArrowDown') { event.preventDefault(); _navMoveSelection(+1); return; }
   if (event.key === 'ArrowUp')   { event.preventDefault(); _navMoveSelection(-1); return; }
 
-  // Enter or ArrowRight — dive into the first available field
+  // Enter or ArrowRight — dive into the panel if grid-linked, else first budget field
   if (event.key === 'Enter' || event.key === 'ArrowRight') {
     event.preventDefault();
+    if (_lpGridLinked) {
+      // → re-enters the panel
+      _lpGridLinked = false;
+      lpFocusFirst();
+      return;
+    }
     var firstField = document.querySelector('[data-col="qty"][data-lineid="'+lineId+'"]')
       || document.querySelector('[data-col="rate"][data-lineid="'+lineId+'"]');
     if (firstField) { _navFocus(firstField); }
@@ -12347,6 +12368,11 @@ function navRowKey(event, rowEl) {
   if (meta && event.shiftKey && event.key === ']') { event.preventDefault(); expandAll(); return; }
   // ⌘⇧[ — collapse all
   if (meta && event.shiftKey && event.key === '[') { event.preventDefault(); collapseAll(); return; }
+  // Escape — close panel if open, otherwise deselect
+  if (event.key === 'Escape') {
+    var lp = document.getElementById('line-panel');
+    if (lp && lp.style.display !== 'none') { event.preventDefault(); closeLinePanel(); return; }
+  }
 }
 
 // navSectionKey — keyboard handler for focused section header divs
@@ -12761,26 +12787,68 @@ function applyRCRate(lineId, rate) {
 
 function closeLinePanel() {
   if(_panelLineId) saveLinePanelNote();
-  document.querySelectorAll('.line-item.line-selected').forEach(function(el){ el.classList.remove('line-selected'); });
+  var closingLineId = _panelLineId;
   document.getElementById('line-panel').style.display = 'none';
   document.getElementById('line-panel-overlay').style.display = 'none';
   _panelLineId = null;
   _panelSecCode = null;
-  if (_navLastFocusedCell) {
-    var cell = _navLastFocusedCell;
-    _navLastFocusedCell = null;
-    setTimeout(function(){ _navFocus(cell); }, 30);
-  }
+  _lpGridLinked = false;
+  // Return focus to the row that was selected, or last focused cell
+  setTimeout(function() {
+    if (closingLineId) {
+      var row = document.querySelector('[data-rowid="' + closingLineId + '"]');
+      if (row) { navSelectRow(row); row.focus(); return; }
+    }
+    if (_navLastFocusedCell) {
+      var cell = _navLastFocusedCell;
+      _navLastFocusedCell = null;
+      _navFocus(cell);
+    }
+  }, 30);
 }
 
 // Line panel keyboard navigation
 var _lpFields = ['lp-vendor','lp-ratesource','lp-unionstatus','lp-kit','lp-ot','lp-travel','lp-local','lp-note'];
+var _lpGridLinked = false; // true when panel is open but grid has keyboard focus
+
+function lpFocusFirst() {
+  var el = document.getElementById('lp-vendor');
+  if (el) { el.focus(); el.select && el.select(); }
+}
+
 function lpKeydown(event) {
-  if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeLinePanel(); return; }
-  var active = document.activeElement;
+  // Escape — close panel entirely
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    closeLinePanel();
+    return;
+  }
+
+  // ArrowLeft — exit panel to grid, keep panel open and live-linked
+  if (event.key === 'ArrowLeft') {
+    var focused = document.activeElement;
+    var tag = focused ? focused.tagName : '';
+    // Only exit to grid if not mid-text in an input
+    var atStart = (tag === 'INPUT' && focused.type !== 'checkbox' && focused.selectionStart === 0)
+                  || tag === 'SELECT' || tag === 'DIV';
+    if (atStart || tag === 'SELECT') {
+      event.preventDefault();
+      event.stopPropagation();
+      _lpGridLinked = true;
+      // Return focus to the currently selected row in the budget
+      if (_panelLineId) {
+        var row = document.querySelector('[data-rowid="' + _panelLineId + '"]');
+        if (row) { navSelectRow(row); row.focus(); }
+      }
+      return;
+    }
+  }
+
+  var activeEl = document.activeElement;
   if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-    if (active && active.tagName === 'TEXTAREA') return;
-    var idx = _lpFields.indexOf(active ? active.id : '');
+    if (activeEl && activeEl.tagName === 'TEXTAREA') return;
+    var idx = _lpFields.indexOf(activeEl ? activeEl.id : '');
     var dir = event.key === 'ArrowDown' ? 1 : -1;
     var next = idx < 0 ? 0 : Math.max(0, Math.min(_lpFields.length-1, idx+dir));
     var nextEl = document.getElementById(_lpFields[next]);
@@ -12791,14 +12859,27 @@ function lpKeydown(event) {
     }
   }
   if (event.key === 'Enter') {
-    if (active && active.tagName === 'TEXTAREA') return;
-    if (active && active.type === 'checkbox') { active.checked = !active.checked; active.dispatchEvent(new Event('change')); return; }
-    var idx2 = _lpFields.indexOf(active ? active.id : '');
+    if (activeEl && activeEl.tagName === 'TEXTAREA') return;
+    if (activeEl && activeEl.type === 'checkbox') { activeEl.checked = !activeEl.checked; activeEl.dispatchEvent(new Event('change')); return; }
+    var idx2 = _lpFields.indexOf(activeEl ? activeEl.id : '');
+    if (idx2 < 0) {
+      // Nothing focused in panel yet — focus first field
+      event.preventDefault();
+      lpFocusFirst();
+      return;
+    }
     if (idx2 >= 0 && idx2 < _lpFields.length-1) {
       event.preventDefault();
       var nextEl2 = document.getElementById(_lpFields[idx2+1]);
       if (nextEl2) { nextEl2.focus(); if (nextEl2.select && nextEl2.type !== 'select-one' && nextEl2.type !== 'checkbox') nextEl2.select(); }
     }
+  }
+  // → re-enter panel from grid-linked mode (focus first field)
+  if (event.key === 'ArrowRight' && _lpGridLinked) {
+    event.preventDefault();
+    event.stopPropagation();
+    _lpGridLinked = false;
+    lpFocusFirst();
   }
 }
 
