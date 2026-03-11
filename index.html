@@ -2988,7 +2988,11 @@ async function deleteAccount() {
     cmAlert('Error', 'Something went wrong: ' + (err.message || 'Unknown error. Please try again.'));
   }
 }
-
+// ============================================
+// SECTION: Sync & Storage
+// Lines: ~2980
+// cloudLoad, cloudSave, localSave, migration
+// ============================================
 // ── Sync indicator ────────────────────────────────────
 function syncShow(state, msg) {
   const el = document.getElementById('sync-indicator');
