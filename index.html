@@ -296,6 +296,8 @@ body{margin:0;padding:0}
 .col-h{font-size:9px;color:var(--text4);font-family:var(--mono);letter-spacing:0.08em}
 .col-h.r{text-align:right}
 .line-item.line-selected{background:rgba(108,142,240,0.07)!important;border-left:2px solid var(--accent);}
+.section-header.sec-selected{background:rgba(108,142,240,0.07)!important;border-left:2px solid var(--accent);}
+.line-item:focus,.section-header:focus{outline:none;}
 .line-item{display:grid;padding:5px 12px 5px 68px;border-bottom:1px solid var(--border);align-items:center;transition:background .1s}
 .line-item:hover{background:var(--bg2)}
 .line-item:last-child{border-bottom:none}
@@ -4948,7 +4950,7 @@ function renderSection(sec, b, isActual) {
   const hasRatesNoDays = sec.isCrew && sec.lines.some(l => b.values[l.id]?.rate > 0) && !sec.lines.some(l => parseFloat(b.values[l.id]?.qty) > 0);
 
   let html = `<div class="section-card" id="sec-${sec.code}">
-    <div class="section-header" onclick="toggleSection('${sec.code}')">
+    <div class="section-header" tabindex="0" data-seccode="${sec.code}" onclick="navSelectSection('${sec.code}')" onkeydown="navSectionKey(event,this)">
       <div class="section-code-badge">${sec.code}</div>
       <div class="section-chevron ${isOpen?'open':''}">${isOpen?'▼':'▶'}</div>
       <div class="section-name-wrap">
@@ -5003,7 +5005,7 @@ function renderSection(sec, b, isActual) {
       const _otTotal = lineOTTotal(line, b);
       const _otOpen  = !!_ot._open;
 
-      html += `<div class="line-item ${colClass}" tabindex="0" data-rowid="${line.id}" onkeydown="navRowKey(event,this)" onfocus="_navLastFocusedRow=this">
+      html += `<div class="line-item ${colClass}" tabindex="0" data-rowid="${line.id}" onkeydown="navRowKey(event,this)" onfocus="navSelectRow(this)" onclick="navSelectRow(this)">
           <div style="cursor:${isCustom?'default':'pointer'};display:flex;align-items:center;gap:5px;min-width:0" ${isCustom?'':"onclick=\"openLinePanel('" + line.id + "','" + sec.code + "')\" title=\"Click to add a note or view role details\""}>
             ${lineNum ? `<span style="font-size:9px;color:var(--text4);font-family:var(--mono);flex-shrink:0;min-width:20px;text-align:right;margin-right:2px">${lineNum}</span>` : '<span style="min-width:20px;flex-shrink:0"></span>'}
             ${isCustom
@@ -11104,8 +11106,8 @@ document.addEventListener('keydown', function(e) {
     // If focused on a budget grid input, use its data-lineid directly
     if ((_tag === 'INPUT' || _tag === 'SELECT') && _focused.dataset && _focused.dataset.lineid) {
       _lineId = _focused.dataset.lineid;
-    } else if (_tag !== 'INPUT' && _tag !== 'TEXTAREA' && _tag !== 'SELECT') {
-      // Walk up DOM from non-input focused element
+    } else {
+      // Walk up DOM from focused element (row div, section header, etc)
       var _el = _focused;
       while (_el && _el !== document.body) {
         if (_el.dataset && (_el.dataset.lineid || _el.dataset.rowid)) {
@@ -11927,9 +11929,138 @@ function exportPDF(mode) {
 // ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
-// KEYBOARD NAVIGATION
+// SELECTION STATE
+// _navSelected = { type:'row'|'section', id:lineId|secCode, el:DOMElement }
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KEYBOARD NAVIGATION — Finder-style row selection
 // ─────────────────────────────────────────────────────────────────────────────
 var _navLastFocusedCell = null;
+var _navLastFocusedRow  = null;
+
+// ── Selection helpers ────────────────────────────────────────────────────────
+
+function navClearSelection() {
+  document.querySelectorAll('.line-item.line-selected').forEach(function(el){ el.classList.remove('line-selected'); });
+  document.querySelectorAll('.section-header.sec-selected').forEach(function(el){ el.classList.remove('sec-selected'); });
+}
+
+function navSelectRow(rowEl) {
+  if (!rowEl) return;
+  navClearSelection();
+  rowEl.classList.add('line-selected');
+  _navLastFocusedRow = rowEl;
+  rowEl.scrollIntoView({ block:'nearest' });
+}
+
+function navSelectSection(code) {
+  // Toggle expand/collapse AND apply visual selection
+  var header = document.querySelector('[data-seccode="' + code + '"]');
+  navClearSelection();
+  if (header) {
+    header.classList.add('sec-selected');
+    _navLastFocusedRow = null;
+  }
+  toggleSection(code);
+}
+
+// ── All navigable items (sections + rows) in DOM order ───────────────────────
+
+function _navAllItems() {
+  var items = [];
+  document.querySelectorAll('[data-seccode], [data-rowid]').forEach(function(el) {
+    if (el.dataset.seccode) items.push({ type:'section', id:el.dataset.seccode, el:el });
+    else if (el.dataset.rowid)  items.push({ type:'row',     id:el.dataset.rowid,  el:el });
+  });
+  return items;
+}
+
+function _navCurrentItem() {
+  var focused = document.activeElement;
+  if (!focused) return null;
+  if (focused.dataset.rowid)  return { type:'row',     id:focused.dataset.rowid,  el:focused };
+  if (focused.dataset.seccode) return { type:'section', id:focused.dataset.seccode, el:focused };
+  return null;
+}
+
+function _navMoveSelection(dir) {
+  var items = _navAllItems();
+  if (!items.length) return;
+  var cur = _navCurrentItem();
+  var idx = -1;
+  if (cur) idx = items.findIndex(function(it){ return it.el === cur.el; });
+
+  var nextIdx;
+  if (idx < 0) {
+    // Nothing selected — find hovered item or default to first
+    nextIdx = 0;
+  } else {
+    nextIdx = idx + dir;
+    if (nextIdx < 0 || nextIdx >= items.length) return;
+  }
+
+  var next = items[nextIdx];
+  next.el.focus();
+  if (next.type === 'row') {
+    navSelectRow(next.el);
+  } else {
+    navClearSelection();
+    next.el.classList.add('sec-selected');
+  }
+  next.el.scrollIntoView({ block:'nearest' });
+}
+
+// ── Global arrow key handler for budget area ─────────────────────────────────
+// Fires when nothing (or non-input) is focused — enables hover-activated nav
+
+function navBudgetKeydown(event) {
+  if (typeof activeTab === 'undefined' || activeTab !== 'budget') return;
+  var focused = document.activeElement;
+  var tag = focused ? focused.tagName : '';
+  // Don't intercept when typing in a real input/select/textarea
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+  var meta = event.metaKey || event.ctrlKey;
+  if (meta || event.shiftKey) return; // let ⌘⇧ shortcuts through
+
+  if (event.key === 'ArrowDown') { event.preventDefault(); _navMoveSelection(+1); return; }
+  if (event.key === 'ArrowUp')   { event.preventDefault(); _navMoveSelection(-1); return; }
+
+  var cur = _navCurrentItem();
+  if (!cur) return;
+
+  if (cur.type === 'section') {
+    if (event.key === 'ArrowRight') { event.preventDefault(); if (!expanded[cur.id]) toggleSection(cur.id); return; }
+    if (event.key === 'ArrowLeft')  { event.preventDefault(); if (expanded[cur.id])  toggleSection(cur.id); return; }
+    if (event.key === 'Enter') { event.preventDefault(); toggleSection(cur.id); return; }
+  }
+
+  if (cur.type === 'row') {
+    if (event.key === 'ArrowRight' || event.key === 'Enter') {
+      event.preventDefault();
+      var rateInput = document.querySelector('[data-col="rate"][data-lineid="' + cur.id + '"]');
+      if (rateInput) { _navFocus(rateInput); }
+      return;
+    }
+    if (event.key === 'ArrowLeft') {
+      // Already at row level — nothing to do
+      return;
+    }
+    if (event.key === 'i' || event.key === 'I' || event.key === ' ') {
+      var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === cur.id; }); });
+      var line = sec ? sec.lines.find(function(l){ return l.id === cur.id; }) : null;
+      if (sec && line && !line.custom) {
+        event.preventDefault();
+        openLinePanel(cur.id, sec.code);
+      }
+      return;
+    }
+  }
+}
+
+// Attach budget keydown to document (only active on budget tab)
+document.addEventListener('keydown', navBudgetKeydown);
 
 function _navFocus(el) {
   if (!el) return;
@@ -12021,8 +12152,13 @@ function navJumpToCol(col) {
 function navFocusGrid() {
   var lp = document.getElementById('line-panel');
   if (lp && lp.style.display !== 'none') { closeLinePanel(); }
-  // Always jump to top of budget — section L (Director's Fees)
-  navJumpToSection(SECTIONS[0].code);
+  // Always jump to top of budget — section L (Director's Fees) and select header
+  var firstCode = SECTIONS[0].code;
+  navJumpToSection(firstCode);
+  setTimeout(function() {
+    var header = document.querySelector('[data-seccode="' + firstCode + '"]');
+    if (header) { navClearSelection(); header.classList.add('sec-selected'); header.focus(); }
+  }, 150);
 }
 
 // navToggleCurrentSection — collapse/expand the section the focused cell belongs to
@@ -12058,33 +12194,73 @@ function navToggleCurrentSection() {
 }
 
 function navKey(event, el) {
-  var col = el.dataset.col;
+  var col    = el.dataset.col;
   var lineId = el.dataset.lineid;
   if (!col || !lineId) return;
   var meta = event.metaKey || event.ctrlKey;
 
-  if (event.key === 'Enter' || (event.key === 'ArrowDown' && !meta)) {
+  // Escape — exit field, return to row selection
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    el.blur();
+    var row = el.closest('[data-rowid]');
+    if (row) { navSelectRow(row); row.focus(); }
+    return;
+  }
+
+  // Enter — move to next field in this row, or next row if at last field
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    var colOrder = ['qty','rate','fringe','actual'].filter(function(c){
+      return !!document.querySelector('[data-col="'+c+'"][data-lineid="'+lineId+'"]');
+    });
+    var colIdx = colOrder.indexOf(col);
+    if (colIdx >= 0 && colIdx < colOrder.length - 1) {
+      var nextField = document.querySelector('[data-col="'+colOrder[colIdx+1]+'"][data-lineid="'+lineId+'"]');
+      if (nextField) { _navFocus(nextField); return; }
+    }
+    // At last field — move to next row
+    _navMoveRow(col, lineId, +1);
+    return;
+  }
+
+  // ArrowDown — next row
+  if (event.key === 'ArrowDown' && !meta) {
     event.preventDefault();
     _navMoveRow(col, lineId, +1);
     return;
   }
+  // ArrowUp — previous row
   if (event.key === 'ArrowUp' && !meta) {
     event.preventDefault();
     _navMoveRow(col, lineId, -1);
     return;
   }
+  // ArrowRight — next column (when at end of text or select)
   if (event.key === 'ArrowRight') {
     if (meta) { event.preventDefault(); _navMoveCol(col, lineId, +1); return; }
     if (el.type !== 'select-one' && el.selectionStart === (el.value||'').length) { event.preventDefault(); _navMoveCol(col, lineId, +1); return; }
     if (el.type === 'select-one') { event.preventDefault(); _navMoveCol(col, lineId, +1); return; }
   }
+  // ArrowLeft — previous column or back to row selection
   if (event.key === 'ArrowLeft') {
     if (meta) { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
-    if (el.type !== 'select-one' && el.selectionStart === 0) { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
+    if (el.type !== 'select-one' && el.selectionStart === 0) {
+      var colOrder2 = ['qty','rate','fringe','actual'];
+      if (colOrder2.indexOf(col) === 0) {
+        // At first column — exit to row selection
+        event.preventDefault();
+        el.blur();
+        var row2 = el.closest('[data-rowid]');
+        if (row2) { navSelectRow(row2); row2.focus(); }
+        return;
+      }
+      event.preventDefault(); _navMoveCol(col, lineId, -1); return;
+    }
     if (el.type === 'select-one') { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
   }
-  // Space — open line info panel
-  if (event.key === ' ') {
+  // I or Space — open line info panel
+  if (event.key === 'i' || event.key === 'I' || event.key === ' ') {
     var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
     var line = sec ? sec.lines.find(function(l){ return l.id === lineId; }) : null;
     if (line && !line.custom) {
@@ -12092,49 +12268,37 @@ function navKey(event, el) {
       _navLastFocusedCell = el;
       openLinePanel(lineId, sec.code);
     }
-  }
-  // I — open line info panel (dedicated power user shortcut)
-  if (event.key === 'i' || event.key === 'I') {
-    var sec2 = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
-    var line2 = sec2 ? sec2.lines.find(function(l){ return l.id === lineId; }) : null;
-    if (line2 && !line2.custom) {
-      event.preventDefault();
-      _navLastFocusedCell = el;
-      openLinePanel(lineId, sec2.code);
-    }
-  }
-  // ⌘⇧O — toggle current section open/closed
-  if (meta && event.shiftKey && (event.key === 'o' || event.key === 'O')) {
-    event.preventDefault();
-    navToggleCurrentSection();
     return;
   }
-  // ⌘⇧] — expand all sections
-  if (meta && event.shiftKey && event.key === ']') {
-    event.preventDefault();
-    expandAll();
-    return;
-  }
-  // ⌘⇧[ — collapse all sections
-  if (meta && event.shiftKey && event.key === '[') {
-    event.preventDefault();
-    collapseAll();
-    return;
-  }
-  if (event.key === 'Escape') {
-    el.blur();
-    // Return focus to the parent row so I / ⌘⇧O still work
-    var row = el.closest('[data-rowid]');
-    if (row) { row.focus(); }
-  }
+  // ⌘⇧O — toggle current section
+  if (meta && event.shiftKey && (event.key === 'o' || event.key === 'O')) { event.preventDefault(); navToggleCurrentSection(); return; }
+  // ⌘⇧] — expand all
+  if (meta && event.shiftKey && event.key === ']') { event.preventDefault(); expandAll(); return; }
+  // ⌘⇧[ — collapse all
+  if (meta && event.shiftKey && event.key === '[') { event.preventDefault(); collapseAll(); return; }
 }
 
 // navRowKey — keyboard handler for focused line-item row divs
-// Fires when the row div itself has focus (after Escape from a cell)
 function navRowKey(event, rowEl) {
   var lineId = rowEl.dataset.rowid;
   if (!lineId) return;
   var meta = event.metaKey || event.ctrlKey;
+
+  // Ensure row is visually selected when it receives key events
+  if (!rowEl.classList.contains('line-selected')) navSelectRow(rowEl);
+
+  // ArrowDown / ArrowUp — move selection
+  if (event.key === 'ArrowDown') { event.preventDefault(); _navMoveSelection(+1); return; }
+  if (event.key === 'ArrowUp')   { event.preventDefault(); _navMoveSelection(-1); return; }
+
+  // Enter or ArrowRight — dive into the first available field
+  if (event.key === 'Enter' || event.key === 'ArrowRight') {
+    event.preventDefault();
+    var firstField = document.querySelector('[data-col="qty"][data-lineid="'+lineId+'"]')
+      || document.querySelector('[data-col="rate"][data-lineid="'+lineId+'"]');
+    if (firstField) { _navFocus(firstField); }
+    return;
+  }
 
   // I or Space — open line info panel
   if (event.key === 'i' || event.key === 'I' || event.key === ' ') {
@@ -12146,35 +12310,46 @@ function navRowKey(event, rowEl) {
     }
     return;
   }
+
   // ⌘⇧O — toggle section
-  if (meta && event.shiftKey && (event.key === 'o' || event.key === 'O')) {
+  if (meta && event.shiftKey && (event.key === 'o' || event.key === 'O')) { event.preventDefault(); navToggleCurrentSection(); return; }
+  // ⌘⇧] — expand all
+  if (meta && event.shiftKey && event.key === ']') { event.preventDefault(); expandAll(); return; }
+  // ⌘⇧[ — collapse all
+  if (meta && event.shiftKey && event.key === '[') { event.preventDefault(); collapseAll(); return; }
+}
+
+// navSectionKey — keyboard handler for focused section header divs
+function navSectionKey(event, headerEl) {
+  var code = headerEl.dataset.seccode;
+  if (!code) return;
+  var meta = event.metaKey || event.ctrlKey;
+
+  // Ensure header is visually selected
+  navClearSelection();
+  headerEl.classList.add('sec-selected');
+
+  // ArrowDown / ArrowUp — move selection
+  if (event.key === 'ArrowDown') { event.preventDefault(); _navMoveSelection(+1); return; }
+  if (event.key === 'ArrowUp')   { event.preventDefault(); _navMoveSelection(-1); return; }
+
+  // ArrowRight — expand section
+  if (event.key === 'ArrowRight') {
     event.preventDefault();
-    navToggleCurrentSection();
+    if (!expanded[code]) toggleSection(code);
     return;
   }
-  // Enter or ArrowRight — move into the rate input for this row
-  if (event.key === 'Enter' || event.key === 'ArrowRight') {
+  // ArrowLeft — collapse section
+  if (event.key === 'ArrowLeft') {
     event.preventDefault();
-    var rateInput = document.querySelector('[data-col="rate"][data-lineid="' + lineId + '"]');
-    if (rateInput) { _navFocus(rateInput); }
+    if (expanded[code]) toggleSection(code);
     return;
   }
-  // ArrowDown — move to next row
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    var allRows = Array.from(document.querySelectorAll('[data-rowid]'));
-    var idx = allRows.indexOf(rowEl);
-    if (idx >= 0 && idx < allRows.length - 1) allRows[idx + 1].focus();
-    return;
-  }
-  // ArrowUp — move to previous row
-  if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    var allRows2 = Array.from(document.querySelectorAll('[data-rowid]'));
-    var idx2 = allRows2.indexOf(rowEl);
-    if (idx2 > 0) allRows2[idx2 - 1].focus();
-    return;
-  }
+  // Enter — toggle
+  if (event.key === 'Enter') { event.preventDefault(); toggleSection(code); return; }
+
+  // ⌘⇧O — toggle
+  if (meta && event.shiftKey && (event.key === 'o' || event.key === 'O')) { event.preventDefault(); toggleSection(code); return; }
   // ⌘⇧] — expand all
   if (meta && event.shiftKey && event.key === ']') { event.preventDefault(); expandAll(); return; }
   // ⌘⇧[ — collapse all
