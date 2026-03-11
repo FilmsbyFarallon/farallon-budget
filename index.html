@@ -739,7 +739,7 @@ body{margin:0;padding:0}
 #sync-indicator{position:fixed;bottom:72px;right:16px;z-index:500;font-size:9px;font-family:var(--mono);padding:4px 8px;border-radius:2px;transition:opacity .4s;pointer-events:none;background:var(--bg2);border:1px solid var(--border);color:var(--text4);opacity:0}
 #sync-indicator.syncing{color:var(--accent);border-color:var(--accent-dim)}
 #sync-indicator.saved{color:var(--green);border-color:rgba(52,211,153,.3)}
-#sync-indicator.error{color:var(--red);border-color:rgba(248,113,113,.3)}
+#sync-indicator.error{color:var(--red);border-color:rgba(248,113,113,.3);pointer-events:all;cursor:pointer;}
 .user-menu-btn{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:none;cursor:pointer;padding:10px 16px;transition:background .15s}
 .user-menu-btn:hover{background:rgba(108,142,240,.06)}
 .user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent);font-family:var(--mono);flex-shrink:0}
@@ -2996,12 +2996,21 @@ async function deleteAccount() {
 // cloudLoad, cloudSave, localSave, migration
 // ============================================
 // ── Sync indicator ────────────────────────────────────
-function syncShow(state, msg) {
+var _syncRetryFn = null;
+function syncShow(state, msg, retryFn) {
   const el = document.getElementById('sync-indicator');
   if (!el) return;
-  el.textContent = msg; el.className = state; el.style.opacity = '1';
+  _syncRetryFn = retryFn || null;
+  el.textContent = retryFn ? msg + ' · Retry' : msg;
+  el.className = state;
+  el.style.opacity = '1';
+  el.onclick = retryFn ? function() { syncShow('syncing','⟳ saving...'); retryFn(); } : null;
   if (state === 'saved') setTimeout(()=>{ el.style.opacity='0'; }, 2500);
 }
+
+// ── Test helper — forces next save to fail (remove after testing) ──
+var _testForceFailOnce = false;
+function _testSaveFail() { _testForceFailOnce = true; console.log('[test] next save will fail'); }
 
 // ── Cloud load ────────────────────────────────────────
 async function cloudLoad() {
@@ -3047,6 +3056,7 @@ async function cloudSave() {
   localSave();
   syncShow('syncing', '⟳ saving...');
   try {
+    if (_testForceFailOnce) { _testForceFailOnce = false; throw new Error('Simulated save failure (test)'); }
     const uid = _currentUser.id;
     const ts = new Date().toISOString();
     const ops = [];
@@ -3062,7 +3072,7 @@ async function cloudSave() {
     if (errs.length) throw new Error(errs.map(r=>r.error.message).join(', '));
     syncShow('saved', '✓ saved');
   } catch(err) {
-    syncShow('error', '✗ save failed');
+    syncShow('error', '✗ save failed', cloudSave);
     console.error('cloudSave:', err);
   }
 }
