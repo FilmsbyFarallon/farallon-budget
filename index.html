@@ -10537,52 +10537,50 @@ function spToggle(id) {
   }
 
   else if (id === 'keyboard') {
-    const kbRow = (keys, desc) => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:11px;color:var(--text3)">${desc}</span>
-        <span style="display:flex;gap:4px;align-items:center;flex-shrink:0;margin-left:16px">${keys.map(k=>`<kbd style="font-family:var(--mono);font-size:10px;background:var(--bg3);border:1px solid var(--border3);border-radius:2px;padding:2px 6px;color:var(--text2);white-space:nowrap">${k}</kbd>`).join('<span style="font-size:10px;color:var(--text4);margin:0 1px">+</span>')}</span>
-      </div>`;
-    const kbSection = (title, rows) => `
-      <div style="margin-bottom:14px">
-        <div style="font-size:9px;letter-spacing:0.14em;color:var(--accent);font-family:var(--mono);margin-bottom:6px;padding-bottom:4px">${title}</div>
-        ${rows}
-      </div>`;
-    inner = `<div style="display:flex;flex-direction:column;gap:0;min-width:340px">
-      ${kbSection('CELL NAVIGATION', [
-        kbRow(['↓','Enter'], 'Move to next row (same column)'),
-        kbRow(['↑'], 'Move to previous row'),
-        kbRow(['⌘','→'], 'Move to next column'),
-        kbRow(['⌘','←'], 'Move to previous column'),
-        kbRow(['Space'], 'Open line info panel'),
-        kbRow(['Esc'], 'Deselect / exit field'),
-      ].join(''))}
-      ${kbSection('LINE INFO PANEL', [
-        kbRow(['Space'], 'Open panel for focused row'),
-        kbRow(['↑','↓'], 'Move between panel fields'),
-        kbRow(['Enter'], 'Confirm field / move to next'),
-        kbRow(['Esc'], 'Close panel, return to grid'),
-      ].join(''))}
-      ${kbSection('SECTION JUMPS  (⌘⇧ + letter)', [
-        kbRow(['⌘','⇧','L'], "Director's Fees"),
-        kbRow(['⌘','⇧','A'], 'Prep Crew'),
-        kbRow(['⌘','⇧','B'], 'Shoot Crew'),
-        kbRow(['⌘','⇧','G'], 'Art Dept Labor'),
-        kbRow(['⌘','⇧','M'], 'Talent'),
-      ].join(''))}
-      ${kbSection('COLUMN JUMP  (⌥ + key)', [
-        kbRow(['⌥','Q'], 'Jump to Qty column'),
-        kbRow(['⌥','R'], 'Jump to Rate column'),
-        kbRow(['⌥','A'], 'Jump to Actual column'),
-      ].join(''))}
-      ${kbSection('POWER', [
-        kbRow(['⌘','⇧','↑'], 'Jump to top of budget'),
-        kbRow(['⌘','⇧','↓'], 'Jump to Grand Total'),
-        kbRow(['⌘','⇧','F'], 'Return focus to budget grid'),
-        kbRow(['⌘','K'], 'Quick Search / Spotlight'),
-        kbRow(['⌘','⇧','H'], 'This guide'),
-      ].join(''))}
-      <div style="font-size:10px;color:var(--text4);margin-top:4px">⌘ = Cmd on Mac · Ctrl on Windows</div>
-    </div>`;
+    var _kbK = function(k) { return '<kbd style="font-family:var(--mono);font-size:10px;background:var(--bg3);border:1px solid var(--border3);border-radius:2px;padding:2px 6px;color:var(--text2);white-space:nowrap">' + k + '</kbd>'; };
+    var _kbP = '<span style="font-size:10px;color:var(--text4);margin:0 1px">+</span>';
+    var _kbR = function(keys, desc) {
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">'
+        + '<span style="font-size:11px;color:var(--text3)">' + desc + '</span>'
+        + '<span style="display:flex;gap:4px;align-items:center;flex-shrink:0;margin-left:16px">' + keys.map(_kbK).join(_kbP) + '</span>'
+        + '</div>';
+    };
+    var _kbS = function(title, rows) {
+      return '<div style="margin-bottom:14px">'
+        + '<div style="font-size:9px;letter-spacing:0.14em;color:var(--accent);font-family:var(--mono);margin-bottom:6px">' + title + '</div>'
+        + rows + '</div>';
+    };
+    inner = '<div style="display:flex;flex-direction:column;gap:0;min-width:340px">'
+      + _kbS('CELL NAVIGATION',
+          _kbR(['↓','Enter'], 'Next row')
+        + _kbR(['↑'], 'Previous row')
+        + _kbR(['⌘','→'], 'Next column')
+        + _kbR(['⌘','←'], 'Previous column')
+        + _kbR(['Space'], 'Open line info panel')
+        + _kbR(['Esc'], 'Deselect / exit field'))
+      + _kbS('LINE INFO PANEL',
+          _kbR(['Space'], 'Open for focused row')
+        + _kbR(['↑','↓'], 'Move between fields')
+        + _kbR(['Enter'], 'Confirm / next field')
+        + _kbR(['Esc'], 'Close, return to grid'))
+      + _kbS('SECTION JUMPS  (⌘⇧ + letter)',
+          _kbR(['⌘','⇧','L'], "Director’s Fees")
+        + _kbR(['⌘','⇧','A'], 'Prep Crew')
+        + _kbR(['⌘','⇧','B'], 'Shoot Crew')
+        + _kbR(['⌘','⇧','G'], 'Art Dept Labor')
+        + _kbR(['⌘','⇧','M'], 'Talent'))
+      + _kbS('COLUMN JUMP  (⌥ + key)',
+          _kbR(['⌥','Q'], 'Qty column')
+        + _kbR(['⌥','R'], 'Rate column')
+        + _kbR(['⌥','A'], 'Actual column'))
+      + _kbS('POWER',
+          _kbR(['⌘','⇧','↑'], 'Jump to top')
+        + _kbR(['⌘','⇧','↓'], 'Jump to Grand Total')
+        + _kbR(['⌘','⇧','F'], 'Return focus to grid')
+        + _kbR(['⌘','K'], 'Quick Search')
+        + _kbR(['⌘','⇧','H'], 'This guide'))
+      + '<div style="font-size:10px;color:var(--text4);margin-top:8px">⌘ = Cmd on Mac · Ctrl on Windows</div>'
+      + '</div>';
   }
 
   // Position dropdown under trigger button
@@ -10998,71 +10996,49 @@ let _spotlightResults = [];
 
 // ── Global keyboard listener ──────────────────────────────────
 document.addEventListener('keydown', function(e) {
-  const meta = e.metaKey || e.ctrlKey;
+  var meta = e.metaKey || e.ctrlKey;
 
-  // ⌘K — Quick Search / Spotlight (existing)
+  // ⌘K — Quick Search (works from any tab)
   if (meta && !e.shiftKey && e.key === 'k') {
     e.preventDefault();
     _spotlightOpen ? spotlightClose() : spotlightOpen();
     return;
   }
 
-  // Escape — close line panel if open (global safety net)
+  // Escape — close line panel if open
   if (e.key === 'Escape') {
-    const lp = document.getElementById('line-panel');
-    if (lp && lp.style.display !== 'none') {
-      closeLinePanel();
-      return;
-    }
+    var lp = document.getElementById('line-panel');
+    if (lp && lp.style.display !== 'none') { closeLinePanel(); return; }
   }
 
-  // Only fire budget shortcuts when Budget tab is active
-  if (typeof activeTab !== 'undefined' && activeTab !== 'budget') return;
+  // Budget-only shortcuts
+  if (typeof activeTab === 'undefined' || activeTab !== 'budget') return;
 
   // ⌘⇧H — Keyboard Guide
-  if (meta && e.shiftKey && e.key === 'H') {
-    e.preventDefault();
-    spToggle('keyboard');
-    return;
-  }
+  if (meta && e.shiftKey && e.key === 'H') { e.preventDefault(); spToggle('keyboard'); return; }
 
   // ⌘⇧F — Return focus to budget grid
-  if (meta && e.shiftKey && e.key === 'F') {
-    e.preventDefault();
-    navFocusGrid();
-    return;
-  }
+  if (meta && e.shiftKey && e.key === 'F') { e.preventDefault(); navFocusGrid(); return; }
 
-  // ⌘⇧↑ — Jump to top of budget (first section)
+  // ⌘⇧↑ — Jump to top
   if (meta && e.shiftKey && e.key === 'ArrowUp') {
     e.preventDefault();
-    const firstCode = (typeof SECTIONS !== 'undefined' && SECTIONS.length) ? SECTIONS[0].code : null;
-    if (firstCode) navJumpToSection(firstCode);
+    if (typeof SECTIONS !== 'undefined' && SECTIONS.length) navJumpToSection(SECTIONS[0].code);
     return;
   }
 
   // ⌘⇧↓ — Jump to Grand Total
-  if (meta && e.shiftKey && e.key === 'ArrowDown') {
-    e.preventDefault();
-    navJumpToTotals();
-    return;
-  }
+  if (meta && e.shiftKey && e.key === 'ArrowDown') { e.preventDefault(); navJumpToTotals(); return; }
 
-  // ⌘⇧ + section letter — Jump to section
+  // ⌘⇧ + section letter
   if (meta && e.shiftKey && typeof SECTIONS !== 'undefined') {
-    const sectionKeys = { 'L':'L', 'A':'A', 'B':'B', 'G':'G', 'M':'M',
-                          'C':'C', 'D':'D', 'E':'E', 'F':'F', 'H':'H',
-                          'I':'I', 'J':'J', 'K':'K', 'N':'N', 'O':'O',
-                          'P':'P', 'Q':'Q', 'R':'R', 'S':'S' };
-    const keyUpper = e.key.toUpperCase();
-    if (sectionKeys[keyUpper] && SECTIONS.find(s => s.code === keyUpper)) {
-      e.preventDefault();
-      navJumpToSection(keyUpper);
-      return;
+    var ku = e.key.toUpperCase();
+    if (SECTIONS.find(function(s){ return s.code === ku; })) {
+      e.preventDefault(); navJumpToSection(ku); return;
     }
   }
 
-  // ⌥ (Alt/Option) + column shortcut — jump to column in focused row
+  // ⌥ + column shortcuts
   if (e.altKey && !meta) {
     if (e.key === 'r' || e.key === 'R') { e.preventDefault(); navJumpToCol('rate'); return; }
     if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); navJumpToCol('qty');  return; }
@@ -11851,22 +11827,10 @@ function exportPDF(mode) {
 // ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
-// KEYBOARD NAVIGATION — Full grid navigation (arrow keys, Tab, Enter)
+// KEYBOARD NAVIGATION
 // ─────────────────────────────────────────────────────────────────────────────
+var _navLastFocusedCell = null;
 
-// Build a flat ordered list of all focusable budget cells
-function _navAllCells() {
-  return Array.from(document.querySelectorAll(
-    '#budget-editor [data-col][data-lineid]:not([disabled])'
-  ));
-}
-
-// Return the column order for a given cell element
-function _navColOrder() {
-  return ['qty','rate','fringe','actual'];
-}
-
-// Focus a cell, expanding its section if needed, then scrolling into view
 function _navFocus(el) {
   if (!el) return;
   el.focus();
@@ -11874,208 +11838,130 @@ function _navFocus(el) {
   el.scrollIntoView({block:'nearest', inline:'nearest'});
 }
 
-// Move to same column, adjacent row (direction: +1 or -1), crossing section boundaries
+function _navColOrder() { return ['qty','rate','fringe','actual']; }
+
 function _navMoveRow(col, lineId, dir) {
-  // Build flat list of all lines across all sections in order
-  const allLines = SECTIONS.flatMap(s => s.lines.map(l => ({...l, secCode: s.code})));
-  const idx = allLines.findIndex(l => l.id === lineId);
+  var allLines = [];
+  SECTIONS.forEach(function(s) { s.lines.forEach(function(l) { allLines.push({id:l.id, secCode:s.code, custom:l.custom}); }); });
+  var idx = allLines.findIndex(function(l) { return l.id === lineId; });
   if (idx < 0) return;
-
-  for (let i = idx + dir; i >= 0 && i < allLines.length; i += dir) {
-    const nextLine = allLines[i];
-    // Ensure the target section is expanded
-    if (!expanded[nextLine.secCode]) {
-      expanded[nextLine.secCode] = true;
-      const sec = SECTIONS.find(s => s.code === nextLine.secCode);
-      const b = active();
+  for (var i = idx + dir; i >= 0 && i < allLines.length; i += dir) {
+    var nl = allLines[i];
+    if (!expanded[nl.secCode]) {
+      expanded[nl.secCode] = true;
+      var sec = SECTIONS.find(function(s) { return s.code === nl.secCode; });
+      var b = active();
       if (sec && b) {
-        const el = document.getElementById('sec-' + nextLine.secCode);
+        var el = document.getElementById('sec-' + nl.secCode);
         if (el) {
-          const isActual = b.mode === 'actual';
-          const tmp = document.createElement('div');
-          tmp.innerHTML = renderSection(sec, b, isActual);
-          const body = tmp.querySelector('.section-body');
+          var tmp = document.createElement('div');
+          tmp.innerHTML = renderSection(sec, b, b.mode === 'actual');
+          var body = tmp.querySelector('.section-body');
           if (body) el.appendChild(body);
-          const chevron = el.querySelector('.section-chevron');
-          if (chevron) chevron.textContent = '▼';
-          chevron && chevron.classList.add('open');
         }
       }
     }
-    // Small delay to let DOM update after expand, then focus
-    const nextEl = document.querySelector(`[data-col="${col}"][data-lineid="${nextLine.id}"]`);
-    if (nextEl) {
-      _navFocus(nextEl);
-      return;
-    }
+    var target = document.querySelector('[data-col="' + col + '"][data-lineid="' + nl.id + '"]');
+    if (target) { _navFocus(target); return; }
   }
 }
 
-// Move to adjacent column in same row
 function _navMoveCol(col, lineId, dir) {
-  const order = _navColOrder();
-  const colIdx = order.indexOf(col);
+  var order = _navColOrder();
+  var colIdx = order.indexOf(col);
   if (colIdx < 0) return;
-
-  for (let i = colIdx + dir; i >= 0 && i < order.length; i += dir) {
-    const nextCol = order[i];
-    const nextEl = document.querySelector(`[data-col="${nextCol}"][data-lineid="${lineId}"]`);
-    if (nextEl) {
-      _navFocus(nextEl);
-      return;
-    }
-  }
-  // If at edge of columns, move to next/prev row's first/last column
-  _navMoveRow(col, lineId, dir);
+  var newIdx = colIdx + dir;
+  if (newIdx < 0) { _navMoveRow(order[0], lineId, -1); return; }
+  if (newIdx >= order.length) { _navMoveRow(order[order.length-1], lineId, +1); return; }
+  var target = document.querySelector('[data-col="' + order[newIdx] + '"][data-lineid="' + lineId + '"]');
+  if (target) { _navFocus(target); }
 }
 
-function navKey(event, el) {
-  const col = el.dataset.col;
-  const lineId = el.dataset.lineid;
-  if (!col || !lineId) return;
-
-  const meta = event.metaKey || event.ctrlKey;
-
-  switch (event.key) {
-    case 'Enter':
-      event.preventDefault();
-      if (_panelLineId === lineId) { el.blur(); break; }
-      _navMoveRow(col, lineId, +1);
-      break;
-
-    case 'ArrowDown':
-      if (!meta) {
-        event.preventDefault();
-        _navMoveRow(col, lineId, +1);
-      }
-      break;
-
-    case 'ArrowUp':
-      if (!meta) {
-        event.preventDefault();
-        _navMoveRow(col, lineId, -1);
-      }
-      break;
-
-    case 'ArrowRight':
-      if (meta) {
-        event.preventDefault();
-        _navMoveCol(col, lineId, +1);
-      } else if (el.type !== 'select-one') {
-        const atEnd = el.selectionStart === (el.value||'').length;
-        if (atEnd) { event.preventDefault(); _navMoveCol(col, lineId, +1); }
-      } else {
-        event.preventDefault(); _navMoveCol(col, lineId, +1);
-      }
-      break;
-
-    case 'ArrowLeft':
-      if (meta) {
-        event.preventDefault();
-        _navMoveCol(col, lineId, -1);
-      } else if (el.type !== 'select-one') {
-        const atStart = el.selectionStart === 0;
-        if (atStart) { event.preventDefault(); _navMoveCol(col, lineId, -1); }
-      } else {
-        event.preventDefault(); _navMoveCol(col, lineId, -1);
-      }
-      break;
-
-    case ' ':
-      if (el.type === 'number' || el.type === 'select-one') {
-        const sec = SECTIONS.find(s => s.lines.some(l => l.id === lineId));
-        const line = sec ? sec.lines.find(l => l.id === lineId) : null;
-        if (line && !line.custom) {
-          event.preventDefault();
-          _navLastFocusedCell = el;
-          openLinePanel(lineId, sec.code);
-        }
-      }
-      break;
-
-    case 'Escape':
-      el.blur();
-      break;
-
-    default:
-      break;
-  }
-}
-
-// Jump to a section: expand it, scroll to it, focus its first editable field
 function navJumpToSection(code) {
-  const sec = SECTIONS.find(s => s.code === code);
-  if (!sec) return;
-
-  // Expand if collapsed
   if (!expanded[code]) {
     expanded[code] = true;
-    const b = active();
-    const el = document.getElementById('sec-' + code);
-    if (el && b) {
-      const isActual = b.mode === 'actual';
-      const existing = el.querySelector('.section-body');
-      if (!existing) {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = renderSection(sec, b, isActual);
-        const body = tmp.querySelector('.section-body');
+    var sec = SECTIONS.find(function(s){ return s.code === code; });
+    var b = active();
+    if (sec && b) {
+      var el = document.getElementById('sec-' + code);
+      if (el) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = renderSection(sec, b, b.mode === 'actual');
+        var body = tmp.querySelector('.section-body');
         if (body) el.appendChild(body);
-        const chevron = el.querySelector('.section-chevron');
-        if (chevron) { chevron.textContent = '▼'; chevron.classList.add('open'); }
       }
     }
   }
-
-  // Scroll to section
-  const secEl = document.getElementById('sec-' + code);
-  if (secEl) secEl.scrollIntoView({behavior:'smooth', block:'start'});
-
-  // Focus first editable field after scroll settles
-  setTimeout(() => {
-    const first = document.querySelector(`[data-lineid][data-col="rate"][data-lineid^="${code}"]`)
-      || document.querySelector(`#sec-${code} [data-col][data-lineid]`);
-    if (first) _navFocus(first);
+  var card = document.getElementById('sec-' + code);
+  if (card) card.scrollIntoView({behavior:'smooth', block:'start'});
+  setTimeout(function() {
+    var first = document.querySelector('[data-col="rate"][data-lineid]');
+    var secFirst = document.querySelector('#sec-' + code + ' [data-col="rate"][data-lineid]');
+    if (secFirst) _navFocus(secFirst);
+    else if (first) _navFocus(first);
   }, 120);
 }
 
-// Jump to Grand Total / Totals area
 function navJumpToTotals() {
-  const grand = document.querySelector('.topsheet-grand');
-  if (grand) {
-    grand.scrollIntoView({behavior:'smooth', block:'center'});
-  } else {
-    // Fallback: scroll to bottom of budget editor
-    const editor = document.getElementById('budget-editor');
-    if (editor) editor.lastElementChild?.scrollIntoView({behavior:'smooth', block:'end'});
-  }
+  var el = document.querySelector('.topsheet-grand');
+  if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
-// Return focus to the budget grid — focuses the last focused cell, or the first visible one
-function navFocusGrid() {
-  // If line panel is open, close it first (which auto-returns focus)
-  const lp = document.getElementById('line-panel');
-  if (lp && lp.style.display !== 'none') {
-    closeLinePanel();
-    return;
-  }
-  // Try to restore last focused cell
-  if (_navLastFocusedCell && document.contains(_navLastFocusedCell)) {
-    _navFocus(_navLastFocusedCell);
-    return;
-  }
-  // Fall back to first visible rate cell in the budget
-  const first = document.querySelector('#budget-editor [data-col="rate"][data-lineid]');
-  if (first) _navFocus(first);
-}
-  const focused = document.activeElement;
-  const lineId = focused?.dataset?.lineid;
+function navJumpToCol(col) {
+  var focused = document.activeElement;
+  var lineId = focused && focused.dataset && focused.dataset.lineid;
   if (lineId) {
-    const target = document.querySelector(`[data-col="${col}"][data-lineid="${lineId}"]`);
+    var target = document.querySelector('[data-col="' + col + '"][data-lineid="' + lineId + '"]');
     if (target) { _navFocus(target); return; }
   }
-  // No focused row — focus first visible cell in that column
-  const first = document.querySelector(`[data-col="${col}"][data-lineid]`);
+  var first = document.querySelector('[data-col="' + col + '"][data-lineid]');
   if (first) _navFocus(first);
+}
+
+function navFocusGrid() {
+  var lp = document.getElementById('line-panel');
+  if (lp && lp.style.display !== 'none') { closeLinePanel(); return; }
+  if (_navLastFocusedCell && document.contains(_navLastFocusedCell)) { _navFocus(_navLastFocusedCell); return; }
+  var first = document.querySelector('#budget-editor [data-col="rate"][data-lineid]');
+  if (first) _navFocus(first);
+}
+
+function navKey(event, el) {
+  var col = el.dataset.col;
+  var lineId = el.dataset.lineid;
+  if (!col || !lineId) return;
+  var meta = event.metaKey || event.ctrlKey;
+
+  if (event.key === 'Enter' || (event.key === 'ArrowDown' && !meta)) {
+    event.preventDefault();
+    _navMoveRow(col, lineId, +1);
+    return;
+  }
+  if (event.key === 'ArrowUp' && !meta) {
+    event.preventDefault();
+    _navMoveRow(col, lineId, -1);
+    return;
+  }
+  if (event.key === 'ArrowRight') {
+    if (meta) { event.preventDefault(); _navMoveCol(col, lineId, +1); return; }
+    if (el.type !== 'select-one' && el.selectionStart === (el.value||'').length) { event.preventDefault(); _navMoveCol(col, lineId, +1); return; }
+    if (el.type === 'select-one') { event.preventDefault(); _navMoveCol(col, lineId, +1); return; }
+  }
+  if (event.key === 'ArrowLeft') {
+    if (meta) { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
+    if (el.type !== 'select-one' && el.selectionStart === 0) { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
+    if (el.type === 'select-one') { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
+  }
+  if (event.key === ' ') {
+    var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
+    var line = sec ? sec.lines.find(function(l){ return l.id === lineId; }) : null;
+    if (line && !line.custom) {
+      event.preventDefault();
+      _navLastFocusedCell = el;
+      openLinePanel(lineId, sec.code);
+    }
+  }
+  if (event.key === 'Escape') { el.blur(); }
 }
 
 // ============================================
@@ -12212,7 +12098,6 @@ function undoClear() {
 // ─────────────────────────────────────────────────────────────────────────────
 let _panelLineId = null;
 let _panelSecCode = null;
-let _navLastFocusedCell = null; // track which grid cell opened the line panel
 
 // Assign a contact to the current line panel's line item
 function lpAssignContact(contact) {
@@ -12451,66 +12336,43 @@ function applyRCRate(lineId, rate) {
 
 function closeLinePanel() {
   if(_panelLineId) saveLinePanelNote();
-  document.querySelectorAll('.line-item.line-selected').forEach(el => el.classList.remove('line-selected'));
+  document.querySelectorAll('.line-item.line-selected').forEach(function(el){ el.classList.remove('line-selected'); });
   document.getElementById('line-panel').style.display = 'none';
   document.getElementById('line-panel-overlay').style.display = 'none';
   _panelLineId = null;
   _panelSecCode = null;
-  // Return focus to the grid cell that opened the panel
   if (_navLastFocusedCell) {
-    setTimeout(() => {
-      _navFocus(_navLastFocusedCell);
-      _navLastFocusedCell = null;
-    }, 30);
+    var cell = _navLastFocusedCell;
+    _navLastFocusedCell = null;
+    setTimeout(function(){ _navFocus(cell); }, 30);
   }
 }
 
-// Keyboard navigation inside the line panel
-const _lpFieldOrder = ['lp-vendor','lp-ratesource','lp-unionstatus','lp-kit','lp-ot','lp-travel','lp-local','lp-note'];
+// Line panel keyboard navigation
+var _lpFields = ['lp-vendor','lp-ratesource','lp-unionstatus','lp-kit','lp-ot','lp-travel','lp-local','lp-note'];
 function lpKeydown(event) {
-  const panel = document.getElementById('line-panel');
-  if (!panel || panel.style.display === 'none') return;
-
-  if (event.key === 'Escape') {
-    event.preventDefault();
-    event.stopPropagation();
-    closeLinePanel();
-    return;
-  }
-
-  // Arrow Up/Down cycle through panel fields
+  if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeLinePanel(); return; }
+  var active = document.activeElement;
   if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-    const active = document.activeElement;
-    // Don't steal arrows from textareas or the vendor autocomplete while typing
     if (active && active.tagName === 'TEXTAREA') return;
-    const idx = _lpFieldOrder.indexOf(active ? active.id : '');
-    const dir = event.key === 'ArrowDown' ? 1 : -1;
-    const nextIdx = idx < 0 ? 0 : Math.max(0, Math.min(_lpFieldOrder.length - 1, idx + dir));
-    const nextEl = document.getElementById(_lpFieldOrder[nextIdx]);
-    if (nextEl && nextIdx !== idx) {
+    var idx = _lpFields.indexOf(active ? active.id : '');
+    var dir = event.key === 'ArrowDown' ? 1 : -1;
+    var next = idx < 0 ? 0 : Math.max(0, Math.min(_lpFields.length-1, idx+dir));
+    var nextEl = document.getElementById(_lpFields[next]);
+    if (nextEl && next !== idx) {
       event.preventDefault();
       nextEl.focus();
       if (nextEl.select && nextEl.type !== 'select-one' && nextEl.type !== 'checkbox') nextEl.select();
     }
   }
-
-  // Enter confirms/activates the focused field and moves to the next one
   if (event.key === 'Enter') {
-    const active = document.activeElement;
-    if (active && active.tagName === 'TEXTAREA') return; // let Enter work in textarea
-    if (active && (active.type === 'checkbox')) {
-      active.checked = !active.checked;
-      active.dispatchEvent(new Event('change'));
-      return;
-    }
-    const idx = _lpFieldOrder.indexOf(active ? active.id : '');
-    if (idx >= 0 && idx < _lpFieldOrder.length - 1) {
+    if (active && active.tagName === 'TEXTAREA') return;
+    if (active && active.type === 'checkbox') { active.checked = !active.checked; active.dispatchEvent(new Event('change')); return; }
+    var idx2 = _lpFields.indexOf(active ? active.id : '');
+    if (idx2 >= 0 && idx2 < _lpFields.length-1) {
       event.preventDefault();
-      const nextEl = document.getElementById(_lpFieldOrder[idx + 1]);
-      if (nextEl) {
-        nextEl.focus();
-        if (nextEl.select && nextEl.type !== 'select-one' && nextEl.type !== 'checkbox') nextEl.select();
-      }
+      var nextEl2 = document.getElementById(_lpFields[idx2+1]);
+      if (nextEl2) { nextEl2.focus(); if (nextEl2.select && nextEl2.type !== 'select-one' && nextEl2.type !== 'checkbox') nextEl2.select(); }
     }
   }
 }
