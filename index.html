@@ -747,14 +747,14 @@ body{margin:0;padding:0}
    GUIDED TOUR
 ══════════════════════════════════════════════════════ */
 #tour-overlay {
-  position: fixed; inset: 0; z-index: 8000; pointer-events: none;
+  position: fixed; inset: 0; z-index: 9998; pointer-events: none;
   transition: opacity .3s;
 }
 #tour-overlay.active { pointer-events: all; }
 
 /* Spotlight cutout via box-shadow */
 #tour-spotlight {
-  position: fixed; z-index: 8001; border-radius: 4px;
+  position: fixed; z-index: 10000; border-radius: 4px;
   box-shadow: 0 0 0 9999px rgba(0,0,0,.78);
   transition: all .35s cubic-bezier(.4,0,.2,1);
   pointer-events: none;
@@ -765,7 +765,7 @@ body{margin:0;padding:0}
 
 /* Tooltip card */
 #tour-tooltip {
-  position: fixed; z-index: 8002;
+  position: fixed; z-index: 10001;
   background: var(--bg1); border: 1px solid var(--border2);
   border-radius: 6px; padding: 22px 24px 18px;
   width: 340px; max-width: calc(100vw - 32px);
@@ -4850,7 +4850,7 @@ function renderContent() {
         <div class="markup-hint">Your company's fee on BTL costs — typically 15–25%</div>
       </div>
       <div class="markup-pct">
-        <input class="num-input" type="number" value="${b.markup.prodFee||''}" placeholder="20" style="max-width:64px;" oninput="upMarkup('prodFee',this.value)" onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();} if(event.key==='Enter'){event.preventDefault();this.blur();}">
+        <input class="num-input" type="number" value="${b.markup.prodFee||''}" placeholder="20" style="max-width:64px;" oninput="upMarkup('prodFee',this.value)" onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();} if(event.key==='Enter'){event.preventDefault();markupNavNext('prodFee');}">
         <span class="pct-sym">%</span>
       </div>
       <div class="markup-total">$${fmt(fee)}</div>
@@ -4861,7 +4861,7 @@ function renderContent() {
         <div class="markup-hint">Leave at 0 if using per-line fringe codes below — or enter a flat % here</div>
       </div>
       <div class="markup-pct">
-        <input class="num-input" type="number" value="${b.markup.fringes||''}" placeholder="0" style="max-width:64px;" oninput="upMarkup('fringes',this.value)" onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();} if(event.key==='Enter'){event.preventDefault();this.blur();}">
+        <input class="num-input" type="number" value="${b.markup.fringes||''}" placeholder="0" style="max-width:64px;" oninput="upMarkup('fringes',this.value)" onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();} if(event.key==='Enter'){event.preventDefault();markupNavNext('fringes');}">
         <span class="pct-sym">%</span>
       </div>
       <div class="markup-total">$${fmt(fr)}</div>
@@ -5003,7 +5003,7 @@ function renderSection(sec, b, isActual) {
       const _otTotal = lineOTTotal(line, b);
       const _otOpen  = !!_ot._open;
 
-      html += `<div class="line-item ${colClass}">
+      html += `<div class="line-item ${colClass}" tabindex="0" data-rowid="${line.id}" onkeydown="navRowKey(event,this)" onfocus="_navLastFocusedRow=this">
           <div style="cursor:${isCustom?'default':'pointer'};display:flex;align-items:center;gap:5px;min-width:0" ${isCustom?'':"onclick=\"openLinePanel('" + line.id + "','" + sec.code + "')\" title=\"Click to add a note or view role details\""}>
             ${lineNum ? `<span style="font-size:9px;color:var(--text4);font-family:var(--mono);flex-shrink:0;min-width:20px;text-align:right;margin-right:2px">${lineNum}</span>` : '<span style="min-width:20px;flex-shrink:0"></span>'}
             ${isCustom
@@ -9801,6 +9801,19 @@ function upActual(itemId, value) {
   b.actuals[itemId]=value;
   save(); refreshTotals();
 }
+function markupNavNext(currentField) {
+  var order = ['prodFee', 'fringes', 'contingency'];
+  var idx = order.indexOf(currentField);
+  if (idx >= 0 && idx < order.length - 1) {
+    var next = document.querySelector('[oninput*="' + order[idx+1] + '"]');
+    if (next) { next.focus(); next.select(); }
+  } else {
+    // Last field — blur and return focus to grid
+    var el = document.activeElement;
+    if (el) el.blur();
+  }
+}
+
 function upMarkup(field, value) {
   const b=active(); if(!b) return;
   b.markup[field]=value; save(); refreshTotals();
@@ -11082,27 +11095,34 @@ document.addEventListener('keydown', function(e) {
     return;
   }
 
-  // I — Open line info panel (global, works when not typing in a field)
+  // I — Open line info panel (global: works from row divs, inputs with data-lineid, or any focused element)
   if (!meta && !e.shiftKey && !e.altKey && (e.key === 'i' || e.key === 'I')) {
     var _focused = document.activeElement;
     var _tag = _focused ? _focused.tagName : '';
-    // Only fire if not typing inside a text/number input or textarea
-    if (_tag !== 'INPUT' && _tag !== 'TEXTAREA' && _tag !== 'SELECT') {
-      var _lineId = null;
-      // Walk up from focused element looking for data-lineid
+    var _lineId = null;
+
+    // If focused on a budget grid input, use its data-lineid directly
+    if ((_tag === 'INPUT' || _tag === 'SELECT') && _focused.dataset && _focused.dataset.lineid) {
+      _lineId = _focused.dataset.lineid;
+    } else if (_tag !== 'INPUT' && _tag !== 'TEXTAREA' && _tag !== 'SELECT') {
+      // Walk up DOM from non-input focused element
       var _el = _focused;
       while (_el && _el !== document.body) {
-        if (_el.dataset && _el.dataset.lineid) { _lineId = _el.dataset.lineid; break; }
+        if (_el.dataset && (_el.dataset.lineid || _el.dataset.rowid)) {
+          _lineId = _el.dataset.lineid || _el.dataset.rowid; break;
+        }
         _el = _el.parentElement;
       }
-      if (_lineId) {
-        var _sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === _lineId; }); });
-        var _line = _sec ? _sec.lines.find(function(l){ return l.id === _lineId; }) : null;
-        if (_line && !_line.custom) {
-          e.preventDefault();
-          openLinePanel(_lineId, _sec.code);
-          return;
-        }
+    }
+
+    if (_lineId) {
+      var _sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === _lineId; }); });
+      var _line = _sec ? _sec.lines.find(function(l){ return l.id === _lineId; }) : null;
+      if (_sec && _line && !_line.custom) {
+        e.preventDefault();
+        _navLastFocusedCell = _focused;
+        openLinePanel(_lineId, _sec.code);
+        return;
       }
     }
   }
@@ -12101,7 +12121,64 @@ function navKey(event, el) {
     collapseAll();
     return;
   }
-  if (event.key === 'Escape') { el.blur(); }
+  if (event.key === 'Escape') {
+    el.blur();
+    // Return focus to the parent row so I / ⌘⇧O still work
+    var row = el.closest('[data-rowid]');
+    if (row) { row.focus(); }
+  }
+}
+
+// navRowKey — keyboard handler for focused line-item row divs
+// Fires when the row div itself has focus (after Escape from a cell)
+function navRowKey(event, rowEl) {
+  var lineId = rowEl.dataset.rowid;
+  if (!lineId) return;
+  var meta = event.metaKey || event.ctrlKey;
+
+  // I or Space — open line info panel
+  if (event.key === 'i' || event.key === 'I' || event.key === ' ') {
+    var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
+    var line = sec ? sec.lines.find(function(l){ return l.id === lineId; }) : null;
+    if (sec && line && !line.custom) {
+      event.preventDefault();
+      openLinePanel(lineId, sec.code);
+    }
+    return;
+  }
+  // ⌘⇧O — toggle section
+  if (meta && event.shiftKey && (event.key === 'o' || event.key === 'O')) {
+    event.preventDefault();
+    navToggleCurrentSection();
+    return;
+  }
+  // Enter or ArrowRight — move into the rate input for this row
+  if (event.key === 'Enter' || event.key === 'ArrowRight') {
+    event.preventDefault();
+    var rateInput = document.querySelector('[data-col="rate"][data-lineid="' + lineId + '"]');
+    if (rateInput) { _navFocus(rateInput); }
+    return;
+  }
+  // ArrowDown — move to next row
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    var allRows = Array.from(document.querySelectorAll('[data-rowid]'));
+    var idx = allRows.indexOf(rowEl);
+    if (idx >= 0 && idx < allRows.length - 1) allRows[idx + 1].focus();
+    return;
+  }
+  // ArrowUp — move to previous row
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    var allRows2 = Array.from(document.querySelectorAll('[data-rowid]'));
+    var idx2 = allRows2.indexOf(rowEl);
+    if (idx2 > 0) allRows2[idx2 - 1].focus();
+    return;
+  }
+  // ⌘⇧] — expand all
+  if (meta && event.shiftKey && event.key === ']') { event.preventDefault(); expandAll(); return; }
+  // ⌘⇧[ — collapse all
+  if (meta && event.shiftKey && event.key === '[') { event.preventDefault(); collapseAll(); return; }
 }
 
 // ============================================
