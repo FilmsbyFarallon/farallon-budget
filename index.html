@@ -670,31 +670,10 @@ body{margin:0;padding:0}
 }
 
 /* ── AUTH SCREEN ── */
-#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;align-items:stretch;justify-content:stretch;font-family:var(--sans)}
-/* Split layout */
-.auth-split{display:flex;width:100%;height:100%}
-/* Left panel */
-.auth-left{flex:0 0 42%;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:48px 52px;overflow:hidden;background:#050508}
-.auth-left-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(108,142,240,.18) 0%, transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(168,85,247,.12) 0%, transparent 50%);pointer-events:none}
-.auth-left-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(108,142,240,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(108,142,240,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
-.auth-left-glow{position:absolute;bottom:-80px;left:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(108,142,240,.12) 0%,transparent 65%);pointer-events:none}
-.auth-brand-mark{position:relative;z-index:1}
-.auth-brand-name{font-family:var(--display);font-size:15px;font-weight:700;color:var(--text);letter-spacing:.12em}
-.auth-brand-sub{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--text4);margin-top:4px}
-.auth-left-body{position:relative;z-index:1}
-.auth-tagline{font-family:var(--display);font-size:38px;font-weight:700;color:var(--text);line-height:1.15;letter-spacing:-.01em;margin-bottom:20px}
-.auth-tagline em{font-style:normal;color:var(--accent)}
-.auth-tagline-sub{font-size:13px;color:var(--text3);line-height:1.7;max-width:280px}
-.auth-left-footer{position:relative;z-index:1}
-.auth-left-pills{display:flex;gap:8px;flex-wrap:wrap}
-.auth-pill{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text4);border:1px solid var(--border);padding:4px 10px;border-radius:2px}
-/* Right panel */
-.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;background:var(--bg);border-left:1px solid var(--border)}
-.auth-card{width:100%;max-width:400px}
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;align-items:center;justify-content:center;font-family:var(--sans)}
+.auth-card{background:var(--bg1);border:1px solid var(--border2);border-radius:4px;padding:40px 44px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.8)}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
 .auth-logo-sub{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--text4)}
-/* Mobile: hide left panel */
-@media(max-width:700px){.auth-left{display:none}.auth-right{padding:32px 24px}}
 .auth-title{font-size:18px;font-weight:700;font-family:var(--display);color:var(--text);margin-bottom:6px;letter-spacing:.02em}
 .auth-sub{font-size:12px;color:var(--text3);margin-bottom:24px;line-height:1.6}
 .auth-label{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.1em;margin-bottom:5px;display:block}
@@ -1017,7 +996,7 @@ body{margin:0;padding:0}
 <!-- Welcome screen -->
 <div id="tour-welcome">
   <div class="tour-center-card">
-    <span class="tour-wordmark">VILLAGER PRODUCTION BUDGET</span>
+    <span class="tour-wordmark">FARALLON PRODUCTION BUDGET</span>
     <div class="tour-title">Welcome to your production budget.</div>
     <div class="tour-body">
       This is a professional budgeting tool built for commercial film and video production. Whether you're a seasoned line producer or building your first formal bid, this quick tour will walk you through everything.<br><br>
@@ -1033,7 +1012,7 @@ body{margin:0;padding:0}
 <!-- Finish screen -->
 <div id="tour-finish">
   <div class="tour-center-card">
-    <span class="tour-wordmark">VILLAGER PRODUCTION BUDGET</span>
+    <span class="tour-wordmark">FARALLON PRODUCTION BUDGET</span>
     <div class="tour-title">You're ready to produce.</div>
     <div class="tour-body">
       That's the whole app. Start by creating a new budget — pick a production type, fill in your crew and rates, and you'll have a professional AICP-format bid in no time.<br><br>
@@ -1078,7 +1057,7 @@ body{margin:0;padding:0}
       <button onclick="batchSetStatus('cancelled')" style="color:#5a5a72">Void</button>
     </div>
   </div>
-  <button class="po-batch-btn gold" onclick="isPro() ? exportSelectedPOs() : showPricingScreen('export')">🔒 Export PDF</button>
+  <button class="po-batch-btn gold" onclick="exportSelectedPOs()">Export PDF</button>
   <button class="po-batch-btn danger" onclick="deleteSelectedPOs()">Delete Selected</button>
   <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
     <button class="po-batch-btn danger" onclick="deleteAllPOs()" style="opacity:.8">Clear All POs</button>
@@ -1106,194 +1085,74 @@ body{margin:0;padding:0}
   </div>
 </div>
 
-<!-- PRICING / TIER PAGE -->
-<div id="pricing-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:3000;overflow-y:auto;font-family:var(--sans)">
-  <div style="max-width:860px;margin:0 auto;padding:48px 24px 64px">
-
-    <!-- Header -->
-    <div style="text-align:center;margin-bottom:48px">
-      <div style="font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--text);margin-bottom:6px">VILLAGER PRO</div>
-      <div style="font-size:26px;font-weight:700;color:var(--text);margin-bottom:10px">Choose your plan</div>
-      <div style="font-size:13px;color:var(--text3)" data-pricing-reason>Start free. Upgrade when you're ready.</div>
-    </div>
-
-    <!-- Tier cards -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px">
-
-      <!-- FREE -->
-      <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:28px 24px;display:flex;flex-direction:column">
-        <div style="font-size:10px;font-family:var(--mono);letter-spacing:.18em;color:var(--text3);margin-bottom:10px">FREE</div>
-        <div style="font-size:30px;font-weight:700;color:var(--text);margin-bottom:4px">$0</div>
-        <div style="font-size:11px;color:var(--text4);margin-bottom:24px">forever</div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>1 budget</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Full line-item budgeting</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Contact &amp; company book</div>
-          <div style="font-size:12px;color:var(--text4);display:flex;gap:8px"><span style="color:#555">✗</span>PDF &amp; Excel export</div>
-          <div style="font-size:12px;color:var(--text4);display:flex;gap:8px"><span style="color:#555">✗</span>Rate cards &amp; templates</div>
-          <div style="font-size:12px;color:var(--text4);display:flex;gap:8px"><span style="color:#555">✗</span>Unlimited budgets</div>
-        </div>
-        <button onclick="selectFreePlan()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer">START FREE</button>
-      </div>
-
-      <!-- PRO -->
-      <div style="background:var(--bg1);border:2px solid var(--accent);border-radius:8px;padding:28px 24px;display:flex;flex-direction:column;position:relative">
-        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.15em;padding:3px 12px;border-radius:10px">MOST POPULAR</div>
-        <div style="font-size:10px;font-family:var(--mono);letter-spacing:.18em;color:var(--accent);margin-bottom:10px">PRO</div>
-        <div style="font-size:30px;font-weight:700;color:var(--text);margin-bottom:4px">$19.99</div>
-        <div style="font-size:11px;color:var(--text4);margin-bottom:24px">per month</div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Unlimited budgets</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Full line-item budgeting</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>PDF &amp; Excel export</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Rate cards &amp; templates</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Contact &amp; company book</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Priority support</div>
-        </div>
-        <button onclick="selectProPlan()" style="width:100%;padding:11px;background:var(--accent);border:none;border-radius:4px;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer;font-weight:600">UPGRADE TO PRO →</button>
-      </div>
-
-      <!-- MAX -->
-      <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:28px 24px;display:flex;flex-direction:column;opacity:0.7">
-        <div style="font-size:10px;font-family:var(--mono);letter-spacing:.18em;color:var(--text3);margin-bottom:10px">MAX</div>
-        <div style="font-size:30px;font-weight:700;color:var(--text);margin-bottom:4px">TBD</div>
-        <div style="font-size:11px;color:var(--text4);margin-bottom:24px">coming soon</div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Everything in Pro</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Team collaboration</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Multi-user access</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Admin dashboard</div>
-          <div style="font-size:12px;color:var(--text2);display:flex;gap:8px"><span style="color:#4caf50">✓</span>Custom integrations</div>
-        </div>
-        <button disabled style="width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text4);font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:not-allowed">COMING SOON</button>
-      </div>
-
-    </div>
-
-    <!-- Footer note -->
-    <div style="text-align:center;font-size:11px;color:var(--text4);font-family:var(--mono)">
-      Test card: 4242 4242 4242 4242 &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; Billed securely via Stripe
-    </div>
-
-  </div>
-</div>
-
-<!-- DEV BACKDOOR MODAL -->
-<div id="dev-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;font-family:var(--mono)">
-  <div style="background:#0d0d14;border:1px solid #ff4444;border-radius:8px;padding:28px 32px;width:300px;box-shadow:0 0 40px rgba(255,68,68,0.15)">
-    <div style="font-size:10px;letter-spacing:.2em;color:#ff4444;margin-bottom:4px">&#9888; DEVELOPER ACCESS</div>
-    <div style="font-size:9px;color:#444;letter-spacing:.1em;margin-bottom:20px">BYPASSES ALL AUTH + BILLING</div>
-    <input id="dev-pwd-input" type="password" placeholder="enter dev password"
-      style="width:100%;box-sizing:border-box;background:#070710;border:1px solid #333;border-radius:4px;color:#eee;font-family:var(--mono);font-size:12px;padding:10px 12px;margin-bottom:12px;outline:none"
-      onkeydown="if(event.key==='Enter')devLogin()"
-    />
-    <div id="dev-pwd-error" style="font-size:10px;color:#ff4444;margin-bottom:10px;display:none">Wrong password.</div>
-    <div style="display:flex;gap:8px">
-      <button onclick="devLogin()" style="flex:1;background:#ff4444;border:none;border-radius:4px;color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:9px;cursor:pointer">ENTER</button>
-      <button onclick="devModalClose()" style="flex:1;background:transparent;border:1px solid #333;border-radius:4px;color:#666;font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:9px;cursor:pointer">CANCEL</button>
-    </div>
-  </div>
-</div>
-
 <div id="auth-screen">
-  <div class="auth-split">
-
-    <!-- LEFT PANEL -->
-    <div class="auth-left">
-      <div class="auth-left-bg"></div>
-      <div class="auth-left-grid"></div>
-      <div class="auth-left-glow"></div>
-      <div class="auth-brand-mark">
-        <div class="auth-brand-name">VILLAGER PRO</div>
-        <div class="auth-brand-sub">PRODUCTION BUDGET</div>
-      </div>
-      <div class="auth-left-body">
-        <div class="auth-tagline">It takes a<br><em>village.</em></div>
-        <div class="auth-tagline-sub">The AICP budgeting tool built for commercial line producers. Fast, intuitive, and designed for the way you actually work.</div>
-      </div>
-      <div class="auth-left-footer">
-        <div class="auth-left-pills">
-          <div class="auth-pill">AICP STRUCTURE</div>
-          <div class="auth-pill">RATE CARDS</div>
-          <div class="auth-pill">PO MANAGEMENT</div>
-          <div class="auth-pill">COST REPORTS</div>
-          <div class="auth-pill">PETTY CASH</div>
-        </div>
-      </div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span style="font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);letter-spacing:.06em">FARALLON</span>
+      <span class="auth-logo-sub">PRODUCTION BUDGET</span>
     </div>
 
-    <!-- RIGHT PANEL -->
-    <div class="auth-right">
-      <div class="auth-card">
-        <div class="auth-logo" id="auth-logo-tap">
-          <span style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--text);letter-spacing:.08em">VILLAGER PRO</span>
-        </div>
+    <!-- PANEL: Sign In -->
+    <div id="auth-panel-signin">
+      <div class="auth-title">Sign in</div>
+      <div class="auth-sub">Welcome back.</div>
+      <label class="auth-label">EMAIL</label>
+      <input id="signin-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signin-password').focus()">
+      <label class="auth-label">PASSWORD</label>
+      <input id="signin-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSignIn()">
+      <button class="auth-btn" id="signin-btn" onclick="authSignIn()">SIGN IN</button>
+      <div id="auth-msg" class="auth-msg" style="display:none"></div>
+      <div class="auth-footer"><a onclick="authShowPanel('forgot')">Forgot your password?</a></div>
+      <div class="auth-switch">Don't have an account? <a onclick="authShowPanel('signup')">Create one</a></div>
+    </div>
 
-        <!-- PANEL: Sign In -->
-        <div id="auth-panel-signin">
-          <div class="auth-title">Sign in</div>
-          <div class="auth-sub">Welcome back.</div>
-          <label class="auth-label">EMAIL</label>
-          <input id="signin-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signin-password').focus()">
-          <label class="auth-label">PASSWORD</label>
-          <input id="signin-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authSignIn()">
-          <button class="auth-btn" id="signin-btn" onclick="authSignIn()">SIGN IN</button>
-          <div id="auth-msg" class="auth-msg" style="display:none"></div>
-          <div class="auth-footer"><a onclick="authShowPanel('forgot')">Forgot your password?</a></div>
-          <div class="auth-switch">Don't have an account? <a onclick="authShowPanel('signup')">Create one</a></div>
-        </div>
+    <!-- PANEL: Sign Up -->
+    <div id="auth-panel-signup" style="display:none">
+      <div class="auth-title">Create account</div>
+      <div class="auth-sub">Free to start. No credit card required.</div>
+      <label class="auth-label">FULL NAME</label>
+      <input id="signup-name" class="auth-input" type="text" placeholder="Your name" autocomplete="name" onkeydown="if(event.key==='Enter')document.getElementById('signup-company').focus()">
+      <label class="auth-label">COMPANY <span style="color:var(--text4);font-size:9px">(optional)</span></label>
+      <input id="signup-company" class="auth-input" type="text" placeholder="Production company name" onkeydown="if(event.key==='Enter')document.getElementById('signup-email').focus()">
+      <label class="auth-label">EMAIL</label>
+      <input id="signup-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signup-password').focus()">
+      <label class="auth-label">PASSWORD <span style="color:var(--text4);font-size:9px">(min 8 characters)</span></label>
+      <input id="signup-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')document.getElementById('signup-password2').focus()">
+      <label class="auth-label">CONFIRM PASSWORD</label>
+      <input id="signup-password2" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authSignUp()">
+      <button class="auth-btn" id="signup-btn" onclick="authSignUp()">CREATE ACCOUNT</button>
+      <div id="auth-msg-signup" class="auth-msg" style="display:none"></div>
+      <div class="auth-switch">Already have an account? <a onclick="authShowPanel('signin')">Sign in</a></div>
+    </div>
 
-        <!-- PANEL: Sign Up -->
-        <div id="auth-panel-signup" style="display:none">
-          <div class="auth-title">Create account</div>
-          <div class="auth-sub">Free to start. No credit card required.</div>
-          <label class="auth-label">FULL NAME</label>
-          <input id="signup-name" class="auth-input" type="text" placeholder="Your name" autocomplete="name" onkeydown="if(event.key==='Enter')document.getElementById('signup-company').focus()">
-          <label class="auth-label">COMPANY <span style="color:var(--text4);font-size:9px">(optional)</span></label>
-          <input id="signup-company" class="auth-input" type="text" placeholder="Production company name" onkeydown="if(event.key==='Enter')document.getElementById('signup-email').focus()">
-          <label class="auth-label">EMAIL</label>
-          <input id="signup-email" class="auth-input" type="email" placeholder="you@company.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('signup-password').focus()">
-          <label class="auth-label">PASSWORD <span style="color:var(--text4);font-size:9px">(min 8 characters)</span></label>
-          <input id="signup-password" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')document.getElementById('signup-password2').focus()">
-          <label class="auth-label">CONFIRM PASSWORD</label>
-          <input id="signup-password2" class="auth-input" type="password" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')authSignUp()">
-          <button class="auth-btn" id="signup-btn" onclick="authSignUp()">CREATE ACCOUNT</button>
-          <div id="auth-msg-signup" class="auth-msg" style="display:none"></div>
-          <div class="auth-switch">Already have an account? <a onclick="authShowPanel('signin')">Sign in</a></div>
-        </div>
+    <!-- PANEL: Verify email -->
+    <div id="auth-panel-verify" style="display:none">
+      <div class="auth-title">Check your email</div>
+      <div class="auth-sub">We sent a confirmation link to <strong id="verify-email"></strong>.<br>Click it to activate your account.</div>
+      <button class="auth-btn-ghost" onclick="authShowPanel('signin')">← Back to sign in</button>
+    </div>
 
-        <!-- PANEL: Verify email -->
-        <div id="auth-panel-verify" style="display:none">
-          <div class="auth-title">Check your email</div>
-          <div class="auth-sub">We sent a confirmation link to <strong id="verify-email"></strong>.<br>Click it to activate your account.</div>
-          <button class="auth-btn-ghost" onclick="authShowPanel('signin')">&#8592; Back to sign in</button>
-        </div>
+    <!-- PANEL: Forgot password -->
+    <div id="auth-panel-forgot" style="display:none">
+      <div class="auth-title">Reset password</div>
+      <div class="auth-sub">Enter your email and we'll send you a reset link.</div>
+      <label class="auth-label">EMAIL</label>
+      <input id="forgot-email" class="auth-input" type="email" placeholder="you@company.com" onkeydown="if(event.key==='Enter')authForgotPassword()">
+      <button class="auth-btn" id="forgot-btn" onclick="authForgotPassword()">SEND RESET LINK</button>
+      <div id="auth-msg-forgot" class="auth-msg" style="display:none"></div>
+      <button class="auth-btn-ghost" onclick="authShowPanel('signin')">← Back to sign in</button>
+    </div>
 
-        <!-- PANEL: Forgot password -->
-        <div id="auth-panel-forgot" style="display:none">
-          <div class="auth-title">Reset password</div>
-          <div class="auth-sub">Enter your email and we'll send you a reset link.</div>
-          <label class="auth-label">EMAIL</label>
-          <input id="forgot-email" class="auth-input" type="email" placeholder="you@company.com" onkeydown="if(event.key==='Enter')authForgotPassword()">
-          <button class="auth-btn" id="forgot-btn" onclick="authForgotPassword()">SEND RESET LINK</button>
-          <div id="auth-msg-forgot" class="auth-msg" style="display:none"></div>
-          <button class="auth-btn-ghost" onclick="authShowPanel('signin')">&#8592; Back to sign in</button>
-        </div>
-
-        <!-- PANEL: Reset password -->
-        <div id="auth-panel-reset" style="display:none">
-          <div class="auth-title">Set new password</div>
-          <div class="auth-sub">Choose a new password for your account.</div>
-          <label class="auth-label">NEW PASSWORD</label>
-          <input id="reset-password" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')document.getElementById('reset-password2').focus()">
-          <label class="auth-label">CONFIRM NEW PASSWORD</label>
-          <input id="reset-password2" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authResetPassword()">
-          <button class="auth-btn" id="reset-btn" onclick="authResetPassword()">UPDATE PASSWORD</button>
-          <div id="auth-msg-reset" class="auth-msg" style="display:none"></div>
-        </div>
-
-        <div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);font-size:10px;color:var(--text4);font-family:var(--mono);text-align:center">&#169; 2026 FARALLON STUDIOS LLC</div>
-      </div>
+    <!-- PANEL: Reset password (after clicking email link) -->
+    <div id="auth-panel-reset" style="display:none">
+      <div class="auth-title">Set new password</div>
+      <div class="auth-sub">Choose a new password for your account.</div>
+      <label class="auth-label">NEW PASSWORD</label>
+      <input id="reset-password" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')document.getElementById('reset-password2').focus()">
+      <label class="auth-label">CONFIRM NEW PASSWORD</label>
+      <input id="reset-password2" class="auth-input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authResetPassword()">
+      <button class="auth-btn" id="reset-btn" onclick="authResetPassword()">UPDATE PASSWORD</button>
+      <div id="auth-msg-reset" class="auth-msg" style="display:none"></div>
     </div>
 
   </div>
@@ -1308,7 +1167,7 @@ body{margin:0;padding:0}
       <!-- Brand + collapse row (matches topbar height) -->
       <div class="sb-brand-row">
         <div class="sb-brand">
-          <span style="font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);letter-spacing:.06em">VILLAGER PRO</span>
+          <img src="data:image/png;base64,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" class="sb-brand-logo" alt="Farallon">
 
         </div>
         <button class="sb-collapse-btn" onclick="toggleSidebar()" id="sidebar-toggle" title="Collapse sidebar">
@@ -2116,247 +1975,6 @@ const SUPA_KEY = 'sb_publishable_U0xO8gH_saly3FxYfafaDg_j61Fimf7';
 let _supa = null;
 let _currentUser = null;
 let _syncTimer = null;
-let _devMode = false;
-
-// ── DEV BACKDOOR ─────────────────────────────────────────────────────────────
-const _DEV_PASSWORD = 'villager-dev-2025';
-let _devTapCount = 0, _devTapTimer = null;
-
-function devModalOpen() {
-  const m = document.getElementById('dev-modal');
-  if (m) { m.style.display = 'flex'; setTimeout(()=>document.getElementById('dev-pwd-input')?.focus(),80); }
-}
-function devModalClose() {
-  const m = document.getElementById('dev-modal');
-  if (m) m.style.display = 'none';
-  const e = document.getElementById('dev-pwd-error');
-  if (e) e.style.display = 'none';
-  const i = document.getElementById('dev-pwd-input');
-  if (i) i.value = '';
-}
-function devLogin() {
-  const val = document.getElementById('dev-pwd-input')?.value || '';
-  if (val !== _DEV_PASSWORD) {
-    const e = document.getElementById('dev-pwd-error');
-    if (e) e.style.display = 'block';
-    return;
-  }
-  _devMode = true;
-  _currentUser = {
-    id: 'dev-user-local',
-    email: 'dev@villager.local',
-    user_metadata: { full_name: 'Dev Mode', company: '⚡ Developer' },
-    _isDev: true
-  };
-  devModalClose();
-  // Skip cloudLoad — just boot straight into the app
-  hideAuthScreen();
-  console.info('%c VILLAGER DEV MODE ACTIVE — all billing bypassed ', 'background:#ff4444;color:#fff;font-weight:bold;padding:4px 8px');
-}
-
-// Global billing gate — always true in dev mode; Stripe check added later
-function isPro() {
-  if (_devMode) return true;
-  return !!(_currentUser?.user_metadata?.is_pro);
-}
-
-// ── PRICING PAGE ─────────────────────────────────────────────────────────────
-function showPricingScreen(reason) {
-  // reason: 'new_user' | 'budget_limit' | 'export' | 'rate_card'
-  const el = document.getElementById('pricing-screen');
-  if (!el) return;
-  // Update header subtitle based on reason
-  const sub = el.querySelector('[data-pricing-reason]');
-  if (sub) {
-    const msgs = {
-      budget_limit: "You've reached the free plan limit of 1 budget. Upgrade to create more.",
-      export: 'PDF and Excel export is a Pro feature. Upgrade to unlock it.',
-      rate_card: 'Rate cards and templates are a Pro feature. Upgrade to unlock them.',
-      template: 'Templates are a Pro feature. Upgrade to save and apply templates.',
-      snapshot: 'Snapshots are a Pro feature. Upgrade to save and restore budget versions.',
-      new_user: "Start free. Upgrade when you're ready.",
-    };
-    sub.textContent = msgs[reason] || msgs.new_user;
-  }
-  el.style.display = 'block';
-}
-
-function hidePricingScreen() {
-  const el = document.getElementById('pricing-screen');
-  if (el) el.style.display = 'none';
-}
-
-function selectFreePlan() {
-  // Mark plan selected so pricing doesn't re-show on next login
-  if (_currentUser && !_devMode) {
-    try { _supa.auth.updateUser({ data: { plan_selected: true } }).catch(()=>{}); } catch(e){}
-  }
-  hidePricingScreen();
-  hideAuthScreen();
-}
-
-async function selectProPlan() {
-  hidePricingScreen();
-  await startCheckout();
-}
-
-// Show pricing after new signup (no budgets + no plan_selected)
-function maybShowPricing() {
-  if (_devMode) return false;
-  const meta = _currentUser?.user_metadata || {};
-  if (meta.plan_selected) return false;
-  const realBudgets = budgets.filter(b => !b._isDemo);
-  if (realBudgets.length === 0) {
-    showPricingScreen('new_user');
-    return true;
-  }
-  return false;
-}
-
-// Gate: block if over free budget limit
-function gateNewBudget() {
-  if (isPro()) return true;
-  const realBudgets = budgets.filter(b => !b._isDemo);
-  if (realBudgets.length >= 1) {
-    showPricingScreen('budget_limit');
-    return false;
-  }
-  return true;
-}
-
-// Gate: block export
-function gateExport() {
-  if (isPro()) return true;
-  showPricingScreen('export');
-  return false;
-}
-
-// Gate: block rate cards / templates
-function gateRateCard() {
-  if (isPro()) return true;
-  showPricingScreen('rate_card');
-  return false;
-}
-// Reusable locked panel HTML for pro features
-function lockedPanel(msg) {
-  return `<div style="text-align:center;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px">
-    <div style="font-size:18px">🔒</div>
-    <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">PRO FEATURE</div>
-    <div style="font-size:11px;color:var(--text4);line-height:1.5">${msg}</div>
-    <button onclick="showPricingScreen('export');spClose ? spClose() : null" style="margin-top:4px;padding:8px 18px;background:var(--accent);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer">UPGRADE TO PRO</button>
-  </div>`;
-}
-
-function gateTemplate() {
-  if (isPro()) return true;
-  showPricingScreen('template');
-  return false;
-}
-
-function gateSnapshot() {
-  if (isPro()) return true;
-  showPricingScreen('snapshot');
-  return false;
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function openBillingPortal() {
-  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
-  if (!_currentUser) return;
-  const customerId = _currentUser.user_metadata?.stripe_customer_id;
-  if (!customerId) {
-    alert('No billing account found. Please contact support.');
-    return;
-  }
-  const btn = document.createElement('div');
-  btn.id = 'portal-loading';
-  btn.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--text2);letter-spacing:.08em';
-  btn.textContent = 'Opening billing portal...';
-  document.body.appendChild(btn);
-  try {
-    const res = await fetch(`${SUPA_URL}/functions/v1/stripe-portal`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer_id: customerId,
-        return_url: window.location.origin + '?portal=return'
-      })
-    });
-    const data = await res.json();
-    document.getElementById('portal-loading')?.remove();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert('Could not open billing portal: ' + (data.error || 'Unknown error'));
-    }
-  } catch(e) {
-    document.getElementById('portal-loading')?.remove();
-    alert('Could not open billing portal. Please try again.');
-  }
-}
-
-async function startCheckout() {
-  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
-  if (!_currentUser) return;
-  const btn = document.createElement('div');
-  btn.id = 'checkout-loading';
-  btn.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:#fff;letter-spacing:.1em';
-  btn.textContent = 'OPENING CHECKOUT…';
-  document.body.appendChild(btn);
-  try {
-    const res = await fetch(`${SUPA_URL}/functions/v1/stripe-checkout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${_currentUser._supaToken || (await _supa.auth.getSession()).data.session?.access_token}`,
-        'apikey': SUPA_KEY,
-      },
-      body: JSON.stringify({ user_id: _currentUser.id, email: _currentUser.email }),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert('Checkout error: ' + (data.error || 'Unknown error'));
-    }
-  } catch(e) {
-    alert('Checkout failed: ' + e);
-  } finally {
-    document.getElementById('checkout-loading')?.remove();
-  }
-}
-
-// 5-tap on the logo to open dev modal (invisible to normal users)
-document.addEventListener('DOMContentLoaded', () => {
-  const logo = document.getElementById('auth-logo-tap');
-  if (!logo) return;
-  logo.style.cursor = 'default';
-  logo.addEventListener('click', () => {
-    _devTapCount++;
-    clearTimeout(_devTapTimer);
-    _devTapTimer = setTimeout(() => { _devTapCount = 0; }, 1500);
-    if (_devTapCount >= 5) { _devTapCount = 0; devModalOpen(); }
-  });
-});
-// ─────────────────────────────────────────────────────────────────────────────
-
-// Handle Stripe return URLs
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  const checkout = params.get('checkout');
-  if (checkout === 'success') {
-    window.history.replaceState({}, '', window.location.pathname);
-    // Show success banner once app loads
-    window.__checkoutSuccess = true;
-  } else if (checkout === 'cancelled') {
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-  const portal = params.get('portal');
-  if (portal === 'return') {
-    window.history.replaceState({}, '', window.location.pathname);
-    window.__portalReturn = true;
-  }
-})();
 
 function supaInit() {
   try {
@@ -2421,61 +2039,8 @@ function hideAuthScreen() {
   if (ap) ap.style.display = 'flex';
   updateUserUI();
   render();
-  // Show pricing page for brand new users, otherwise show tour
-  if (maybShowPricing()) return;
+  // Show tour for new users
   setTimeout(tourLaunch, 600);
-  // Show success banner if returning from Stripe checkout
-  if (window.__checkoutSuccess) {
-    window.__checkoutSuccess = false;
-    // Poll for is_pro to appear in user metadata (webhook may take a moment)
-    let attempts = 0;
-    const pollForPro = async () => {
-      attempts++;
-      if (!_supa) return;
-      try {
-        // Force token refresh to get latest user_metadata from Supabase
-        const { data: refreshData } = await _supa.auth.refreshSession();
-        if (refreshData?.session?.user) {
-          _currentUser = refreshData.session.user;
-        } else {
-          const { data: { session } } = await _supa.auth.getSession();
-          if (session?.user) _currentUser = session.user;
-        }
-      } catch(e) {}
-
-      if (isPro()) {
-        // Success — force full re-render so all gates, lock icons, and buttons update immediately
-        updateUserUI();
-        render();
-        // Show success banner
-        const t = document.createElement('div');
-        t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid #4caf50;color:#4caf50;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:10px 22px;border-radius:4px;z-index:9999;pointer-events:none;transition:opacity .4s';
-        t.textContent = '⚡ VILLAGER PRO ACTIVATED — welcome to the full app';
-        document.body.appendChild(t);
-        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 4000);
-      } else if (attempts < 12) {
-        // Retry up to 12 times (every 1 second = 12 seconds total)
-        setTimeout(pollForPro, 1000);
-      }
-    };
-    // Start polling quickly — webhook is usually fast
-    setTimeout(pollForPro, 500);
-  }
-
-  // Returning from Stripe billing portal — refresh session to pick up any plan changes
-  if (window.__portalReturn) {
-    window.__portalReturn = false;
-    setTimeout(async () => {
-      if (!_supa) return;
-      try {
-        const { data: refreshData } = await _supa.auth.refreshSession();
-        if (refreshData?.session?.user) _currentUser = refreshData.session.user;
-      } catch(e) {}
-      // Update UI to reflect any plan changes
-      updateUserUI();
-      render();
-    }, 1500);
-  }
 }
 function authShowPanel(panel) {
   ['signin','signup','verify','forgot','reset'].forEach(p => {
@@ -2587,15 +2152,10 @@ async function authResetPassword() {
   btn.disabled = false; btn.textContent = 'UPDATE PASSWORD';
 }
 async function authSignOut() {
-  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
-  // Clear state immediately — don't wait for Supabase
+  if (_supa) await _supa.auth.signOut();
   _currentUser = null;
-  _devMode = false;
-  budgets=[]; folders=[]; rateCards=[]; templates=[]; snapshots=[]; contacts=[]; companies=[];
   authShowPanel('signin');
   showAuthScreen();
-  // Fire signout in background — don't block UI
-  if (_supa) { try { _supa.auth.signOut().catch(()=>{}); } catch(e){} }
 }
 function updateUserUI() {
   if (!_currentUser) return;
@@ -2634,11 +2194,9 @@ function showUserMenu(e) {
       <div style="font-size:10px;font-family:var(--mono);color:var(--text4)">${esc(email)}</div>
     </div>
     <hr class="sb-ctx-sep">
-    ${!isPro() ? `<div class="sb-ctx-item" onclick="startCheckout()" style="color:#7c9ef8;font-weight:600">⚡ Upgrade to Pro</div><hr class="sb-ctx-sep">` : `<div class="sb-ctx-item" onclick="openBillingPortal()" style="color:#4caf50;font-weight:600">⚡ Manage Subscription</div><hr class="sb-ctx-sep">`}
     <div class="sb-ctx-item" onclick="openProfileModal()">✎ Edit profile</div>
     <div class="sb-ctx-item" onclick="tourRestart()">⟳ Restart tour</div>
     <div class="sb-ctx-item" onclick="downloadBackup()">⬇ Download backup</div>
-    <div class="sb-ctx-item" onclick="openLegalModal()">⚖ Legal & Privacy</div>
     <hr class="sb-ctx-sep">
     <div class="sb-ctx-item danger" onclick="authSignOut()">Sign out</div>
   `;
@@ -2673,145 +2231,10 @@ function openProfileModal() {
         <input id="profile-pw2" class="auth-input" type="password" placeholder="Confirm new password">
         <button id="profile-pw-btn" class="auth-btn-ghost" onclick="savePassword()" style="margin-top:8px">UPDATE PASSWORD</button>
       </div>
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #3a1a1a">
-        <div style="font-size:10px;font-family:var(--mono);color:#c05050;margin-bottom:8px;letter-spacing:.08em">DANGER ZONE</div>
-        <div style="font-size:10px;color:var(--text4);font-family:var(--mono);margin-bottom:12px;line-height:1.5">Permanently deletes your account and all budgets, POs, and data. This cannot be undone.</div>
-        <button class="auth-btn-ghost" onclick="deleteAccount()" style="border-color:#6b2a2a;color:#c05050;width:100%" onmouseover="this.style.background='rgba(192,80,80,.08)'" onmouseout="this.style.background='transparent'">DELETE MY ACCOUNT</button>
-      </div>
     </div>
   `;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
-}
-
-function openLegalModal() {
-  document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
-  const existing = document.getElementById('legal-modal');
-  if (existing) { existing.remove(); return; }
-  const overlay = document.createElement('div');
-  overlay.id = 'legal-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px';
-  overlay.innerHTML = `
-    <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.85)">
-      <!-- Header -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0;flex-shrink:0">
-        <div style="font-family:var(--display);font-size:15px;font-weight:700;color:var(--text)">Legal & Privacy</div>
-        <button onclick="document.getElementById('legal-modal').remove()" style="background:transparent;border:none;color:var(--text4);cursor:pointer;font-size:18px;padding:4px 8px;line-height:1" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text4)'">✕</button>
-      </div>
-      <!-- Tabs -->
-      <div style="display:flex;gap:0;padding:16px 24px 0;border-bottom:1px solid var(--border);flex-shrink:0">
-        ${['Terms of Service','Privacy Policy','Refund Policy'].map((t,i)=>`
-          <button id="legal-tab-${i}" onclick="legalShowTab(${i})" style="background:transparent;border:none;border-bottom:2px solid ${i===0?'var(--accent)':'transparent'};color:${i===0?'var(--text)':'var(--text3)'};font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:6px 14px 10px;cursor:pointer;transition:all .15s">${t.toUpperCase()}</button>
-        `).join('')}
-      </div>
-      <!-- Body -->
-      <div style="overflow-y:auto;padding:24px;flex:1;line-height:1.7;font-size:12px;color:var(--text2)">
-
-        <!-- TERMS -->
-        <div id="legal-panel-0">
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2026 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2026</div>
-          <p>These Terms of Service ("Terms") govern your access to and use of Villager Pro, a software product operated by <strong style="color:var(--text)">Farallon Studios LLC</strong> ("Company," "we," "us," or "our"). By creating an account or using the Service, you agree to these Terms.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">1. The Service</div>
-          <p>Villager Pro is a cloud-based production budgeting tool for commercial and branded content producers. We offer a free tier and a paid Pro subscription. Features available on each tier are described on our pricing page and within the application.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">2. Your Account</div>
-          <p>You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your login credentials and for all activity under your account. You must be at least 18 years old to use the Service.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">3. Subscriptions & Billing</div>
-          <p>Pro subscriptions are billed monthly. Your subscription renews automatically unless cancelled before the renewal date. All payments are processed securely by Stripe. Farallon Studios LLC does not store your payment card information. You may cancel your subscription at any time through the Manage Subscription option in your account menu.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">4. Your Data</div>
-          <p>You retain full ownership of all budget data, contacts, and content you create within Villager Pro. We do not claim any ownership rights over your data. You may export or delete your data at any time. If you delete your account, all associated data is permanently removed from our systems.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">5. Acceptable Use</div>
-          <p>You agree not to misuse the Service, attempt to gain unauthorized access to any systems, reverse engineer the application, or use the Service for any unlawful purpose. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">6. Availability & Disclaimers</div>
-          <p>We strive for high availability but do not guarantee uninterrupted access to the Service. The Service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, Farallon Studios LLC is not liable for any indirect, incidental, or consequential damages arising from your use of the Service.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">7. Changes to Terms</div>
-          <p>We may update these Terms from time to time. We will notify you of material changes by posting a notice in the application. Continued use of the Service after changes constitutes acceptance of the updated Terms.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">8. Governing Law</div>
-          <p>These Terms are governed by the laws of the State of California, without regard to conflict of law principles. Any disputes shall be resolved in the courts of Los Angeles County, California.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">9. Contact</div>
-          <p>Questions about these Terms? Contact us at <span style="color:var(--accent)">support@villagerpro.io</span></p>
-        </div>
-
-        <!-- PRIVACY -->
-        <div id="legal-panel-1" style="display:none">
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2026 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2026</div>
-          <p>Farallon Studios LLC ("we," "us," "our") operates Villager Pro. This Privacy Policy explains what information we collect, how we use it, and your rights regarding that information.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Information We Collect</div>
-          <p><strong style="color:var(--text)">Account information:</strong> When you register, we collect your name, email address, and company name. This information is used to create and manage your account.</p>
-          <p><strong style="color:var(--text)">Budget data:</strong> All budgets, contacts, rate cards, templates, and other content you create are stored securely in our database. This data belongs to you.</p>
-          <p><strong style="color:var(--text)">Payment information:</strong> Payments are processed by Stripe. We do not store credit card numbers or banking details. Stripe's privacy policy governs their handling of payment data.</p>
-          <p><strong style="color:var(--text)">Usage data:</strong> We may collect basic usage information such as login timestamps and feature usage to improve the Service. We do not sell this data.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">How We Use Your Information</div>
-          <p>We use your information solely to provide and improve the Service — to authenticate you, store your data, process payments, and send essential service communications. We do not sell, rent, or share your personal information with third parties for marketing purposes.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Third-Party Services</div>
-          <p>Villager Pro uses the following third-party services to operate:</p>
-          <p><strong style="color:var(--text)">Supabase</strong> — database and authentication infrastructure. Your data is stored on Supabase servers.</p>
-          <p><strong style="color:var(--text)">Stripe</strong> — payment processing. Subject to Stripe's privacy policy.</p>
-          <p><strong style="color:var(--text)">Vercel</strong> — application hosting.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Data Retention & Deletion</div>
-          <p>Your data is retained for as long as your account is active. If you delete your account, all associated data is permanently and irreversibly deleted from our systems within 30 days. You may request deletion at any time by contacting us or using the Delete Account option in your profile settings.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Security</div>
-          <p>We use industry-standard security measures including encrypted connections (HTTPS/TLS), secure authentication via Supabase, and row-level security on all database tables to protect your data.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Your Rights</div>
-          <p>You have the right to access, correct, export, or delete your personal data at any time. California residents have additional rights under the CCPA including the right to know what data we collect and the right to opt out of data sales (we do not sell data). To exercise any of these rights, contact us at <span style="color:var(--accent)">support@villagerpro.io</span></p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Contact</div>
-          <p>Privacy questions or requests: <span style="color:var(--accent)">support@villagerpro.io</span><br>Farallon Studios LLC, Los Angeles, California</p>
-        </div>
-
-        <!-- REFUND -->
-        <div id="legal-panel-2" style="display:none">
-          <div style="font-size:10px;font-family:var(--mono);color:var(--text4);margin-bottom:16px;letter-spacing:.08em">EFFECTIVE DATE: MARCH 10, 2026 &nbsp;·&nbsp; LAST UPDATED: MARCH 10, 2026</div>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">7-Day Money-Back Guarantee</div>
-          <p>If you are not satisfied with Villager Pro for any reason, contact us within <strong style="color:var(--text)">7 days of your initial purchase</strong> and we will issue a full refund — no questions asked.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">Subscription Renewals</div>
-          <p>After the initial 7-day window, subscription charges are non-refundable. You may cancel your subscription at any time to prevent future charges. Cancellation takes effect at the end of your current billing period — you retain Pro access until then.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">How to Request a Refund</div>
-          <p>Email us at <span style="color:var(--accent)">support@villagerpro.io</span> with the subject line "Refund Request" and include the email address associated with your account. We process refunds within 5 business days. Refunds are returned to the original payment method.</p>
-
-          <div style="font-size:11px;font-weight:700;color:var(--text);margin:16px 0 6px;font-family:var(--display)">How to Cancel</div>
-          <p>You can cancel your subscription at any time by clicking your avatar in the top right of the app → Manage Subscription. No cancellation fees apply.</p>
-        </div>
-
-      </div>
-      <!-- Footer -->
-      <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:52px;background:var(--bg1);border-radius:0 0 4px 4px">
-        <div style="font-size:10px;color:var(--text4);font-family:var(--mono)">&#169; 2026 FARALLON STUDIOS LLC &nbsp;&middot;&nbsp; VILLAGER PRO</div>
-        <button onclick="document.getElementById('legal-modal').remove()" style="padding:5px 16px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.06em" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">CLOSE</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
-}
-
-function legalShowTab(idx) {
-  [0,1,2].forEach(i => {
-    const panel = document.getElementById('legal-panel-'+i);
-    const tab = document.getElementById('legal-tab-'+i);
-    if (panel) panel.style.display = i===idx ? '' : 'none';
-    if (tab) {
-      tab.style.borderBottomColor = i===idx ? 'var(--accent)' : 'transparent';
-      tab.style.color = i===idx ? 'var(--text)' : 'var(--text3)';
-    }
-  });
 }
 
 async function saveProfile() {
@@ -2857,78 +2280,6 @@ async function savePassword() {
     if (msg) { msg.style.display=''; msg.className='auth-msg error'; msg.textContent=e.message||'Update failed.'; }
   }
   if (btn) { btn.disabled = false; btn.textContent = 'UPDATE PASSWORD'; }
-}
-
-async function deleteAccount() {
-  if (!_supa || !_currentUser) return;
-
-  // Step 1 — type-to-confirm modal
-  const confirmed = await new Promise(resolve => {
-    const dlg = document.createElement('div');
-    dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px';
-    dlg.innerHTML = `
-      <div style="background:var(--bg1);border:1px solid #3a1a1a;border-radius:4px;padding:32px 36px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.9)">
-        <div style="font-family:var(--display);font-size:16px;font-weight:700;color:#c05050;margin-bottom:12px">Delete Account</div>
-        <div style="font-size:11px;color:var(--text2);font-family:var(--mono);line-height:1.6;margin-bottom:20px">
-          This will permanently delete your account and <strong>all budgets, POs, petty cash, and data</strong>. There is no recovery.<br><br>
-          Type <strong style="color:var(--text);letter-spacing:.08em">DELETE</strong> below to confirm.
-        </div>
-        <input id="delete-confirm-input" class="auth-input" type="text" placeholder="Type DELETE to confirm" autocomplete="off" spellcheck="false"
-          style="text-transform:uppercase;letter-spacing:.12em"
-          oninput="document.getElementById('delete-confirm-btn').disabled=this.value.trim()!=='DELETE';document.getElementById('delete-confirm-btn').style.opacity=this.value.trim()==='DELETE'?'1':'0.4'">
-        <div style="display:flex;gap:8px;margin-top:16px">
-          <button class="auth-btn-ghost" onclick="this.closest('div[style*=z-index]').remove();window._deleteResolve(false)" style="flex:1">Cancel</button>
-          <button id="delete-confirm-btn" class="auth-btn" disabled
-            style="flex:2;margin-top:0;background:#a03030;border-color:#a03030;opacity:.4"
-            onclick="this.closest('div[style*=z-index]').remove();window._deleteResolve(true)">
-            DELETE MY ACCOUNT
-          </button>
-        </div>
-      </div>
-    `;
-    window._deleteResolve = resolve;
-    document.body.appendChild(dlg);
-    dlg.addEventListener('click', e => { if (e.target === dlg) { dlg.remove(); resolve(false); } });
-    setTimeout(() => document.getElementById('delete-confirm-input')?.focus(), 50);
-  });
-
-  if (!confirmed) return;
-
-  // Step 2 — call edge function which deletes all data + auth.users row
-  try {
-    let { data: { session } } = await _supa.auth.getSession();
-    if (!session) {
-      // Try refreshing the session
-      const { data: refreshData } = await _supa.auth.refreshSession();
-      session = refreshData.session;
-    }
-    if (!session) throw new Error('No active session. Please sign out and sign back in, then try again.');
-
-    const res = await fetch(`${SUPA_URL}/functions/v1/delete-account`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`,
-        'apikey': SUPA_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || 'Deletion failed.');
-
-    // Wipe local state and sign out
-    budgets=[]; folders=[]; rateCards=[]; templates=[]; snapshots=[]; contacts=[]; companies=[];
-    activeId=null;
-    localStorage.removeItem('farallon_v2');
-
-    await _supa.auth.signOut();
-    _currentUser = null;
-    document.getElementById('profile-modal')?.remove();
-    render();
-    await cmAlert('Account Deleted', 'Your account and all data have been permanently deleted.');
-  } catch(err) {
-    cmAlert('Error', 'Something went wrong: ' + (err.message || 'Unknown error. Please try again.'));
-  }
 }
 
 // ── Sync indicator ────────────────────────────────────
@@ -3469,19 +2820,10 @@ function tourRestart() {
       renderSidebar();
     }
   }
-  // Always reset all tour UI state before showing welcome
-  _tourHide();
-  ['tour-welcome','tour-finish'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.style.display = 'none'; el.style.visibility = ''; }
-  });
-  const overlay = _tourEl('tour-overlay');
-  if (overlay) overlay.classList.remove('active');
-  // Use longer timeout to ensure any in-progress render completes
   setTimeout(()=>{
     const welcome = _tourEl('tour-welcome');
     if (welcome) { welcome.style.display = 'flex'; }
-  }, 200);
+  }, 60);
 }
 
 function tourStart() {
@@ -3513,40 +2855,12 @@ function tourStart() {
 }
 
 function tourSkip() {
-  // Hide welcome + finish overlays (use both style and class to be safe)
-  ['tour-welcome','tour-finish'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.style.display = 'none'; el.style.visibility = 'hidden'; }
-  });
-  // Hide tour overlay/spotlight/tooltip
   _tourHide();
-  // Delete demo budget + demo contacts regardless of whether cloudLoad ran
-  budgets = budgets.filter(b => !b._isDemo);
-  contacts = contacts.filter(c => !c.id.startsWith('DEMO_CT'));
-  if (_tourDemoBudgetId) {
-    try { cloudDelete && cloudDelete('budgets', _tourDemoBudgetId); } catch(e){}
-    if (_supa && _currentUser && !_devMode) {
-      try {
-        _supa.from('contacts').delete()
-          .eq('user_id', _currentUser.id)
-          .like('id', 'DEMO_CT%')
-          .then(()=>{}).catch(()=>{});
-      } catch(e){}
-    }
-    _tourDemoBudgetId = null;
-  }
-  if (_poBatchMode) exitPOBatchMode();
-  // Set tour_complete so it doesn't re-trigger
-  if (_currentUser && !_devMode) {
-    try {
-      _supa.auth.updateUser({ data: { tour_complete: true } }).catch(()=>{});
-    } catch(e){}
-  }
-  // Switch to first real budget or null
-  const realBudget = budgets.find(b => !b._isDemo);
-  activeId = realBudget ? realBudget.id : null;
-  save();
-  render();
+  _tourCleanup();
+  // Revert to first real budget if any
+  const realBudget = budgets.find(b=>!b._isDemo);
+  if (realBudget) { activeId = realBudget.id; render(); }
+  else { activeId = null; render(); }
 }
 
 function tourNext() {
@@ -4957,7 +4271,6 @@ function renderSticky() {
 // ACTIONS
 // ─────────────────────────────────────────────────────────────────────────────
 function applyBuiltinTemplate(tplId) {
-  if (!gateTemplate()) return;
   const tpl = BUILTIN_TEMPLATES.find(t=>t.id===tplId);
   if(!tpl) return;
   const b = active(); if(!b) return;
@@ -5072,13 +4385,11 @@ function createBudget() {
 }
 
 function createBlankBudget() {
-  if (!gateNewBudget()) return;
   document.getElementById('new-budget-modal')?.remove();
   const b=newBudget(); budgets.unshift(b); activeId=b.id; activeTab='budget'; expanded={}; render(); flashNewBudget();
 }
 
 function createBlankThenApply(tplId) {
-  if (!gateNewBudget()) return;
   document.getElementById('new-budget-modal')?.remove();
   const tpl = BUILTIN_TEMPLATES.find(t=>t.id===tplId);
   const b = newBudget();
@@ -5401,7 +4712,6 @@ function deleteAllPOs() {
 }
 
 function exportSelectedPOs() {
-  if (!gateExport()) return;
   const panel = document.getElementById('po-panel');
   if(!panel || !panel._poBudgetId || _poSelected.size === 0) return;
   const b = budgets.find(x => x.id === panel._poBudgetId); if(!b) return;
@@ -5626,7 +4936,7 @@ function renderPOPanel(b) {
             title="${esc(po.notes||'')}">${esc(po.notes||'Notes…')}</span>
         </td>
         <td style="padding:7px 24px 7px 4px;text-align:center;white-space:nowrap">
-          <button onclick="isPro() ? exportPOPdf('${b.id}','${po.id}') : showPricingScreen('export')" style="width:20px;height:20px;border:none;background:transparent;color:var(--text4);cursor:pointer;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;transition:color .12s,background .12s" onmouseover="this.style.color='var(--accent)';this.style.background='rgba(108,142,240,.08)'" onmouseout="this.style.color='var(--text4)';this.style.background='transparent'" title="Export PO as PDF">
+          <button onclick="exportPOPdf('${b.id}','${po.id}')" style="width:20px;height:20px;border:none;background:transparent;color:var(--text4);cursor:pointer;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;transition:color .12s,background .12s" onmouseover="this.style.color='var(--accent)';this.style.background='rgba(108,142,240,.08)'" onmouseout="this.style.color='var(--text4)';this.style.background='transparent'" title="Export PO as PDF">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M6 1v7M3 5l3 3 3-3"/><path d="M1 9v1.5h10V9"/></svg>
           </button>
           <button onclick="deletePO('${b.id}','${po.id}')" style="width:20px;height:20px;border:none;background:transparent;color:var(--text4);cursor:pointer;border-radius:2px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;transition:color .12s,background .12s" onmouseover="this.style.color='var(--red)';this.style.background='rgba(248,113,113,.08)'" onmouseout="this.style.color='var(--text4)';this.style.background='transparent'" title="Delete PO">×</button>
@@ -5966,7 +5276,7 @@ function renderPCPanel(b) {
       New Envelope
     </button>
 
-    <button onclick="isPro() ? exportPCReportPDF() : showPricingScreen('export')" style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
+    <button onclick="exportPCReportPDF()" style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M6 1v7M3 5l3 3 3-3"/><path d="M1 9v1.5h10V9"/></svg>
       Export Report
     </button>
@@ -8128,7 +7438,7 @@ function renderCalendarPanel(b) {
     </div>` : ''}
 
     <div style="width:1px;height:16px;background:var(--border2)"></div>
-    <button onclick="isPro() ? exportCalendarPDF() : showPricingScreen('export')" style="display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'" title="Export production schedule as PDF">
+    <button onclick="exportCalendarPDF()" style="display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'" title="Export production schedule as PDF">
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M6 1v7M3 5l3 3 3-3"/><path d="M1 9v1.5h10V9"/></svg>
       Export
     </button>
@@ -8712,7 +8022,7 @@ function renderDetailPanel(b) {
       ${_detailFilter.find ? `<button onclick="detailSetFilter('find','')" style="padding:0 7px;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:13px;height:100%" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">×</button>` : ''}
     </div>
 
-    <button onclick="isPro() ? exportDetailPDF() : showPricingScreen('export')" style="margin-left:auto;display:flex;align-items:center;gap:4px;padding:3px 10px;font-size:9px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
+    <button onclick="exportDetailPDF()" style="margin-left:auto;display:flex;align-items:center;gap:4px;padding:3px 10px;font-size:9px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M6 1v7M3 5l3 3 3-3"/><path d="M1 9v1.5h10V9"/></svg>
       Export PDF
     </button>
@@ -8985,11 +8295,11 @@ function renderSummary(b) {
           <button onclick="openCompare()" style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
             Compare
           </button>
-          <button onclick="isPro() ? exportCostReportPDF() : showPricingScreen('export')" style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
+          <button onclick="exportCostReportPDF()" style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M6 1v7M3 5l3 3 3-3"/><path d="M1 9v1.5h10V9"/></svg>
             Export
           </button>
-          <button onclick="isPro() ? exportWrapBook() : showPricingScreen('export')" style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'" title="Export complete Wrap Book: Budget + Cost Report + POs + Petty Cash">
+          <button onclick="exportWrapBook()" style="display:flex;align-items:center;gap:4px;padding:5px 12px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;letter-spacing:.04em;transition:all .12s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'" title="Export complete Wrap Book: Budget + Cost Report + POs + Petty Cash">
             <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="1" y="1" width="10" height="10" rx="1"/><path d="M4 6h4M4 4h4M4 8h2"/></svg>
             Wrap Book
           </button>
@@ -9037,7 +8347,6 @@ function renderSummary(b) {
 
 // Cost Report PDF Export
 function exportCostReportPDF() {
-  if (!gateExport()) return;
   const b = active(); if(!b) return;
   const s = getCompanyForBudget(b);
   const compName = s.name || 'Production Company';
@@ -9648,7 +8957,6 @@ function renderSmartPanel(b) {
           <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" style="opacity:.5;margin-left:1px"><path d="M1 2.5L4 5.5L7 2.5"/></svg>
         </button>
         <div id="export-menu" style="display:none;position:absolute;right:0;top:calc(100% + 4px);background:#16162a;border:1px solid #252540;border-radius:3px;min-width:210px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.7)">
-          ${isPro() ? `
           <div style="padding:8px 14px 6px;font-size:9px;letter-spacing:.12em;color:var(--accent);font-family:var(--mono)">EXPORT / PRINT</div>
           <button onclick="exportPDF('topsheet')" style="display:block;width:100%;text-align:left;padding:9px 14px;font-size:11px;font-family:var(--mono);background:transparent;border:none;border-top:1px solid var(--border);color:var(--text2);cursor:pointer;transition:background .1s" onmouseover="this.style.background='rgba(108,142,240,.06)'" onmouseout="this.style.background='transparent'">
             Top Sheet Only
@@ -9663,14 +8971,6 @@ function renderSmartPanel(b) {
             Excel Workbook
             <div style="font-size:9px;color:var(--text4);margin-top:2px">Budget · Cost Report · POs · Petty Cash</div>
           </button>
-          ` : `
-          <div style="text-align:center;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:10px">
-            <div style="font-size:18px">🔒</div>
-            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em">PRO FEATURE</div>
-            <div style="font-size:11px;color:var(--text4);line-height:1.5;max-width:160px">PDF and Excel export require a Pro account.</div>
-            <button onclick="toggleExportMenu();showPricingScreen('export')" style="margin-top:4px;padding:8px 18px;background:var(--accent);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer">UPGRADE TO PRO</button>
-          </div>
-          `}
         </div>
       </div>
 
@@ -9747,14 +9047,6 @@ function spToggle(id) {
   }
 
   else if (id === 'ratecards') {
-    if (!isPro()) {
-      inner = `<div style="text-align:center;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px">
-        <div style="font-size:18px">🔒</div>
-        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">PRO FEATURE</div>
-        <div style="font-size:11px;color:var(--text4);line-height:1.5">Save standard day rates by role and apply them to any budget with one click.</div>
-        <button onclick="showPricingScreen('rate_card');spClose()" style="margin-top:4px;padding:8px 18px;background:var(--accent);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer">UPGRADE TO PRO</button>
-      </div>`;
-    } else {
     const cardBtns = allCards.map(rc => {
       const del = !rc.builtin ? `<button onclick="deleteRateCard('${rc.id}');spRefresh('ratecards')" style="padding:6px 8px;font-size:10px;border:none;background:transparent;color:var(--text4);cursor:pointer;border-left:1px solid var(--border2)">&#10005;</button>` : '';
       return `<span style="display:inline-flex;align-items:center;background:var(--bg3);border:1px solid var(--border2);border-radius:2px;overflow:hidden">
@@ -9777,18 +9069,9 @@ function spToggle(id) {
         <span style="font-size:9px;color:var(--text4);font-style:italic">copies matching role rates between sections</span>
       </div>
     </div>`;
-    } // end isPro check
   }
 
   else if (id === 'templates') {
-    if (!isPro()) {
-      inner = `<div style="text-align:center;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px">
-        <div style="font-size:18px">🔒</div>
-        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">PRO FEATURE</div>
-        <div style="font-size:11px;color:var(--text4);line-height:1.5">Save full budget structures and apply them to new jobs instantly.</div>
-        <button onclick="showPricingScreen('template');spClose()" style="margin-top:4px;padding:8px 18px;background:var(--accent);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer">UPGRADE TO PRO</button>
-      </div>`;
-    } else {
     const tplBtns = templates.map(t =>
       `<span style="display:inline-flex;align-items:center;background:var(--bg3);border:1px solid var(--gold-dim);border-radius:2px;overflow:hidden">
         <button onclick="createFromTemplate('${t.id}');spClose()" style="padding:6px 12px;font-size:11px;font-family:var(--mono);border:none;background:transparent;color:var(--gold);cursor:pointer;white-space:nowrap">+ ${esc(t.name)}</button>
@@ -9817,18 +9100,9 @@ function spToggle(id) {
         <button onclick="saveTemplate();spRefresh('templates')" style="font-size:10px;font-family:var(--mono);background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px">+ Save current budget as template</button>
       </div>
     </div>`;
-    } // end isPro check
   }
 
   else if (id === 'snapshots') {
-    if (!isPro()) {
-      inner = `<div style="text-align:center;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px">
-        <div style="font-size:18px">🔒</div>
-        <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">PRO FEATURE</div>
-        <div style="font-size:11px;color:var(--text4);line-height:1.5">Save named versions of your budget and restore them at any time.</div>
-        <button onclick="showPricingScreen('snapshot');spClose()" style="margin-top:4px;padding:8px 18px;background:var(--accent);border:none;border-radius:3px;color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.1em;cursor:pointer">UPGRADE TO PRO</button>
-      </div>`;
-    } else {
     const budgetSnaps = snapshots.filter(s=>s.budgetId===b.id);
     const snapRows = budgetSnaps.map(s => {
       const ts = new Date(s.ts);
@@ -9860,7 +9134,6 @@ function spToggle(id) {
         <button onclick="saveSnapshot()" style="font-size:10px;font-family:var(--mono);background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px">+ Save snapshot now</button>
       </div>
     </div>`;
-    } // end isPro check
   }
 
   // Position dropdown under trigger button
@@ -9978,7 +9251,6 @@ async function copySectionRates(fromCode, toCode) {
 }
 
 function saveRateCard() {
-  if (!gateRateCard()) return;
   const b = active(); if(!b) return;
   const name = prompt('Name this rate card (e.g. "SF Union — Tight Budget"):');
   if(!name?.trim()) return;
@@ -9995,7 +9267,6 @@ function saveRateCard() {
 }
 
 async function loadRateCard(id, isBuiltin) {
-  if (!gateRateCard()) return;
   const allCards = [...BUILTIN_RATE_CARDS, ...rateCards];
   const rc = allCards.find(r=>r.id===id); if(!rc) return;
   const b = active(); if(!b) return;
@@ -10021,7 +9292,6 @@ async function deleteRateCard(id) {
 }
 
 function saveTemplate() {
-  if (!gateTemplate()) return;
   const b = active(); if(!b) return;
   const name = prompt('Name this template:');
   if(!name?.trim()) return;
@@ -10031,7 +9301,6 @@ function saveTemplate() {
 }
 
 function createFromTemplate(id) {
-  if (!gateTemplate()) return;
   const t = templates.find(x=>x.id===id); if(!t) return;
   const b = newBudget(t); budgets.unshift(b); activeId=b.id; activeTab='budget'; expanded={}; render(); flashNewBudget();
 }
@@ -10045,7 +9314,6 @@ async function deleteTemplate(id) {
 // SNAPSHOTS — named version saves for the active budget
 // ─────────────────────────────────────────────────────────────────────────────
 function saveSnapshot() {
-  if (!gateSnapshot()) return;
   const b = active(); if(!b) return;
   const label = prompt('Name this snapshot (e.g. "v1 agency send", "after director call"):');
   if(!label?.trim()) return;
@@ -10068,7 +9336,6 @@ function saveSnapshot() {
 }
 
 async function restoreSnapshot(id) {
-  if (!gateSnapshot()) return;
   const snap = snapshots.find(s=>s.id===id); if(!snap) return;
   const b = active(); if(!b) return;
   const ts = new Date(snap.ts);
@@ -10739,7 +10006,6 @@ function toggleExportMenu() {
 }
 
 function exportPDF(mode) {
-  if (!gateExport()) return;
   document.getElementById('export-menu').style.display = 'none';
   const b = active(); if(!b) return;
 
@@ -11464,7 +10730,6 @@ const RATE_CARD_DEFAULTS = JSON.parse(JSON.stringify(BUILTIN_RATE_CARDS.map(rc=>
 let _rceOpenCardId = null;
 
 function openRCE(cardId) {
-  if (!gateRateCard()) return;
   _rceOpenCardId = cardId || null;
   renderRCE();
   document.getElementById('rce-modal').style.display = 'flex';
@@ -11950,7 +11215,6 @@ function saveSettings() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function exportPOPdf(budgetId, poId) {
-  if (!gateExport()) return;
   const b = budgets.find(x=>x.id===budgetId);
   if(!b || !b.pos) return;
   const po = b.pos.find(p=>p.id===poId);
@@ -12139,7 +11403,6 @@ function restoreBackup(input) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function exportPCReportPDF() {
-  if (!gateExport()) return;
   const b = active(); if(!b) return;
   const s = getCompanyForBudget(b);
   const compName = s.name || 'Production Company';
@@ -12251,7 +11514,6 @@ function poCommitmentsByLine(b) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function exportDetailPDF() {
-  if (!gateExport()) return;
   const b = active(); if(!b) return;
   const s = getCompanyForBudget(b);
   const compName = s.name || 'Production Company';
@@ -12372,7 +11634,6 @@ let _compareIds = [];
 // CALENDAR PDF EXPORT — Formatted production schedule document
 // ─────────────────────────────────────────────────────────────────────────────
 function exportCalendarPDF() {
-  if (!gateExport()) return;
   const b = active(); if(!b) return;
   const s = getCompanyForBudget(b);
   const compName = s.name || 'Production Company';
@@ -12596,7 +11857,6 @@ function exportCalendarPDF() {
 // Budget Topsheet + Cost Report + All POs + Petty Cash Report
 // ─────────────────────────────────────────────────────────────────────────────
 function exportWrapBook() {
-  if (!gateExport()) return;
   const b = active(); if(!b) return;
   const s = getCompanyForBudget(b);
   const compName = s.name || 'Production Company';
@@ -12811,7 +12071,6 @@ function exportWrapBook() {
 // Full dark theme styling: gold headers, colored status, section backgrounds
 // ─────────────────────────────────────────────────────────────────────────────
 function exportExcel() {
-  if (!gateExport()) return;
   const b = active(); if(!b) return;
   const company = getCompanyForBudget(b)?.name || 'Production';
   const fmtN = v => parseFloat(v)||0;
@@ -13336,7 +12595,6 @@ function renderCompareView(ids) {
     </div>
   `;
 }
-
 
 </script>
 
