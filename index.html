@@ -12140,39 +12140,59 @@ function _navMoveRow(col, lineId, dir, collapseOnSectionExit) {
   var idx = allLines.findIndex(function(l) { return l.id === lineId; });
   if (idx < 0) return;
   var currentSecCode = allLines[idx].secCode;
+  var needsRender = false;
+
   for (var i = idx + dir; i >= 0 && i < allLines.length; i += dir) {
     var nl = allLines[i];
-    // Crossing into a new section — collapse the one we just left (Enter-only behavior)
-    if (collapseOnSectionExit && nl.secCode !== currentSecCode) {
-      expanded[currentSecCode] = false;
-      var leftSec = SECTIONS.find(function(s) { return s.code === currentSecCode; });
-      var b0 = active();
-      if (leftSec && b0) {
-        var leftEl = document.getElementById('sec-' + currentSecCode);
-        if (leftEl) {
-          var tmp0 = document.createElement('div');
-          tmp0.innerHTML = renderSection(leftSec, b0, b0.mode === 'actual');
-          leftEl.replaceWith(tmp0.firstElementChild);
+
+    // Crossing into a new section
+    if (nl.secCode !== currentSecCode) {
+      // Collapse the section we just left (Enter-only behavior)
+      if (collapseOnSectionExit) {
+        expanded[currentSecCode] = false;
+        var leftSec = SECTIONS.find(function(s) { return s.code === currentSecCode; });
+        var b0 = active();
+        if (leftSec && b0) {
+          var leftEl = document.getElementById('sec-' + currentSecCode);
+          if (leftEl) {
+            var tmp0 = document.createElement('div');
+            tmp0.innerHTML = renderSection(leftSec, b0, b0.mode === 'actual');
+            leftEl.replaceWith(tmp0.firstElementChild);
+          }
         }
       }
       currentSecCode = nl.secCode;
+      needsRender = true;
     }
+
+    // Expand the target section if collapsed — always use full replaceWith for consistency
     if (!expanded[nl.secCode]) {
       expanded[nl.secCode] = true;
-      var sec = SECTIONS.find(function(s) { return s.code === nl.secCode; });
-      var b = active();
-      if (sec && b) {
-        var el = document.getElementById('sec-' + nl.secCode);
-        if (el) {
-          var tmp = document.createElement('div');
-          tmp.innerHTML = renderSection(sec, b, b.mode === 'actual');
-          var body = tmp.querySelector('.section-body');
-          if (body) el.appendChild(body);
+      needsRender = true;
+    }
+
+    if (needsRender) {
+      var sec2 = SECTIONS.find(function(s) { return s.code === nl.secCode; });
+      var b2 = active();
+      if (sec2 && b2) {
+        var el2 = document.getElementById('sec-' + nl.secCode);
+        if (el2) {
+          var tmp2 = document.createElement('div');
+          tmp2.innerHTML = renderSection(sec2, b2, b2.mode === 'actual');
+          el2.replaceWith(tmp2.firstElementChild);
         }
       }
+      needsRender = false;
     }
-    var target = document.querySelector('[data-col="' + col + '"][data-lineid="' + nl.id + '"]');
-    if (target) { _navFocus(target); return; }
+
+    // Defer focus to next frame so the new DOM is fully painted before querying
+    var targetLineId = nl.id;
+    var targetCol = col;
+    requestAnimationFrame(function() {
+      var target = document.querySelector('[data-col="' + targetCol + '"][data-lineid="' + targetLineId + '"]');
+      if (target) _navFocus(target);
+    });
+    return;
   }
 }
 
