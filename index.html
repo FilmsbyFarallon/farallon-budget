@@ -11949,6 +11949,13 @@ function _refreshPanelSection() {
 // Deep-clone builtin defaults for RCE reset
 const RATE_CARD_DEFAULTS = JSON.parse(JSON.stringify(BUILTIN_RATE_CARDS.map(rc=>({id:rc.id,rates:{...rc.rates}}))));
 
+// ============================================
+// SECTION: Rate Card Editor
+// Lines: ~12050
+// Rate card modal, edit rates,
+// save/reset rate cards
+// ============================================
+
 // ─────────────────────────────────────────────────────────────────────────────
 // RATE CARD EDITOR
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12113,6 +12120,13 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, { passive:true });
 })();
+
+// ============================================
+// SECTION: Settings
+// Lines: ~12200
+// Preferences, companies, data tab,
+// settings modal, save settings
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PRODUCTION COMPANY SETTINGS
