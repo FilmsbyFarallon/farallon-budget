@@ -3530,6 +3530,12 @@ const TOUR_STEPS = [
     title: 'Commercials — your key rates',
     body: 'The <strong>Commercials</strong> category is the most relevant for this app. It includes the <em>IATSE CPA (Los Angeles & Outside LA)</em>, <em>NE Corridor</em>, <em>Bay Area Local 16</em>, <em>SAG Commercials</em>, and <em>DGA National Commercial</em> agreements. When you open a crew line in your budget, matching union rates from these agreements appear automatically in the <strong>Union Scale Reference</strong> panel.',
   },
+  // 27 — Keyboard shortcuts
+  { target:'.smart-bar', place:'above', tab:'budget',
+    action: null,
+    title: 'Keyboard shortcuts for power users',
+    body: 'Villager Pro has a full <strong>keyboard navigation system</strong> built in. Use <em>↑ ↓</em> to move between budget rows, <em>I</em> to open the line info panel, and <em>⌘⇧G</em> to instantly return to the budget from anywhere in the app. Press <em>⌘⇧H</em> or click the <strong>⌨ Keys</strong> button in the toolbar above to open the full shortcut guide at any time.',
+  },
 ];
 
 // ── TOUR ENGINE ─────────────────────────────────────────────────
@@ -10552,31 +10558,28 @@ function spToggle(id) {
     };
     inner = '<div style="display:flex;flex-direction:column;gap:0;min-width:340px">'
       + _kbS('CELL NAVIGATION',
-          _kbR(['↓','Enter'], 'Next row')
+          _kbR(['↓ / Enter'], 'Next row')
         + _kbR(['↑'], 'Previous row')
-        + _kbR(['⌘','→'], 'Next column')
-        + _kbR(['⌘','←'], 'Previous column')
-        + _kbR(['Space'], 'Open line info panel')
+        + _kbR(['I'], 'Open line info panel')
         + _kbR(['Esc'], 'Deselect / exit field'))
       + _kbS('LINE INFO PANEL',
-          _kbR(['Space'], 'Open for focused row')
+          _kbR(['Space / I'], 'Open for focused row')
         + _kbR(['↑','↓'], 'Move between fields')
         + _kbR(['Enter'], 'Confirm / next field')
         + _kbR(['Esc'], 'Close, return to grid'))
-      + _kbS('SECTION JUMPS  (⌘⇧ + letter)',
+      + _kbS('SECTIONS',
+          _kbR(['⌘','⇧','O'], 'Toggle current section')
+        + _kbR(['⌘','⇧',']'], 'Expand all sections')
+        + _kbR(['⌘','⇧','['], 'Collapse all sections'))
+      + _kbS('JUMP TO SECTION  (⌘⇧ + letter)',
           _kbR(['⌘','⇧','L'], "Director’s Fees")
         + _kbR(['⌘','⇧','A'], 'Prep Crew')
         + _kbR(['⌘','⇧','B'], 'Shoot Crew')
-        + _kbR(['⌘','⇧','G'], 'Art Dept Labor')
         + _kbR(['⌘','⇧','M'], 'Talent'))
-      + _kbS('COLUMN JUMP  (⌥ + key)',
-          _kbR(['⌥','Q'], 'Qty column')
-        + _kbR(['⌥','R'], 'Rate column')
-        + _kbR(['⌥','A'], 'Actual column'))
       + _kbS('POWER',
           _kbR(['⌘','⇧','↑'], 'Jump to top')
         + _kbR(['⌘','⇧','↓'], 'Jump to Grand Total')
-        + _kbR(['⌘','⇧','F'], 'Return focus to grid')
+        + _kbR(['⌘','⇧','G'], 'Return to budget (any tab)')
         + _kbR(['⌘','K'], 'Quick Search')
         + _kbR(['⌘','⇧','H'], 'This guide'))
       + '<div style="font-size:10px;color:var(--text4);margin-top:8px">⌘ = Cmd on Mac · Ctrl on Windows</div>'
@@ -10598,12 +10601,31 @@ function spToggle(id) {
     background:var(--bg1);border:1px solid var(--gold-dim);border-radius:${_isMobile?'0':'2px'};
     padding:16px 20px;min-width:${_isMobile?'unset':'320px'};max-width:${_isMobile?'unset':'560px'};
     box-shadow:0 8px 32px rgba(0,0,0,.6);
+    overflow-y:auto;
   `;
   panel.innerHTML = `
     <div style="font-size:9px;letter-spacing:0.13em;color:var(--gold);font-family:var(--mono);margin-bottom:12px">${id.toUpperCase().replace('SHOOTDAYS','SHOOT DAYS').replace('RATECARDS','RATE CARDS').replace('KEYBOARD','KEYBOARD SHORTCUTS')}</div>
     ${inner}
   `;
   bar.appendChild(panel);
+
+  // Viewport clamp — shift panel up if it extends below the visible area
+  requestAnimationFrame(function() {
+    var rect = panel.getBoundingClientRect();
+    var viewportH = window.innerHeight;
+    var margin = 12;
+    if (rect.bottom > viewportH - margin) {
+      var overflow = rect.bottom - (viewportH - margin);
+      var currentTop = parseInt(panel.style.top) || 0;
+      var newTop = currentTop - overflow;
+      if (rect.top - overflow < margin) {
+        panel.style.top = margin + 'px';
+        panel.style.maxHeight = (viewportH - margin * 2) + 'px';
+      } else {
+        panel.style.top = newTop + 'px';
+      }
+    }
+  });
 
   // Close on outside click
   setTimeout(() => {
@@ -11011,14 +11033,23 @@ document.addEventListener('keydown', function(e) {
     if (lp && lp.style.display !== 'none') { closeLinePanel(); return; }
   }
 
+  // ⌘⇧G — Return to budget grid from any tab (global)
+  if (meta && e.shiftKey && (e.key === 'g' || e.key === 'G')) {
+    e.preventDefault();
+    if (typeof activeTab !== 'undefined' && activeTab !== 'budget') {
+      switchTab('budget');
+      setTimeout(function() { navFocusGrid(); }, 120);
+    } else {
+      navFocusGrid();
+    }
+    return;
+  }
+
   // Budget-only shortcuts
   if (typeof activeTab === 'undefined' || activeTab !== 'budget') return;
 
   // ⌘⇧H — Keyboard Guide
   if (meta && e.shiftKey && e.key === 'H') { e.preventDefault(); spToggle('keyboard'); return; }
-
-  // ⌘⇧F — Return focus to budget grid
-  if (meta && e.shiftKey && e.key === 'F') { e.preventDefault(); navFocusGrid(); return; }
 
   // ⌘⇧↑ — Jump to top
   if (meta && e.shiftKey && e.key === 'ArrowUp') {
@@ -11036,13 +11067,6 @@ document.addEventListener('keydown', function(e) {
     if (SECTIONS.find(function(s){ return s.code === ku; })) {
       e.preventDefault(); navJumpToSection(ku); return;
     }
-  }
-
-  // ⌥ + column shortcuts
-  if (e.altKey && !meta) {
-    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); navJumpToCol('rate'); return; }
-    if (e.key === 'q' || e.key === 'Q') { e.preventDefault(); navJumpToCol('qty');  return; }
-    if (e.key === 'a' || e.key === 'A') { e.preventDefault(); navJumpToCol('actual'); return; }
   }
 });
 
@@ -11926,6 +11950,16 @@ function navFocusGrid() {
   if (first) _navFocus(first);
 }
 
+// navToggleCurrentSection — collapse/expand the section the focused cell belongs to
+function navToggleCurrentSection() {
+  var focused = document.activeElement;
+  var lineId = focused && focused.dataset && focused.dataset.lineid;
+  if (!lineId) return;
+  var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
+  if (!sec) return;
+  toggleSection(sec.code);
+}
+
 function navKey(event, el) {
   var col = el.dataset.col;
   var lineId = el.dataset.lineid;
@@ -11952,6 +11986,7 @@ function navKey(event, el) {
     if (el.type !== 'select-one' && el.selectionStart === 0) { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
     if (el.type === 'select-one') { event.preventDefault(); _navMoveCol(col, lineId, -1); return; }
   }
+  // Space — open line info panel
   if (event.key === ' ') {
     var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
     var line = sec ? sec.lines.find(function(l){ return l.id === lineId; }) : null;
@@ -11960,6 +11995,34 @@ function navKey(event, el) {
       _navLastFocusedCell = el;
       openLinePanel(lineId, sec.code);
     }
+  }
+  // I — open line info panel (dedicated power user shortcut)
+  if (event.key === 'i' || event.key === 'I') {
+    var sec2 = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
+    var line2 = sec2 ? sec2.lines.find(function(l){ return l.id === lineId; }) : null;
+    if (line2 && !line2.custom) {
+      event.preventDefault();
+      _navLastFocusedCell = el;
+      openLinePanel(lineId, sec2.code);
+    }
+  }
+  // ⌘⇧O — toggle current section open/closed
+  if (meta && event.shiftKey && (event.key === 'o' || event.key === 'O')) {
+    event.preventDefault();
+    navToggleCurrentSection();
+    return;
+  }
+  // ⌘⇧] — expand all sections
+  if (meta && event.shiftKey && event.key === ']') {
+    event.preventDefault();
+    expandAll();
+    return;
+  }
+  // ⌘⇧[ — collapse all sections
+  if (meta && event.shiftKey && event.key === '[') {
+    event.preventDefault();
+    collapseAll();
+    return;
   }
   if (event.key === 'Escape') { el.blur(); }
 }
