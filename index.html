@@ -10647,13 +10647,14 @@ function spToggle(id) {
     var viewportH = window.innerHeight;
     var viewportW = window.innerWidth;
 
-    // Horizontal: left-align panel to trigger button's LEFT edge, clamp to viewport
+    // Horizontal: align panel left edge to trigger button left edge
+    // If it overflows the right viewport edge, cap max-width instead of repositioning
     if (_isMobile) { panel.style.right = '0'; panel.style.left = '0'; panel.style.maxWidth = '100vw'; }
     else {
       var leftPx = trigRect ? trigRect.left : (barRect ? barRect.left : 0);
-      // If panel would overflow right edge, push it left to fit
-      if (leftPx + panelW > viewportW - margin) leftPx = viewportW - panelW - margin;
       if (leftPx < margin) leftPx = margin;
+      var availW = viewportW - leftPx - margin;
+      if (panelW > availW) panel.style.maxWidth = availW + 'px';
       panel.style.left = leftPx + 'px';
     }
 
@@ -11966,22 +11967,37 @@ function navSelectRow(rowEl) {
   rowEl.classList.add('line-selected');
   _navLastFocusedRow = rowEl;
   rowEl.scrollIntoView({ block:'nearest' });
-  // If panel is grid-linked, update it to show this row's info
+  // If panel is grid-linked (open but grid has focus), update panel content
   if (_lpGridLinked && rowEl.dataset.rowid) {
-    var lineId = rowEl.dataset.rowid;
-    var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
-    if (sec) {
-      var line = sec.lines.find(function(l){ return l.id === lineId; });
-      if (line && !line.custom) {
-        openLinePanel(lineId, sec.code);
-        // Keep grid focus — openLinePanel will re-select the row highlight
-        setTimeout(function() {
-          var r = document.querySelector('[data-rowid="' + lineId + '"]');
-          if (r) { navSelectRow._updating = true; navClearSelection(); r.classList.add('line-selected'); navSelectRow._updating = false; }
-        }, 10);
-      }
-    }
+    _lpUpdatePanel(rowEl.dataset.rowid);
   }
+}
+
+// Update panel content for a line without stealing focus or moving highlight
+function _lpUpdatePanel(lineId) {
+  var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
+  if (!sec) return;
+  var line = sec.lines.find(function(l){ return l.id === lineId; });
+  if (!line || line.custom) return;
+  var b = active(); if (!b) return;
+
+  _panelLineId = lineId;
+  _panelSecCode = sec.code;
+
+  var meta = (b.lineMeta||{})[lineId] || {};
+  document.getElementById('lp-title').textContent = line.name;
+  document.getElementById('lp-section').textContent = 'Section ' + sec.code + ' — ' + sec.name;
+  document.getElementById('lp-hint').textContent = line.hint || sec.sub || '';
+  document.getElementById('lp-note').value = (b.lineNotes||{})[lineId] || '';
+  document.getElementById('lp-vendor').value = meta.vendor || '';
+  document.getElementById('lp-ratesource').value = meta.rateSource || '';
+  document.getElementById('lp-unionstatus').value = meta.unionStatus || '';
+  document.getElementById('lp-kit').value = meta.kitRental || '';
+  document.getElementById('lp-ot').value = meta.otFlag || '';
+  var travel = document.getElementById('lp-travel');
+  var local = document.getElementById('lp-local');
+  if (travel) travel.checked = !!meta.travel;
+  if (local) local.checked = !!meta.local;
 }
 
 function navSelectSection(code) {
@@ -12028,8 +12044,6 @@ function _navMoveSelection(dir) {
   var idx = -1;
   if (cur) idx = items.findIndex(function(it){ return it.el === cur.el; });
 
-  console.log('[NAV] _navMoveSelection dir=' + dir + ' idx=' + idx + ' items=' + items.length + ' cur=' + (cur ? cur.type+':'+cur.id : 'none'));
-
   var nextIdx;
   if (idx < 0) {
     nextIdx = 0;
@@ -12039,7 +12053,6 @@ function _navMoveSelection(dir) {
   }
 
   var next = items[nextIdx];
-  console.log('[NAV] moving to ' + next.type + ':' + next.id);
   next.el.focus();
   if (next.type === 'row') {
     navSelectRow(next.el);
@@ -12061,10 +12074,6 @@ function navBudgetKeydown(event) {
 
   var meta = event.metaKey || event.ctrlKey;
   if (meta || event.shiftKey) return;
-
-  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-    console.log('[NAV] navBudgetKeydown ' + event.key + ' activeEl=' + (focused ? focused.tagName + '[' + (focused.dataset.seccode||focused.dataset.rowid||'?') + ']' : 'none'));
-  }
 
   if (event.key === 'ArrowDown') { event.preventDefault(); _navMoveSelection(+1); return; }
   if (event.key === 'ArrowUp')   { event.preventDefault(); _navMoveSelection(-1); return; }
@@ -12744,6 +12753,21 @@ function openLinePanel(lineId, secCode) {
   }
   _lp.style.display = 'flex';
   document.getElementById('line-panel-overlay').style.display = 'block';
+
+  // Enter grid-linked mode: panel is open, but keyboard focus stays on the row.
+  // ↑↓ navigates rows and live-updates the panel; → enters the panel fields.
+  if (!_lpGridLinked) {
+    _lpGridLinked = true;
+    // Ensure the row div has focus so arrow keys work immediately
+    setTimeout(function() {
+      var row = document.querySelector('[data-rowid="' + lineId + '"]');
+      if (row && document.activeElement !== row) {
+        navClearSelection();
+        row.classList.add('line-selected');
+        row.focus();
+      }
+    }, 0);
+  }
 }
 
 function updateRCRateFromPanel(input) {
