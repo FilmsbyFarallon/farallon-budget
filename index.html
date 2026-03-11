@@ -3531,10 +3531,10 @@ const TOUR_STEPS = [
     body: 'The <strong>Commercials</strong> category is the most relevant for this app. It includes the <em>IATSE CPA (Los Angeles & Outside LA)</em>, <em>NE Corridor</em>, <em>Bay Area Local 16</em>, <em>SAG Commercials</em>, and <em>DGA National Commercial</em> agreements. When you open a crew line in your budget, matching union rates from these agreements appear automatically in the <strong>Union Scale Reference</strong> panel.',
   },
   // 27 — Keyboard shortcuts
-  { target:'.smart-bar', place:'above', tab:'budget',
-    action: null,
+  { target:'#sp-trig-keyboard', place:'above', tab:'budget',
+    action: 'openKeyboardMenu',
     title: 'Keyboard shortcuts for power users',
-    body: 'Villager Pro has a full <strong>keyboard navigation system</strong> built in. Use <em>↑ ↓</em> to move between budget rows, <em>I</em> to open the line info panel, and <em>⌘⇧G</em> to instantly return to the budget from anywhere in the app. Press <em>⌘⇧H</em> or click the <strong>⌨ Keys</strong> button in the toolbar above to open the full shortcut guide at any time.',
+    body: 'Villager Pro has a full <strong>keyboard navigation system</strong> built in. Use <em>↑ ↓</em> to move between budget rows, <em>I</em> to open the line info panel, and <em>⌘⇧G</em> to instantly return to the budget from anywhere in the app. The <strong>⌨ Keys</strong> guide is now open above — press <em>⌘⇧H</em> to open it any time.',
   },
 ];
 
@@ -3843,6 +3843,17 @@ function _tourRunAction(action) {
     setTimeout(() => {
       const drop = document.getElementById('lg-agr-drop');
       if (drop) drop.style.display = 'block';
+    }, 200);
+  }
+
+  if (action === 'openKeyboardMenu') {
+    // Switch to budget tab and open the keyboard shortcut guide
+    if (typeof activeTab !== 'undefined' && activeTab !== 'budget') {
+      switchTab('budget');
+    }
+    setTimeout(function() {
+      spClose && spClose();
+      spToggle && spToggle('keyboard');
     }, 200);
   }
 
@@ -4839,7 +4850,7 @@ function renderContent() {
         <div class="markup-hint">Your company's fee on BTL costs — typically 15–25%</div>
       </div>
       <div class="markup-pct">
-        <input class="num-input" type="number" value="${b.markup.prodFee||''}" placeholder="20" style="max-width:64px;" oninput="upMarkup('prodFee',this.value)">
+        <input class="num-input" type="number" value="${b.markup.prodFee||''}" placeholder="20" style="max-width:64px;" oninput="upMarkup('prodFee',this.value)" onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();} if(event.key==='Enter'){event.preventDefault();this.blur();}">
         <span class="pct-sym">%</span>
       </div>
       <div class="markup-total">$${fmt(fee)}</div>
@@ -4850,7 +4861,7 @@ function renderContent() {
         <div class="markup-hint">Leave at 0 if using per-line fringe codes below — or enter a flat % here</div>
       </div>
       <div class="markup-pct">
-        <input class="num-input" type="number" value="${b.markup.fringes||''}" placeholder="0" style="max-width:64px;" oninput="upMarkup('fringes',this.value)">
+        <input class="num-input" type="number" value="${b.markup.fringes||''}" placeholder="0" style="max-width:64px;" oninput="upMarkup('fringes',this.value)" onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();} if(event.key==='Enter'){event.preventDefault();this.blur();}">
         <span class="pct-sym">%</span>
       </div>
       <div class="markup-total">$${fmt(fr)}</div>
@@ -4861,7 +4872,7 @@ function renderContent() {
         <div class="markup-hint">Buffer on top of production + fee — typically 5–10%</div>
       </div>
       <div class="markup-pct">
-        <input class="num-input" type="number" value="${b.markup.contingency||''}" placeholder="5" style="max-width:64px;" oninput="upMarkup('contingency',this.value)">
+        <input class="num-input" type="number" value="${b.markup.contingency||''}" placeholder="5" style="max-width:64px;" oninput="upMarkup('contingency',this.value)" onkeydown="if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();} if(event.key==='Enter'){event.preventDefault();this.blur();}">
         <span class="pct-sym">%</span>
       </div>
       <div class="markup-total">$${fmt(cont)}</div>
@@ -10586,20 +10597,18 @@ function spToggle(id) {
       + '</div>';
   }
 
-  // Position dropdown under trigger button
+  // Position dropdown under trigger button — viewport-clamped
   const trig = document.getElementById('sp-trig-'+id);
   const trigRect = trig ? trig.getBoundingClientRect() : null;
   const barRect = bar.getBoundingClientRect();
-  const leftOffset = trigRect ? (trigRect.left - barRect.left) : 0;
+  const _isMobile = window.innerWidth <= 480;
 
   const panel = document.createElement('div');
   panel.id = 'sp-dropdown';
-  const _isMobile = window.innerWidth <= 480;
   panel.style.cssText = `
-    position:absolute;left:${_isMobile ? '0' : leftOffset+'px'};top:100%;z-index:200;
-    ${_isMobile ? 'right:0;' : ''}
+    position:fixed;z-index:9999;
     background:var(--bg1);border:1px solid var(--gold-dim);border-radius:${_isMobile?'0':'2px'};
-    padding:16px 20px;min-width:${_isMobile?'unset':'320px'};max-width:${_isMobile?'unset':'560px'};
+    padding:16px 20px;min-width:${_isMobile?'unset':'320px'};max-width:${_isMobile?'unset':'520px'};
     box-shadow:0 8px 32px rgba(0,0,0,.6);
     overflow-y:auto;
   `;
@@ -10607,24 +10616,39 @@ function spToggle(id) {
     <div style="font-size:9px;letter-spacing:0.13em;color:var(--gold);font-family:var(--mono);margin-bottom:12px">${id.toUpperCase().replace('SHOOTDAYS','SHOOT DAYS').replace('RATECARDS','RATE CARDS').replace('KEYBOARD','KEYBOARD SHORTCUTS')}</div>
     ${inner}
   `;
-  bar.appendChild(panel);
+  document.body.appendChild(panel);
 
-  // Viewport clamp — shift panel up if it extends below the visible area
+  // Position after render so we have real dimensions
   requestAnimationFrame(function() {
-    var rect = panel.getBoundingClientRect();
+    var margin = 10;
+    var panelH = panel.offsetHeight;
+    var panelW = panel.offsetWidth;
     var viewportH = window.innerHeight;
-    var margin = 12;
-    if (rect.bottom > viewportH - margin) {
-      var overflow = rect.bottom - (viewportH - margin);
-      var currentTop = parseInt(panel.style.top) || 0;
-      var newTop = currentTop - overflow;
-      if (rect.top - overflow < margin) {
-        panel.style.top = margin + 'px';
-        panel.style.maxHeight = (viewportH - margin * 2) + 'px';
+    var viewportW = window.innerWidth;
+
+    // Horizontal: align with trigger button, clamp to viewport
+    var leftPx = trigRect ? trigRect.left : (barRect ? barRect.left : 0);
+    if (_isMobile) { leftPx = 0; panel.style.right = '0'; panel.style.left = '0'; panel.style.maxWidth = '100vw'; }
+    else {
+      if (leftPx + panelW > viewportW - margin) leftPx = viewportW - panelW - margin;
+      if (leftPx < margin) leftPx = margin;
+      panel.style.left = leftPx + 'px';
+    }
+
+    // Vertical: open below bar, but if it clips the bottom, shift up or cap with scroll
+    var topPx = barRect ? (barRect.bottom + 4) : 48;
+    if (topPx + panelH > viewportH - margin) {
+      // Try opening upward from the bar
+      var upwardTop = (barRect ? barRect.top : 48) - panelH - 4;
+      if (upwardTop >= margin) {
+        topPx = upwardTop;
       } else {
-        panel.style.top = newTop + 'px';
+        // Neither fits fully — anchor near top with maxHeight + scroll
+        topPx = margin;
+        panel.style.maxHeight = (viewportH - margin * 2) + 'px';
       }
     }
+    panel.style.top = topPx + 'px';
   });
 
   // Close on outside click
@@ -11050,6 +11074,38 @@ document.addEventListener('keydown', function(e) {
 
   // ⌘⇧H — Keyboard Guide
   if (meta && e.shiftKey && e.key === 'H') { e.preventDefault(); spToggle('keyboard'); return; }
+
+  // ⌘⇧O — Toggle current section (global, works from section headers)
+  if (meta && e.shiftKey && (e.key === 'o' || e.key === 'O')) {
+    e.preventDefault();
+    if (typeof navToggleCurrentSection === 'function') navToggleCurrentSection();
+    return;
+  }
+
+  // I — Open line info panel (global, works when not typing in a field)
+  if (!meta && !e.shiftKey && !e.altKey && (e.key === 'i' || e.key === 'I')) {
+    var _focused = document.activeElement;
+    var _tag = _focused ? _focused.tagName : '';
+    // Only fire if not typing inside a text/number input or textarea
+    if (_tag !== 'INPUT' && _tag !== 'TEXTAREA' && _tag !== 'SELECT') {
+      var _lineId = null;
+      // Walk up from focused element looking for data-lineid
+      var _el = _focused;
+      while (_el && _el !== document.body) {
+        if (_el.dataset && _el.dataset.lineid) { _lineId = _el.dataset.lineid; break; }
+        _el = _el.parentElement;
+      }
+      if (_lineId) {
+        var _sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === _lineId; }); });
+        var _line = _sec ? _sec.lines.find(function(l){ return l.id === _lineId; }) : null;
+        if (_line && !_line.custom) {
+          e.preventDefault();
+          openLinePanel(_lineId, _sec.code);
+          return;
+        }
+      }
+    }
+  }
 
   // ⌘⇧↑ — Jump to top
   if (meta && e.shiftKey && e.key === 'ArrowUp') {
@@ -11944,20 +12000,41 @@ function navJumpToCol(col) {
 
 function navFocusGrid() {
   var lp = document.getElementById('line-panel');
-  if (lp && lp.style.display !== 'none') { closeLinePanel(); return; }
-  if (_navLastFocusedCell && document.contains(_navLastFocusedCell)) { _navFocus(_navLastFocusedCell); return; }
-  var first = document.querySelector('#budget-editor [data-col="rate"][data-lineid]');
-  if (first) _navFocus(first);
+  if (lp && lp.style.display !== 'none') { closeLinePanel(); }
+  // Always jump to top of budget — section L (Director's Fees)
+  navJumpToSection(SECTIONS[0].code);
 }
 
 // navToggleCurrentSection — collapse/expand the section the focused cell belongs to
+// Works whether focus is on a cell input OR anywhere inside a section card
 function navToggleCurrentSection() {
   var focused = document.activeElement;
+  // Try: focused cell has data-lineid
   var lineId = focused && focused.dataset && focused.dataset.lineid;
-  if (!lineId) return;
-  var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
-  if (!sec) return;
-  toggleSection(sec.code);
+  if (lineId) {
+    var sec = SECTIONS.find(function(s){ return s.lines.some(function(l){ return l.id === lineId; }); });
+    if (sec) { toggleSection(sec.code); return; }
+  }
+  // Fallback: walk up DOM from focused element to find nearest section-card
+  var el = focused;
+  while (el && el !== document.body) {
+    if (el.id && el.id.startsWith('sec-')) {
+      var code = el.id.replace('sec-', '');
+      toggleSection(code);
+      return;
+    }
+    el = el.parentElement;
+  }
+  // Last resort: use the first visible section card in viewport
+  var cards = document.querySelectorAll('.section-card');
+  for (var i = 0; i < cards.length; i++) {
+    var rect = cards[i].getBoundingClientRect();
+    if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
+      var code2 = cards[i].id.replace('sec-', '');
+      toggleSection(code2);
+      return;
+    }
+  }
 }
 
 function navKey(event, el) {
