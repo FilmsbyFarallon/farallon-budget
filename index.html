@@ -11970,14 +11970,15 @@ function navSelectRow(rowEl) {
 }
 
 function navSelectSection(code) {
-  // Toggle expand/collapse AND apply visual selection
+  // Select section visually — do NOT toggle open/close
+  // Toggling is handled by Enter / → / ← in navSectionKey
   var header = document.querySelector('[data-seccode="' + code + '"]');
   navClearSelection();
   if (header) {
     header.classList.add('sec-selected');
+    header.focus();
     _navLastFocusedRow = null;
   }
-  toggleSection(code);
 }
 
 // ── All navigable items (sections + rows) in DOM order ───────────────────────
@@ -12012,9 +12013,10 @@ function _navMoveSelection(dir) {
   var idx = -1;
   if (cur) idx = items.findIndex(function(it){ return it.el === cur.el; });
 
+  console.log('[NAV] _navMoveSelection dir=' + dir + ' idx=' + idx + ' items=' + items.length + ' cur=' + (cur ? cur.type+':'+cur.id : 'none'));
+
   var nextIdx;
   if (idx < 0) {
-    // Nothing selected — find hovered item or default to first
     nextIdx = 0;
   } else {
     nextIdx = idx + dir;
@@ -12022,6 +12024,7 @@ function _navMoveSelection(dir) {
   }
 
   var next = items[nextIdx];
+  console.log('[NAV] moving to ' + next.type + ':' + next.id);
   next.el.focus();
   if (next.type === 'row') {
     navSelectRow(next.el);
@@ -12039,11 +12042,14 @@ function navBudgetKeydown(event) {
   if (typeof activeTab === 'undefined' || activeTab !== 'budget') return;
   var focused = document.activeElement;
   var tag = focused ? focused.tagName : '';
-  // Don't intercept when typing in a real input/select/textarea
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
   var meta = event.metaKey || event.ctrlKey;
-  if (meta || event.shiftKey) return; // let ⌘⇧ shortcuts through
+  if (meta || event.shiftKey) return;
+
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    console.log('[NAV] navBudgetKeydown ' + event.key + ' activeEl=' + (focused ? focused.tagName + '[' + (focused.dataset.seccode||focused.dataset.rowid||'?') + ']' : 'none'));
+  }
 
   if (event.key === 'ArrowDown') { event.preventDefault(); _navMoveSelection(+1); return; }
   if (event.key === 'ArrowUp')   { event.preventDefault(); _navMoveSelection(-1); return; }
@@ -12305,6 +12311,9 @@ function navRowKey(event, rowEl) {
   if (!lineId) return;
   var meta = event.metaKey || event.ctrlKey;
 
+  // Stop propagation so navBudgetKeydown doesn't double-fire
+  event.stopPropagation();
+
   // Ensure row is visually selected when it receives key events
   if (!rowEl.classList.contains('line-selected')) navSelectRow(rowEl);
 
@@ -12345,6 +12354,9 @@ function navSectionKey(event, headerEl) {
   var code = headerEl.dataset.seccode;
   if (!code) return;
   var meta = event.metaKey || event.ctrlKey;
+
+  // Stop propagation so navBudgetKeydown doesn't double-fire
+  event.stopPropagation();
 
   // Ensure header is visually selected
   navClearSelection();
