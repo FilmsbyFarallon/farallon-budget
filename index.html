@@ -8712,7 +8712,12 @@ function renderCalendarPanel(b) {
   }
 }
 
-
+// ============================================
+// SECTION: Labor Guide
+// Lines: ~8800
+// Union rate library, labor categories,
+// agreements, rate lookup
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LABOR GUIDE LIBRARY
@@ -8875,6 +8880,13 @@ function lgSearch(val) {
     if(el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
   });
 }
+
+// ============================================
+// SECTION: Detail Browser
+// Lines: ~9000
+// Line item detail view, cost breakdowns,
+// vendor/crew detail drill-down
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL BROWSER
@@ -9146,6 +9158,13 @@ function poTotalOpen(b) {
   return b.pos.filter(p=>p.status!=='cancelled'&&p.status!=='paid')
     .reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
 }
+
+// ============================================
+// SECTION: Summary Page
+// Lines: ~9300
+// Budget summary, cost report,
+// markup breakdown, summary PDF export
+// ============================================
 
 // SUMMARY PAGE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -9455,6 +9474,13 @@ function exportCostReportPDF() {
 }
 
 function setMode(mode) { const b=active(); if(!b) return; b.mode=mode; render(); }
+
+// ============================================
+// SECTION: Budget Controls
+// Lines: ~9650
+// upField, toggleSection, sidebar toggle,
+// rail controls, markup fields
+// ============================================
 
 function upField(field, value) {
   const b=active(); if(!b) return; b[field]=value; save(); renderSidebar(); renderSticky();
