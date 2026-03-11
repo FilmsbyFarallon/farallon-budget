@@ -10647,14 +10647,21 @@ function spToggle(id) {
     var viewportH = window.innerHeight;
     var viewportW = window.innerWidth;
 
-    // Horizontal: align panel left edge to trigger button left edge
-    // If it overflows the right viewport edge, cap max-width instead of repositioning
+    // Horizontal: open panel to the RIGHT of the trigger button so the button stays visible.
+    // If that would overflow the viewport, open to the LEFT of the button instead.
     if (_isMobile) { panel.style.right = '0'; panel.style.left = '0'; panel.style.maxWidth = '100vw'; }
     else {
-      var leftPx = trigRect ? trigRect.left : (barRect ? barRect.left : 0);
+      var btnRight = trigRect ? trigRect.right : (barRect ? barRect.right : 0);
+      var btnLeft  = trigRect ? trigRect.left  : (barRect ? barRect.left  : 0);
+      var leftPx;
+      if (btnRight + panelW + margin <= viewportW) {
+        // Fits to the right of the button
+        leftPx = btnRight;
+      } else {
+        // Open to the left of the button instead
+        leftPx = btnLeft - panelW;
+      }
       if (leftPx < margin) leftPx = margin;
-      var availW = viewportW - leftPx - margin;
-      if (panelW > availW) panel.style.maxWidth = availW + 'px';
       panel.style.left = leftPx + 'px';
     }
 
