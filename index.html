@@ -5590,6 +5590,13 @@ function exportSelectedPOs() {
   setTimeout(() => { win.print(); exitPOBatchMode(); }, 400);
 }
 
+// ============================================
+// SECTION: PO Panel
+// Lines: ~5700
+// Purchase orders, PO table, PO PDF export,
+// PO status, vendor tracking
+// ============================================
+
 function renderPOPanel(b) {
   const panel = document.getElementById('po-panel');
   if(!panel) return;
@@ -6086,6 +6093,13 @@ function renderPCTotals(b) {
     }
   }
 }
+
+// ============================================
+// SECTION: Petty Cash Panel
+// Lines: ~6250
+// Petty cash envelopes, distributions,
+// PC summary, PC PDF export
+// ============================================
 
 function renderPCPanel(b) {
   const panel = document.getElementById('pc-panel');
@@ -6967,6 +6981,13 @@ function ctTagHighlight(groupEl) {
     t.style.outlineOffset = i === _ctTagIdx ? '1px' : '';
   });
 }
+
+// ============================================
+// SECTION: Contacts Panel
+// Lines: ~7100
+// Contact list, tagging, filtering,
+// assign to line items, vendor management
+// ============================================
 
 function renderContactsPanel() {
   const panel = document.getElementById('contacts-panel');
@@ -8131,6 +8152,13 @@ function calCrewDragEnd(e) {
   document.querySelectorAll('[data-crew-row]').forEach(r => { r.style.borderTop = ''; r.style.opacity = ''; });
   _calCrewDragLineId = null;
 }
+
+// ============================================
+// SECTION: Calendar Panel
+// Lines: ~8100
+// Production calendar, crew scheduling,
+// shoot days, calendar PDF export
+// ============================================
 
 function renderCalendarPanel(b) {
   const panel = document.getElementById('calendar-panel');
