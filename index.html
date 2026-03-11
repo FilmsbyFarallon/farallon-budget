@@ -12271,18 +12271,9 @@ function navKey(event, el) {
     return;
   }
 
-  // Enter — move to next field in this row, or next row if at last field
+  // Enter — move to same column on next row (fast vertical data entry)
   if (event.key === 'Enter') {
     event.preventDefault();
-    var colOrder = ['qty','rate','fringe','actual'].filter(function(c){
-      return !!document.querySelector('[data-col="'+c+'"][data-lineid="'+lineId+'"]');
-    });
-    var colIdx = colOrder.indexOf(col);
-    if (colIdx >= 0 && colIdx < colOrder.length - 1) {
-      var nextField = document.querySelector('[data-col="'+colOrder[colIdx+1]+'"][data-lineid="'+lineId+'"]');
-      if (nextField) { _navFocus(nextField); return; }
-    }
-    // At last field — move to next row
     _navMoveRow(col, lineId, +1);
     return;
   }
