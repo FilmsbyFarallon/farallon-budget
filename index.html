@@ -10356,6 +10356,12 @@ function spRefresh(id) {
   spToggle(id);
 }
 
+// ============================================
+// SECTION: Smart Tool Actions
+// Lines: ~10221
+// Fringe tools, rate cards, shoot day fill,
+// snapshots, smart panel actions
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SMART TOOL ACTIONS
@@ -10688,6 +10694,13 @@ function searchLineItems(query) {
     wrap.style.borderColor = matchCount > 0 ? 'var(--green)' : 'var(--red)';
   }
 }
+
+// ============================================
+// SECTION: Search & Spotlight
+// Lines: ~10800
+// Topbar search, Cmd+K spotlight,
+// spotlight results, keyword search
+// ============================================
 
 // ════════════════════════════════════════════════════════════════
 // SPOTLIGHT SEARCH  (Cmd+K / Ctrl+K)
@@ -11184,6 +11197,13 @@ function toggleExportMenu() {
   }
 }
 
+// ============================================
+// SECTION: Export — PDF & Excel
+// Lines: ~11300
+// exportPDF, exportExcel, export menu,
+// print styles, download triggers
+// ============================================
+
 function exportPDF(mode) {
   if (!gateExport()) return;
   document.getElementById('export-menu').style.display = 'none';
@@ -11472,6 +11492,12 @@ function exportPDF(mode) {
   setTimeout(function(){ win.print(); }, 500);
 }
 
+// ============================================
+// SECTION: Keyboard Navigation
+// Lines: ~11620
+// Tab/Enter navigation between cells,
+// arrow key movement, focus management
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // KEYBOARD NAVIGATION — Enter moves to next row, same column
@@ -11504,6 +11530,13 @@ function navKey(event, el) {
     }
   }
 }
+
+// ============================================
+// SECTION: Notes
+// Lines: ~11680
+// Section notes, line item notes,
+// notes modal, save notes
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NOTES — section and line item
@@ -11561,6 +11594,12 @@ function saveLineNote(lineId, value) {
   save();
 }
 
+// ============================================
+// SECTION: Clear / Undo
+// Lines: ~11750
+// clearBudget, undoClear
+// ============================================
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CLEAR BUDGET BY ID (from sidebar)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -11614,6 +11653,12 @@ function undoClear() {
   render();
 }
 
+// ============================================
+// SECTION: Line Item Detail Panel
+// Lines: ~11800
+// Side panel for individual line items,
+// actuals, notes, vendor assign
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LINE ITEM DETAIL PANEL
