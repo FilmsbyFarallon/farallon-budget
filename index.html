@@ -3008,10 +3008,6 @@ function syncShow(state, msg, retryFn) {
   if (state === 'saved') setTimeout(()=>{ el.style.opacity='0'; }, 2500);
 }
 
-// ── Test helper — forces next save to fail (remove after testing) ──
-var _testForceFailOnce = false;
-function _testSaveFail() { _testForceFailOnce = true; console.log('[test] next save will fail'); }
-
 // ── Cloud load ────────────────────────────────────────
 async function cloudLoad() {
   if (!_supa || !_currentUser) return;
@@ -3056,7 +3052,6 @@ async function cloudSave() {
   localSave();
   syncShow('syncing', '⟳ saving...');
   try {
-    if (_testForceFailOnce) { _testForceFailOnce = false; throw new Error('Simulated save failure (test)'); }
     const uid = _currentUser.id;
     const ts = new Date().toISOString();
     const ops = [];
@@ -4960,7 +4955,7 @@ function renderSection(sec, b, isActual) {
   const hasRatesNoDays = sec.isCrew && sec.lines.some(l => b.values[l.id]?.rate > 0) && !sec.lines.some(l => parseFloat(b.values[l.id]?.qty) > 0);
 
   let html = `<div class="section-card" id="sec-${sec.code}">
-    <div class="section-header" tabindex="0" data-seccode="${sec.code}" onclick="navSelectSection('${sec.code}')" onkeydown="navSectionKey(event,this)">
+    <div class="section-header" tabindex="0" data-seccode="${sec.code}" onclick="navSelectSection('${sec.code}');toggleSection('${sec.code}')" onkeydown="navSectionKey(event,this)">
       <div class="section-code-badge">${sec.code}</div>
       <div class="section-chevron ${isOpen?'open':''}">${isOpen?'▼':'▶'}</div>
       <div class="section-name-wrap">
@@ -5015,7 +5010,7 @@ function renderSection(sec, b, isActual) {
       const _otTotal = lineOTTotal(line, b);
       const _otOpen  = !!_ot._open;
 
-      html += `<div class="line-item ${colClass}" tabindex="0" data-rowid="${line.id}" onkeydown="navRowKey(event,this)" onfocus="navSelectRow(this)" onclick="navSelectRow(this)">
+      html += `<div class="line-item ${colClass}" tabindex="0" data-rowid="${line.id}" onkeydown="navRowKey(event,this)" onfocus="navSelectRow(this)" onclick="if(event.target===this||event.target.classList.contains('li-name')||event.target.classList.contains('li-total')||event.target.classList.contains('li-fringe-amt'))navSelectRow(this)">
           <div style="cursor:${isCustom?'default':'pointer'};display:flex;align-items:center;gap:5px;min-width:0" ${isCustom?'':"onclick=\"openLinePanel('" + line.id + "','" + sec.code + "')\" title=\"Click to add a note or view role details\""}>
             ${lineNum ? `<span style="font-size:9px;color:var(--text4);font-family:var(--mono);flex-shrink:0;min-width:20px;text-align:right;margin-right:2px">${lineNum}</span>` : '<span style="min-width:20px;flex-shrink:0"></span>'}
             ${isCustom
