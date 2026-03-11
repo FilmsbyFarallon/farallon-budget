@@ -1663,7 +1663,12 @@ body{margin:0;padding:0}
     </div>
   </div>
 </div>
-
+<!-- ============================================
+     SECTION: AICP Budget Data & Fringe Rates
+     Lines: ~1672
+     All AICP section definitions, line items,
+     fringe rates, group mappings
+     ============================================ -->
 <script>
 const FRINGE_RATES = {
   '': 0,
@@ -2141,7 +2146,13 @@ const GROUPS = {
   talent:     { label:'Below The Line — Talent' },
   post:       { label:'Post Production' },
 };
-
+// ============================================
+// SECTION: Config, Supabase & Dev Tools
+// Lines: ~2150
+// Supabase URL/key, dev backdoor modal
+// ============================================
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPABASE — Cloud sync + Auth
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ═══════════════════════════════════════════════════════
@@ -2189,7 +2200,12 @@ function devLogin() {
   hideAuthScreen();
   console.info('%c VILLAGER DEV MODE ACTIVE — all billing bypassed ', 'background:#ff4444;color:#fff;font-weight:bold;padding:4px 8px');
 }
-
+// ============================================
+// SECTION: Pricing, Subscriptions & Feature Gates
+// Lines: ~2200
+// isPro(), pricing screen, Stripe checkout,
+// billing portal, feature gate functions
+// ============================================
 // Global billing gate — always true in dev mode; Stripe check added later
 function isPro() {
   if (_devMode) return true;
@@ -2374,6 +2390,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (_devTapCount >= 5) { _devTapCount = 0; devModalOpen(); }
   });
 });
+// ============================================
+// SECTION: Authentication
+// Lines: ~2400
+// supaInit, authInit, sign in/up/out,
+// password reset, profile, account delete
+// ============================================
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Handle Stripe return URLs
