@@ -3536,7 +3536,7 @@ const TOUR_STEPS = [
   { target:'#sp-trig-keyboard', place:'above', tab:'budget',
     action: 'openKeyboardMenu',
     title: 'Keyboard shortcuts for power users',
-    body: 'Villager Pro has a full <strong>keyboard navigation system</strong> built in. Use <em>↑ ↓</em> to move between budget rows, <em>I</em> to open the line info panel, and <em>⌘⇧G</em> to instantly return to the budget from anywhere in the app. The <strong>⌨ Keys</strong> guide is now open above — press <em>⌘⇧H</em> to open it any time.',
+    body: 'Villager Pro has a full <strong>keyboard navigation system</strong> built in. Use <em>↑ ↓</em> to move between budget rows, <em>I</em> to open the line info panel, and <em>⌘⇧G</em> to instantly return to the budget from anywhere in the app. The <strong>⌨ Keys</strong> guide is now open above — press <em>⌘/</em> to open it any time.',
   },
 ];
 
@@ -10583,22 +10583,28 @@ function spToggle(id) {
         + rows + '</div>';
     };
     inner = '<div style="display:flex;flex-direction:column;gap:0;min-width:340px">'
-      + _kbS('CELL NAVIGATION',
-          _kbR(['↓ / Enter'], 'Next row')
-        + _kbR(['↑'], 'Previous row')
-        + _kbR(['I'], 'Open line info panel')
-        + _kbR(['Esc'], 'Deselect / exit field'))
-      + _kbS('LINE INFO PANEL',
-          _kbR(['Space / I'], 'Open for focused row')
-        + _kbR(['↑','↓'], 'Move between fields')
+      + _kbS('ROW NAVIGATION',
+          _kbR(['↓'], 'Next row / section')
+        + _kbR(['↑'], 'Previous row / section')
+        + _kbR(['→'], 'Enter field  ·  expand section')
+        + _kbR(['←'], 'Exit field  ·  collapse section')
+        + _kbR(['I'], 'Open info panel for selected row')
+        + _kbR(['Esc'], 'Exit field / close panel'))
+      + _kbS('INSIDE A FIELD',
+          _kbR(['Enter'], 'Next field in row')
+        + _kbR(['↓'], 'Next row (same column)')
+        + _kbR(['↑'], 'Previous row (same column)')
+        + _kbR(['Esc'], 'Exit field, return to row'))
+      + _kbS('INFO PANEL',
+          _kbR(['Space / I'], 'Open for selected row')
         + _kbR(['Enter'], 'Confirm / next field')
-        + _kbR(['Esc'], 'Close, return to grid'))
+        + _kbR(['Esc'], 'Close, return to row'))
       + _kbS('SECTIONS',
           _kbR(['⌘','⇧','O'], 'Toggle current section')
         + _kbR(['⌘','⇧',']'], 'Expand all sections')
         + _kbR(['⌘','⇧','['], 'Collapse all sections'))
       + _kbS('JUMP TO SECTION  (⌘⇧ + letter)',
-          _kbR(['⌘','⇧','L'], "Director’s Fees")
+          _kbR(['⌘','⇧','L'], "Director's Fees")
         + _kbR(['⌘','⇧','A'], 'Prep Crew')
         + _kbR(['⌘','⇧','B'], 'Shoot Crew')
         + _kbR(['⌘','⇧','M'], 'Talent'))
@@ -10607,7 +10613,7 @@ function spToggle(id) {
         + _kbR(['⌘','⇧','↓'], 'Jump to Grand Total')
         + _kbR(['⌘','⇧','G'], 'Return to budget (any tab)')
         + _kbR(['⌘','K'], 'Quick Search')
-        + _kbR(['⌘','⇧','H'], 'This guide'))
+        + _kbR(['⌘','/'], 'This guide'))
       + '<div style="font-size:10px;color:var(--text4);margin-top:8px">⌘ = Cmd on Mac · Ctrl on Windows</div>'
       + '</div>';
   }
@@ -10641,12 +10647,14 @@ function spToggle(id) {
     var viewportH = window.innerHeight;
     var viewportW = window.innerWidth;
 
-    // Horizontal: align with trigger button, clamp to viewport
-    var leftPx = trigRect ? trigRect.left : (barRect ? barRect.left : 0);
-    if (_isMobile) { leftPx = 0; panel.style.right = '0'; panel.style.left = '0'; panel.style.maxWidth = '100vw'; }
+    // Horizontal: right-align panel to trigger button's RIGHT edge
+    // This keeps the trigger button visible above the panel so it remains clickable
+    if (_isMobile) { panel.style.right = '0'; panel.style.left = '0'; panel.style.maxWidth = '100vw'; }
     else {
-      if (leftPx + panelW > viewportW - margin) leftPx = viewportW - panelW - margin;
+      var rightEdge = trigRect ? trigRect.right : (barRect ? barRect.right : viewportW);
+      var leftPx = rightEdge - panelW;
       if (leftPx < margin) leftPx = margin;
+      if (leftPx + panelW > viewportW - margin) leftPx = viewportW - panelW - margin;
       panel.style.left = leftPx + 'px';
     }
 
@@ -11087,8 +11095,8 @@ document.addEventListener('keydown', function(e) {
   // Budget-only shortcuts
   if (typeof activeTab === 'undefined' || activeTab !== 'budget') return;
 
-  // ⌘⇧H — Keyboard Guide
-  if (meta && e.shiftKey && e.key === 'H') { e.preventDefault(); spToggle('keyboard'); return; }
+  // ⌘/ — Keyboard Guide (⌘⇧H conflicts with macOS and section H)
+  if (meta && !e.shiftKey && !e.altKey && e.key === '/') { e.preventDefault(); spToggle('keyboard'); return; }
 
   // ⌘⇧O — Toggle current section (global, works from section headers)
   if (meta && e.shiftKey && (e.key === 'o' || e.key === 'O')) {
@@ -11139,7 +11147,14 @@ document.addEventListener('keydown', function(e) {
   // ⌘⇧↓ — Jump to Grand Total
   if (meta && e.shiftKey && e.key === 'ArrowDown') { e.preventDefault(); navJumpToTotals(); return; }
 
-  // ⌘⇧ + section letter
+  // ⌘⇧] — Expand all sections
+  if (meta && e.shiftKey && e.key === ']') { e.preventDefault(); if(typeof expandAll==='function') expandAll(); return; }
+  // ⌘⇧[ — Collapse all sections
+  if (meta && e.shiftKey && e.key === '[') { e.preventDefault(); if(typeof collapseAll==='function') collapseAll(); return; }
+  // ⌘⇧O — Toggle section (also handled in navKey/navSectionKey but need global fallback)
+  // Already handled above
+
+  // ⌘⇧ + section letter (must come LAST so specific shortcuts above take priority)
   if (meta && e.shiftKey && typeof SECTIONS !== 'undefined') {
     var ku = e.key.toUpperCase();
     if (SECTIONS.find(function(s){ return s.code === ku; })) {
@@ -11968,10 +11983,16 @@ function navSelectSection(code) {
 // ── All navigable items (sections + rows) in DOM order ───────────────────────
 
 function _navAllItems() {
+  // Walk ALL elements in DOM order to guarantee correct sequence
+  // This avoids querySelectorAll compound selector ordering issues
   var items = [];
-  document.querySelectorAll('[data-seccode], [data-rowid]').forEach(function(el) {
-    if (el.dataset.seccode) items.push({ type:'section', id:el.dataset.seccode, el:el });
-    else if (el.dataset.rowid)  items.push({ type:'row',     id:el.dataset.rowid,  el:el });
+  var all = document.querySelectorAll('#sections-area *');
+  all.forEach(function(el) {
+    if (el.dataset && el.dataset.seccode) {
+      items.push({ type:'section', id:el.dataset.seccode, el:el });
+    } else if (el.dataset && el.dataset.rowid) {
+      items.push({ type:'row', id:el.dataset.rowid, el:el });
+    }
   });
   return items;
 }
