@@ -12450,6 +12450,13 @@ function saveSettings() {
   save(); closeSettings();
 }
 
+// ============================================
+// SECTION: PO PDF Export
+// Lines: ~12700
+// exportPOPdf, PO print layout,
+// PO PDF styling
+// ============================================
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PO PDF EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12595,7 +12602,12 @@ function exportPOPdf(budgetId, poId) {
   setTimeout(()=>win.print(), 400);
 }
 
-
+// ============================================
+// SECTION: Data Backup
+// Lines: ~12850
+// downloadBackup, restoreBackup,
+// JSON export/import
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA BACKUP / RESTORE
@@ -12638,6 +12650,12 @@ function restoreBackup(input) {
   reader.readAsText(file);
 }
 
+// ============================================
+// SECTION: Petty Cash PDF
+// Lines: ~12950
+// exportPCReportPDF, petty cash print layout,
+// PC PDF styling
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PETTY CASH REPORT PDF
@@ -12699,6 +12717,12 @@ function exportPCReportPDF() {
   setTimeout(()=>win.print(),400);
 }
 
+// ============================================
+// SECTION: PO Line Ref Helpers
+// Lines: ~12950
+// poLineRefOptions, PO line reference
+// dropdowns, vendor line matching
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PO LINE REF HELPERS
@@ -12750,6 +12774,12 @@ function poCommitmentsByLine(b) {
   return { byLine, bySectionRemainder };
 }
 
+// ============================================
+// SECTION: Detail Browser PDF
+// Lines: ~13000
+// exportDetailPDF, detail cost report,
+// print layout and styling
+// ============================================
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DETAIL BROWSER / LINE-LEVEL COST REPORT PDF
