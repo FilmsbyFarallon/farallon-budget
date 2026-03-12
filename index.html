@@ -3537,6 +3537,15 @@ function _tourCreateDemoBudget() {
     companyId: getDefaultCompany()?.id || null,
     _isDemo: true,
 
+    // ── Demo share link (shown during Share Links tour step) ────────────────────
+    _shareLinks: [{
+      token: 'TOUR_DEMO_TOKEN',
+      id: id + '_sharelink',
+      linkName: 'Wieden+Kennedy — EP Review',
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
+      updatedAt: Date.now() - 1000 * 60 * 60 * 24 * 2,
+    }],
+
     // ── 8 Purchase Orders ──────────────────────────────────────
     pos: [
       { id:'DEMO_PO1', number:'PO-001', date: today,
@@ -3843,25 +3852,31 @@ const TOUR_STEPS = [
     title: 'Exporting your work',
     body: 'The <strong>Export</strong> menu generates print-ready PDFs at any stage. Export your full AICP bid, individual POs to send vendors, petty cash reports, or a complete <strong>Wrap Book</strong> — budget, cost report, all POs, and petty cash reconciliation in one document. This is the official record at end of job.',
   },
-  // 24 — Labor Guide intro
+  // 24 — Share Links
+  { target:'#sb-sharelinks-btn', place:'right', tab:'budget',
+    action: 'openShareLinksPanel',
+    title: 'Share Links — send a read-only budget view',
+    body: 'Generate a <strong>secure, read-only link</strong> to share your budget with clients, agencies, or collaborators — without giving them editing access. The link shows section totals only: no rates, no vendor details. Create up to <strong>3 links per budget</strong>, name each one so you know who it\'s for, and revoke it any time.',
+  },
+  // 25 — Labor Guide intro
   { target:'#sb-laborguide-btn', place:'right', tab:'labor-guide',
     action: 'openLaborGuide',
     title: 'Labor Guide — union rate library',
     body: 'The <strong>Labor Guide</strong> is a built-in reference library of <em>3,300+ union scale rates</em> across 57 agreements — IATSE, DGA, SAG-AFTRA, Teamsters, AFM, WGA, and more. Use it to look up the correct minimum rate for any crew position before you set your budget.',
   },
-  // 25 — Agreements dropdown
+  // 26 — Agreements dropdown
   { target:'#labor-guide-panel', place:'center', tab:'labor-guide',
     action: 'openLGDropdown',
     title: 'Browsing agreements',
     body: 'Use the <strong>category tabs</strong> at the top to filter by guild — LA Crew, NY Crew, DGA, SAG-AFTRA, Commercials, and more. Then pick a specific agreement from the <strong>dropdown</strong>. Each agreement lists every covered classification with its scale rate, schedule type, and effective dates.',
   },
-  // 26 — Commercials focus
+  // 27 — Commercials focus
   { target:'#labor-guide-panel', place:'center', tab:'labor-guide',
     action: 'showLGCommercials',
     title: 'Commercials — your key rates',
     body: 'The <strong>Commercials</strong> category is the most relevant for this app. It includes the <em>IATSE CPA (Los Angeles & Outside LA)</em>, <em>NE Corridor</em>, <em>Bay Area Local 16</em>, <em>SAG Commercials</em>, and <em>DGA National Commercial</em> agreements. When you open a crew line in your budget, matching union rates from these agreements appear automatically in the <strong>Union Scale Reference</strong> panel.',
   },
-  // 27 — Keyboard shortcuts
+  // 28 — Keyboard shortcuts
   { target:'#sp-trig-keyboard', place:'above', tab:'budget',
     action: 'openKeyboardMenu',
     title: 'Keyboard shortcuts for power users',
@@ -3943,6 +3958,7 @@ function tourSkip() {
   });
   // Hide tour overlay/spotlight/tooltip
   _tourHide();
+  closeShareLinksPanel && closeShareLinksPanel();
   // Delete demo budget + demo contacts regardless of whether cloudLoad ran
   budgets = budgets.filter(b => !b._isDemo);
   contacts = contacts.filter(c => !c.id.startsWith('DEMO_CT'));
@@ -3990,6 +4006,7 @@ function tourBack() {
 
 async function tourFinish() {
   _tourHide();
+  closeShareLinksPanel && closeShareLinksPanel();
   _tourCleanup();
   // Mark tour complete in user metadata
   if (_supa && _currentUser) {
@@ -4023,6 +4040,11 @@ function _tourHide() {
 function _tourShowStep(idx) {
   const step  = TOUR_STEPS[idx];
   const total = TOUR_STEPS.length;
+
+  // Close share links panel when navigating away from its step
+  if (step.action !== 'openShareLinksPanel') {
+    closeShareLinksPanel && closeShareLinksPanel();
+  }
 
   // Switch tab if needed
   if (step.tab && step.tab !== activeTab) {
@@ -4195,6 +4217,18 @@ function _tourRunAction(action) {
     _lgCat = 'Commercials';
     _lgAgrIdx = 0;
     setTimeout(() => { renderLaborGuidePanel && renderLaborGuidePanel(); }, 120);
+  }
+
+  if (action === 'openShareLinksPanel') {
+    // Switch to budget tab so the sidebar button is visible for spotlight
+    if (activeTab !== 'budget') switchTab('budget');
+    setTimeout(() => {
+      openShareLinksPanel && openShareLinksPanel();
+    }, 200);
+  }
+
+  if (action === 'closeShareLinksPanel') {
+    closeShareLinksPanel && closeShareLinksPanel();
   }
 }
 
