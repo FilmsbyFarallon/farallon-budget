@@ -227,6 +227,12 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .status-approved{background:#0a1a10;color:#3a8a5a;border:1px solid #103020}
 .budget-card-actions{display:flex;gap:4px;margin-top:8px}
 .sidebar-footer{border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;justify-content:center;min-height:64px}
+/* Trash drop zone */
+#sb-trash-zone{display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-top:1px solid var(--border);cursor:pointer;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:color .15s,background .15s;position:relative}
+#sb-trash-zone:hover{color:var(--red);background:rgba(248,113,113,.06)}
+#sb-trash-zone.drag-active{color:var(--red);background:rgba(248,113,113,.08);animation:trashPulse .7s ease-in-out infinite alternate}
+#sb-trash-zone.drag-over{color:#fff;background:rgba(248,113,113,.22);outline:1px dashed var(--red);outline-offset:-2px}
+@keyframes trashPulse{from{color:var(--text3);background:transparent}to{color:var(--red);background:rgba(248,113,113,.08)}}
 
 /* CONTENT */
 #content-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
@@ -1420,6 +1426,20 @@ body{margin:0;padding:0}
         </svg>
         Vendors
       </button>
+      <div id="sb-trash-zone"
+        onclick="openTrash()"
+        ondragover="trashDragOver(event)"
+        ondragleave="trashDragLeave(event)"
+        ondrop="trashDrop(event)">
+        <svg id="sb-trash-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2 4 14 4"/>
+          <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
+          <path d="M6 7v5M10 7v5"/>
+          <path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
+        </svg>
+        <span id="sb-trash-label">Trash</span>
+        <span id="sb-trash-count" style="margin-left:auto;font-size:9px;color:var(--text4);font-family:var(--mono);background:var(--bg3);padding:1px 6px;border-radius:8px;display:none"></span>
+      </div>
     </div>
   </div>
 
@@ -4198,6 +4218,7 @@ let _sbDragBid = null; // budget id being dragged
 function renderSidebar() {
   const list = document.getElementById('sidebar-list');
   document.getElementById('budget-count').textContent = 'PRODUCTIONS';
+  updateTrashCount();
   let html = '';
 
   folders.forEach(f => {
@@ -4312,7 +4333,7 @@ function sbDragStart(e, bid) {
   _sbDragGhost.textContent = '📄  ' + (b ? b.name : 'Budget');
   document.body.appendChild(_sbDragGhost);
   e.dataTransfer.setDragImage(_sbDragGhost, 10, 14);
-  setTimeout(()=>{ const el=document.getElementById('sbb-'+bid); if(el) el.classList.add('dragging'); }, 0);
+  setTimeout(()=>{ const el=document.getElementById('sbb-'+bid); if(el) el.classList.add('dragging'); document.getElementById('sb-trash-zone')?.classList.add('drag-active'); }, 0);
 }
 
 function sbDragEnd(e) {
@@ -4320,6 +4341,9 @@ function sbDragEnd(e) {
   if (_sbDragGhost) { _sbDragGhost.remove(); _sbDragGhost = null; }
   document.querySelectorAll('.sb-budget.dragging').forEach(el=>el.classList.remove('dragging'));
   document.querySelectorAll('.sb-folder.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  const zone = document.getElementById('sb-trash-zone');
+  if(zone){ zone.classList.remove('drag-active','drag-over'); }
+  document.getElementById('sb-trash-label').textContent = 'Trash';
 }
 
 function sbFolderDragOver(e, fid) {
@@ -5299,7 +5323,129 @@ function createFromTemplateAndClose(id) {
   createFromTemplate(id);
 }
 function selectBudget(id) { activeId=id; if(activeTab==='contacts') activeTab='budget'; render(); }
-async function delBudget(id) { const ok = await cmDanger('Delete budget','This will permanently delete this budget and all its data. This cannot be undone.','Delete Budget'); if(!ok) return; budgets=budgets.filter(b=>b.id!==id); if(activeId===id) activeId=null; cloudDelete('budgets',id); render(); }
+// ── Trash (soft delete) ──────────────────────────────────────────────────────
+let trash = []; // { id, name, deletedAt, data }
+
+async function delBudget(id) {
+  const ok = await cmDanger('Move to Trash','This budget will be moved to the Trash. You can restore it from there.','Move to Trash');
+  if(!ok) return;
+  const b = budgets.find(x=>x.id===id); if(!b) return;
+  autoSnapshot(b, 'Before trash');
+  trash.unshift({ id: b.id, name: b.name, deletedAt: Date.now(), data: JSON.parse(JSON.stringify(b)) });
+  budgets = budgets.filter(x=>x.id!==id);
+  if(activeId===id) activeId=null;
+  save(); render(); updateTrashCount();
+}
+
+function trashDragOver(e) {
+  if(!_sbDragBid) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.getElementById('sb-trash-zone')?.classList.add('drag-over');
+  document.getElementById('sb-trash-label').textContent = 'Drop to trash';
+}
+
+function trashDragLeave(e) {
+  const zone = document.getElementById('sb-trash-zone');
+  if(zone && !zone.contains(e.relatedTarget)) {
+    zone.classList.remove('drag-over');
+    document.getElementById('sb-trash-label').textContent = 'Trash';
+  }
+}
+
+function trashDrop(e) {
+  e.preventDefault();
+  const zone = document.getElementById('sb-trash-zone');
+  if(zone) zone.classList.remove('drag-over');
+  document.getElementById('sb-trash-label').textContent = 'Trash';
+  const bid = _sbDragBid || e.dataTransfer.getData('text/plain');
+  if(!bid) return;
+  const b = budgets.find(x=>x.id===bid); if(!b) return;
+  autoSnapshot(b, 'Before trash');
+  trash.unshift({ id: b.id, name: b.name, deletedAt: Date.now(), data: JSON.parse(JSON.stringify(b)) });
+  budgets = budgets.filter(x=>x.id!==bid);
+  if(activeId===bid) activeId=null;
+  _sbDragBid = null;
+  save(); render(); updateTrashCount();
+  // Brief flash on trash icon
+  const icon = document.getElementById('sb-trash-zone');
+  if(icon){ icon.style.color='var(--red)'; setTimeout(()=>icon.style.color='',600); }
+}
+
+function updateTrashCount() {
+  const badge = document.getElementById('sb-trash-count');
+  if(!badge) return;
+  if(trash.length > 0){ badge.textContent = trash.length; badge.style.display=''; }
+  else { badge.style.display='none'; }
+}
+
+function openTrash() {
+  const modal = document.getElementById('trash-modal');
+  if(!modal) return;
+  renderTrashList();
+  modal.style.display = 'flex';
+}
+
+function closeTrash() {
+  document.getElementById('trash-modal').style.display = 'none';
+}
+
+function renderTrashList() {
+  const list = document.getElementById('trash-list');
+  const emptyMsg = document.getElementById('trash-empty-msg');
+  const emptyBtn = document.getElementById('trash-empty-btn');
+  if(!list) return;
+  if(trash.length === 0) {
+    list.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text4);font-size:11px;font-family:var(--mono)">Trash is empty</div>';
+    if(emptyMsg) emptyMsg.textContent = '';
+    if(emptyBtn) emptyBtn.style.display='none';
+    return;
+  }
+  if(emptyMsg) emptyMsg.textContent = trash.length + ' item' + (trash.length===1?'':'s');
+  if(emptyBtn) emptyBtn.style.display='';
+  list.innerHTML = trash.map(t => {
+    const d = new Date(t.deletedAt);
+    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border);transition:background .12s" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--text4)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 14 4"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M6 7v5M10 7v5"/><path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:var(--text2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</div>
+        <div style="font-size:10px;color:var(--text4);font-family:var(--mono)">Deleted ${dateStr}</div>
+      </div>
+      <button onclick="restoreFromTrash('${t.id}')" style="padding:4px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer;white-space:nowrap;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">Restore</button>
+      <button onclick="permanentlyDelete('${t.id}')" style="padding:4px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid transparent;color:var(--text4);border-radius:2px;cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text4)'">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function restoreFromTrash(id) {
+  const item = trash.find(t=>t.id===id); if(!item) return;
+  const b = JSON.parse(JSON.stringify(item.data));
+  // Avoid id collision
+  if(budgets.find(x=>x.id===b.id)) b.id = Date.now().toString();
+  budgets.unshift(b);
+  trash = trash.filter(t=>t.id!==id);
+  activeId = b.id; activeTab = 'budget';
+  save(); render(); updateTrashCount(); renderTrashList();
+}
+
+async function permanentlyDelete(id) {
+  const item = trash.find(t=>t.id===id); if(!item) return;
+  const ok = await cmDanger('Permanently Delete','<strong>' + esc(item.name) + '</strong> will be permanently deleted. This cannot be undone.','Delete Forever');
+  if(!ok) return;
+  trash = trash.filter(t=>t.id!==id);
+  cloudDelete('budgets', id);
+  save(); updateTrashCount(); renderTrashList();
+}
+
+async function emptyTrash() {
+  if(!trash.length) return;
+  const ok = await cmDanger('Empty Trash','All ' + trash.length + ' budget' + (trash.length===1?'':'s') + ' will be permanently deleted. This cannot be undone.','Empty Trash');
+  if(!ok) return;
+  trash.forEach(t=>cloudDelete('budgets',t.id));
+  trash = [];
+  save(); updateTrashCount(); renderTrashList();
+}
 function dupBudget(id) { const src=budgets.find(b=>b.id===id); if(!src) return; const b=JSON.parse(JSON.stringify(src)); b.id=Date.now().toString(); b.name+=' (Copy)'; b.createdAt=Date.now(); b.folderId=src.folderId||null; budgets.unshift(b); activeId=b.id; activeTab='budget'; render(); flashNewBudget(); }
 
 function switchTab(tab) {
@@ -14962,6 +15108,24 @@ function renderCompareView(ids) {
 </script>
 
 
+
+<!-- TRASH MODAL -->
+<div id="trash-modal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.7);align-items:center;justify-content:center" onclick="if(event.target===this)closeTrash()">
+  <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:min(92vw,520px);max-height:75vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.8)">
+    <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 14 4"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M6 7v5M10 7v5"/><path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
+        <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--text)">Trash</div>
+      </div>
+      <button onclick="closeTrash()" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px">&#x2715;</button>
+    </div>
+    <div id="trash-list" style="flex:1;overflow-y:auto;padding:8px 0"></div>
+    <div style="padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center;flex-shrink:0">
+      <span id="trash-empty-msg" style="font-size:10px;color:var(--text4);font-family:var(--mono)"></span>
+      <button id="trash-empty-btn" onclick="emptyTrash()" style="padding:6px 14px;font-family:var(--mono);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--red);border-radius:2px;cursor:pointer;letter-spacing:.04em;display:none">Empty Trash</button>
+    </div>
+  </div>
+</div>
 
 <!-- COMPARE MODAL -->
 <div id="compare-modal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
