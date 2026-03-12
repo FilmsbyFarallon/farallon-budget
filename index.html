@@ -3114,58 +3114,42 @@ async function loadShareView(token) {
       document.getElementById('share-content').innerHTML = '<div style="padding:60px 0;text-align:center"><div style="font-size:18px;color:var(--text);margin-bottom:8px">Link not found</div><div style="font-size:12px;color:var(--text3);font-family:var(--mono)">This share link may have been revoked or expired.</div></div>';
       return;
     }
+    // Guard against old-format links (pre-computed payload has 'groups' key)
+    if (!data.data?.groups) {
+      document.getElementById('share-content').innerHTML = '<div style="padding:60px 0;text-align:center"><div style="font-size:15px;color:var(--text);margin-bottom:8px">Link needs to be refreshed</div><div style="font-size:12px;color:var(--text3);font-family:var(--mono)">The owner needs to regenerate this share link from the app.</div></div>';
+      return;
+    }
     renderShareView(data.data);
   } catch(e) {
     document.getElementById('share-content').innerHTML = '<div style="padding:60px 0;text-align:center;color:var(--red);font-family:var(--mono);font-size:11px">Failed to load. Please try again.</div>';
   }
 }
 
-function renderShareView(b) {
-  const GROUPS = [
-    { key:'atl', label:'ABOVE THE LINE' },
-    { key:'btl', label:'BELOW THE LINE' },
-    { key:'post', label:'POST PRODUCTION' },
-    { key:'other', label:'OTHER' },
-  ];
-  // Build section totals only — no rates, no line details
+function renderShareView(payload) {
+  const { name, client, director, groups, grandBidTotal, grandActual, hasActuals, feeLabel, feeAmount } = payload;
   let rows = '';
-  let grandBid = 0, grandActual = 0;
-  const hasActuals = SECTIONS.some(sec => sectionTotal(sec, b, true) > 0);
-
-  GROUPS.forEach(g => {
-    const groupSections = SECTIONS.filter(s => s.group === g.key);
-    if (!groupSections.length) return;
-    const groupBid = groupSections.reduce((s,sec) => s + sectionTotal(sec,b) + sectionFringeTotal(sec,b), 0);
-    const groupActual = hasActuals ? groupSections.reduce((s,sec) => s + sectionTotal(sec,b,true) + sectionFringeTotal(sec,b,true), 0) : 0;
-    if (groupBid === 0 && groupActual === 0) return;
+  (groups||[]).forEach(g => {
     rows += `<tr class="share-group"><td colspan="${hasActuals?3:2}">${g.label}</td></tr>`;
-    groupSections.forEach(sec => {
-      const bid = sectionTotal(sec,b) + sectionFringeTotal(sec,b);
-      const actual = hasActuals ? sectionTotal(sec,b,true) + sectionFringeTotal(sec,b,true) : 0;
-      if (bid === 0 && actual === 0) return;
+    (g.sections||[]).forEach(sec => {
       rows += `<tr class="share-row">
-        <td style="padding-left:28px;color:var(--text3)">[${sec.code}] ${esc(sec.name)}</td>
-        <td class="num" style="color:var(--gold)">$${fmt(bid)}</td>
-        ${hasActuals ? `<td class="num" style="color:${actual>bid?'var(--red)':'var(--green)'}">$${fmt(actual)}</td>` : ''}
+        <td style="padding-left:28px;color:var(--text3)">[${esc(sec.code)}] ${esc(sec.name)}</td>
+        <td class="num" style="color:var(--gold)">$${fmt(sec.bid)}</td>
+        ${hasActuals ? `<td class="num" style="color:${sec.actual>sec.bid?'var(--red)':'var(--green)'}">$${fmt(sec.actual)}</td>` : ''}
       </tr>`;
-      grandBid += bid;
-      grandActual += actual;
     });
   });
-
-  // Production fee / markup if present
-  const fee = (b.markup||0) > 0 ? grandBid * ((b.markup||0)/100) : 0;
-  if (fee > 0) {
-    grandBid += fee;
-    grandActual += hasActuals ? fee : 0;
-    rows += `<tr class="share-row"><td style="padding-left:28px;color:var(--text3)">Production Fee (${b.markup}%)</td><td class="num" style="color:var(--gold)">$${fmt(fee)}</td>${hasActuals?`<td class="num">$${fmt(fee)}</td>`:''}</tr>`;
+  if (feeLabel && feeAmount > 0) {
+    rows += `<tr class="share-row">
+      <td style="padding-left:28px;color:var(--text3)">${esc(feeLabel)}</td>
+      <td class="num" style="color:var(--gold)">$${fmt(feeAmount)}</td>
+      ${hasActuals ? `<td class="num" style="color:var(--text3)">$${fmt(feeAmount)}</td>` : ''}
+    </tr>`;
   }
-
   const sharedOn = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   document.getElementById('share-content').innerHTML = `
-    <div class="share-project-name">${esc(b.name||'Untitled Budget')}</div>
+    <div class="share-project-name">${esc(name||'Untitled Budget')}</div>
     <div class="share-project-meta">
-      ${b.client ? esc(b.client) + ' · ' : ''}${b.director ? 'Dir. ' + esc(b.director) + ' · ' : ''}Shared ${sharedOn}
+      ${client ? esc(client) + (director ? ' · ' : '') : ''}${director ? 'Dir. ' + esc(director) : ''}${(client||director) ? ' · ' : ''}Shared ${sharedOn}
     </div>
     <table class="share-table">
       <thead>
@@ -3179,8 +3163,8 @@ function renderShareView(b) {
         ${rows}
         <tr class="share-total">
           <td style="font-size:13px;letter-spacing:.08em;color:var(--gold)">GRAND TOTAL</td>
-          <td class="num" style="font-size:16px;color:var(--gold)">$${fmt(grandBid)}</td>
-          ${hasActuals ? `<td class="num" style="font-size:16px;color:${grandActual>grandBid?'var(--red)':'var(--green)'}">$${fmt(grandActual)}</td>` : ''}
+          <td class="num" style="font-size:16px;color:var(--gold)">$${fmt(grandBidTotal)}</td>
+          ${hasActuals ? `<td class="num" style="font-size:16px;color:${grandActual>grandBidTotal?'var(--red)':'var(--green)'}">$${fmt(grandActual)}</td>` : ''}
         </tr>
       </tbody>
     </table>
@@ -3190,11 +3174,61 @@ function renderShareView(b) {
   `;
 }
 
+function buildSharePayload(b) {
+  // Pre-compute all section and group totals at generation time
+  // so the read-only view has zero runtime dependencies
+  const GROUPS = [
+    { key:'atl', label:'ABOVE THE LINE' },
+    { key:'production', label:'BELOW THE LINE — PRODUCTION' },
+    { key:'talent', label:'BELOW THE LINE — TALENT' },
+    { key:'post', label:'POST PRODUCTION' },
+    { key:'other', label:'OTHER' },
+  ];
+  const groups = [];
+  let grandBid = 0, grandActual = 0;
+  GROUPS.forEach(g => {
+    const secs = SECTIONS.filter(s => s.group === g.key);
+    if (!secs.length) return;
+    const sections = [];
+    secs.forEach(sec => {
+      const bid = sectionTotal(sec, b) + sectionFringeTotal(sec, b);
+      const actual = actualSectionTotal(sec, b);
+      if (bid === 0 && actual === 0) return;
+      sections.push({ code: sec.code, name: sec.name, bid, actual });
+      grandBid += bid;
+      grandActual += actual;
+    });
+    if (sections.length) groups.push({ label: g.label, sections });
+  });
+  // Production fee
+  const btl = btlSubtotal(b);
+  const fee = btl * ((parseFloat(b.markup?.prodFee)||0)/100);
+  const fringesAdj = btl * ((parseFloat(b.markup?.fringes)||0)/100);
+  const cont = (btl+fee) * ((parseFloat(b.markup?.contingency)||0)/100);
+  const totalFee = fee + fringesAdj + cont;
+  if (totalFee > 0) grandBid += totalFee;
+  const hasActuals = grandActual > 0;
+  if (hasActuals && totalFee > 0) grandActual += totalFee;
+  return {
+    name: b.name,
+    client: b.client,
+    director: b.director,
+    groups,
+    grandBid: grandTotal(b),
+    grandActual,
+    hasActuals,
+    feeLabel: totalFee > 0 ? 'Production Fee & Markup' : null,
+    feeAmount: totalFee,
+    grandBidTotal: grandTotal(b),
+  };
+}
+
 async function generateShareLink(bid) {
   const b = budgets.find(x=>x.id===bid); if(!b) return;
   if (!_currentUser) return;
+  const payload = buildSharePayload(b);
   // Check if one already exists for this budget
-  const existing = await _supa.from('share_links').select('token').eq('budget_id', bid).eq('user_id', _currentUser.id).single();
+  const existing = await _supa.from('share_links').select('token').eq('budget_id', bid).eq('user_id', _currentUser.id).maybeSingle();
   let token;
   if (existing.data?.token) {
     token = existing.data.token;
@@ -3205,9 +3239,9 @@ async function generateShareLink(bid) {
       user_id: _currentUser.id,
       budget_id: bid,
       token,
-      data: JSON.parse(JSON.stringify(b)),
+      data: payload,
     });
-    if (error) { alert('Failed to create share link. Please try again.'); return; }
+    if (error) { alert('Failed to create share link: ' + error.message); return; }
   }
   const url = window.location.origin + '?share=' + token;
   await navigator.clipboard.writeText(url).catch(()=>{});
@@ -3215,9 +3249,9 @@ async function generateShareLink(bid) {
 }
 
 async function refreshShareLink(bid, token) {
-  // Update the snapshot data to current budget state
   const b = budgets.find(x=>x.id===bid); if(!b) return;
-  const { error } = await _supa.from('share_links').update({ data: JSON.parse(JSON.stringify(b)) }).eq('token', token).eq('user_id', _currentUser.id);
+  const payload = buildSharePayload(b);
+  const { error } = await _supa.from('share_links').update({ data: payload }).eq('token', token).eq('user_id', _currentUser.id);
   if (error) { alert('Failed to refresh share link.'); return; }
   const modal = document.getElementById('share-link-modal');
   if(modal) { const msg = modal.querySelector('#share-link-status'); if(msg){ msg.textContent = '✓ Link updated with latest budget data'; msg.style.color='var(--green)'; setTimeout(()=>msg.textContent='',3000); } }
@@ -15184,8 +15218,7 @@ function renderCompareView(ids) {
 <div id="share-view">
   <div class="share-header">
     <div style="display:flex;align-items:center;gap:12px">
-      <svg width="18" height="18" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="6" fill="#6c8ef0"/><path d="M8 24V12l8-4 8 4v12l-8 4-8-4z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
-      <span style="font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--text3)">VILLAGER PRO</span>
+      <span style="font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--text2);font-weight:600">VILLAGER PRO</span>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <span class="share-watermark">READ-ONLY · RATES CONFIDENTIAL</span>
