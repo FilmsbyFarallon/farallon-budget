@@ -5572,7 +5572,8 @@ function trashDragLeave(e) {
 function trashDrop(e) {
   e.preventDefault();
   e.stopPropagation();
-  document.getElementById('sb-trash-btn')?.classList.remove('drag-over','drag-ready');
+  const btn = document.getElementById('sb-trash-btn');
+  if(btn) btn.classList.remove('drag-over','drag-ready');
   const bid = _sbDragBid || e.dataTransfer.getData('text/plain');
   _sbDragBid = null;
   if(!bid) return;
@@ -5581,7 +5582,11 @@ function trashDrop(e) {
   if(activeId===bid) activeId=null;
   trash.unshift({ id: b.id, name: b.name, deletedAt: Date.now(), data: JSON.parse(JSON.stringify(b)) });
   autoSnapshot(b, 'Before trash');
+  save();
+  render();
   updateTrashCount();
+  // Brief confirmation flash
+  if(btn){ btn.style.color='var(--red)'; btn.style.background='rgba(248,113,113,.12)'; setTimeout(()=>{ btn.style.color=''; btn.style.background=''; }, 800); }
 }
 
 
