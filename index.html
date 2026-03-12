@@ -2554,6 +2554,12 @@ function showAuthScreen() {
   if (ap) ap.style.display = 'none';
 }
 function hideAuthScreen() {
+  // If this is a password recovery session — show reset form, don't enter app
+  if (window.__isPasswordRecovery) {
+    authShowPanel('reset');
+    showAuthScreen();
+    return;
+  }
   const el = document.getElementById('auth-screen');
   if (el) el.style.display = 'none';
   const ap = document.getElementById('app');
