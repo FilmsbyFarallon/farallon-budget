@@ -98,6 +98,10 @@ nav {
 ══════════════════════════════════════════ */
 @media (max-width: 700px) {
 
+  /* PREVENT ALL HORIZONTAL OVERFLOW */
+  body { overflow-x: hidden; }
+  * { max-width: 100%; box-sizing: border-box; }
+
   /* NAV */
   nav { padding: 0 16px; }
   .nav-links { display: none; }
@@ -111,11 +115,21 @@ nav {
   .hero-sub { font-size: 14px; margin-top: 20px; }
   .hero-actions { flex-direction: column; gap: 10px; margin-top: 28px; width: 100%; }
   .hero-actions .btn-primary,
-  .hero-actions .btn-outline { width: 100%; text-align: center; padding: 14px 20px; box-sizing: border-box; }
-  .hero-trust { gap: 12px; font-size: 9px; }
+  .hero-actions .btn-outline { width: 100%; text-align: center; padding: 14px 20px; }
+
+  /* Hero trust — 2 col grid instead of broken flex wrap */
+  .hero-trust {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 0;
+    font-size: 9px;
+    margin-top: 24px;
+    text-align: left;
+  }
+  .hero-trust span[style] { display: none; } /* hide dot separators */
 
   /* APP MOCKUP — hide on mobile, show stat strip instead */
-  .hero-app-frame { display: none; }
+  .hero-app-frame { display: none !important; }
   .hero-mobile-stats {
     display: flex !important;
     flex-direction: column; gap: 2px;
@@ -124,43 +138,55 @@ nav {
 
   /* SECTION GLOBAL */
   .section-wrap { padding: 60px 20px 0; }
-  .sec-headline { font-size: clamp(30px, 8vw, 44px); line-height: 1.05; }
-  .sec-sub { font-size: 13px; margin-bottom: 40px; }
+  .sec-headline { font-size: clamp(28px, 8vw, 40px) !important; line-height: 1.08 !important; }
+  .sec-sub { font-size: 13px; margin-bottom: 36px; }
 
-  /* WHO IT'S FOR */
+  /* WHO IT'S FOR — single column, full width */
   .audience-section { padding: 60px 20px; }
-  .audience-grid { grid-template-columns: 1fr; margin-top: 40px; }
+  .audience-grid { display: flex !important; flex-direction: column !important; gap: 2px !important; margin-top: 36px; }
+  .audience-card { min-width: 0; width: 100%; }
 
-  /* AICP SECTION */
+  /* AICP TABLE — constrain width, hide rate column on smallest screens */
   .aicp-section { padding: 60px 20px; }
-  .aicp-inner { grid-template-columns: 1fr; gap: 40px; }
+  .aicp-inner { display: flex !important; flex-direction: column !important; gap: 40px; }
+  .aicp-table { width: 100%; overflow: hidden; }
+  .aicp-table-head { padding: 8px 10px; }
+  .aicp-row { padding: 8px 10px; gap: 8px; }
+  .aicp-code { font-size: 9px; width: 28px; }
+  .aicp-desc { font-size: 11px; }
+  .aicp-rate { font-size: 10px; }
+  .aicp-badge { display: none; } /* hide union badges on mobile — too cramped */
+  .aicp-table-section { padding: 5px 10px; }
+  .aicp-more { padding: 8px 10px; }
+  .aicp-stat-row { gap: 16px; }
+  .aicp-stat-num { font-size: 28px; }
 
   /* FEATURES */
   .features-section { padding: 60px 20px; }
-  .features-grid { grid-template-columns: 1fr; }
+  .features-grid { display: flex !important; flex-direction: column !important; gap: 2px; }
   .feature-card { padding: 24px 20px 28px; }
 
   /* SHARE LINK */
   .sharelink-section { padding: 60px 20px; }
-  .sharelink-inner { grid-template-columns: 1fr; gap: 36px; }
+  .sharelink-inner { display: flex !important; flex-direction: column !important; gap: 36px; }
 
   /* PAIN / VS */
   .pain-section { padding: 60px 20px; }
-  .vs-grid { grid-template-columns: 1fr; }
+  .vs-grid { display: flex !important; flex-direction: column !important; }
   .vs-divider { display: none; }
   .vs-col { padding: 24px 20px; }
   .vs-col.bad { margin-bottom: 2px; }
 
   /* PRICING */
   .pricing-section { padding: 60px 20px; }
-  .pricing-grid { grid-template-columns: 1fr; margin-top: 40px; }
+  .pricing-grid { display: flex !important; flex-direction: column !important; gap: 16px; margin-top: 40px; }
   .pricing-card { padding: 24px 20px; }
 
   /* FAQ */
   .faq-section { padding: 60px 20px 100px; }
   .faq-q { font-size: 13px; padding: 16px 18px; }
   .faq-a { padding: 0 18px; }
-  .faq-a.open { padding: 0 18px 18px; }
+  .faq-a.open { padding: 0 18px 18px; max-height: 500px; }
 
   /* FINAL CTA */
   .cta-section { padding: 80px 20px; }
@@ -169,8 +195,8 @@ nav {
   footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; gap: 12px; }
   .footer-links { flex-wrap: wrap; gap: 16px; }
 
-  /* STICKY BAR — give it breathing room above iOS home indicator */
-  .mobile-cta { display: block; padding: 10px 16px 20px; }
+  /* STICKY BAR — extra bottom padding for iOS home indicator */
+  .mobile-cta { display: block; padding: 10px 16px 28px; }
 }
 
 /* ── HERO ── */
