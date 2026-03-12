@@ -1220,7 +1220,7 @@ body{margin:0;padding:0}
 
     <!-- Footer note -->
     <div style="text-align:center;font-size:11px;color:var(--text4);font-family:var(--mono)">
-      Test card: 4242 4242 4242 4242 &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; Billed securely via Stripe
+      Cancel anytime &nbsp;·&nbsp; Billed securely via Stripe &nbsp;·&nbsp; 7-day money back guarantee
     </div>
 
   </div>
@@ -2285,7 +2285,12 @@ function hidePricingScreen() {
 }
 
 function selectFreePlan() {
-  // Mark plan selected so pricing doesn't re-show on next login
+  // Mark plan selected locally immediately so maybShowPricing doesn't loop
+  if (_currentUser) {
+    if (!_currentUser.user_metadata) _currentUser.user_metadata = {};
+    _currentUser.user_metadata.plan_selected = true;
+  }
+  // Also persist to Supabase async
   if (_currentUser && !_devMode) {
     try { _supa.auth.updateUser({ data: { plan_selected: true } }).catch(()=>{}); } catch(e){}
   }
