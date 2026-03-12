@@ -789,7 +789,7 @@ body{margin:0;padding:0}
 
 /* Tooltip card */
 #tour-tooltip {
-  position: fixed; z-index: 10001;
+  position: fixed; z-index: 10002;
   background: var(--bg1); border: 1px solid var(--border2);
   border-radius: 6px; padding: 22px 24px 18px;
   width: 340px; max-width: calc(100vw - 32px);
@@ -3485,6 +3485,32 @@ async function migrateFromLocalStorage() {
 // ── Demo budget ID (set when tour creates it) ──────────────────
 let _tourDemoBudgetId = null;
 let _tourStep = 0;
+let _tourKeyHandler = null;
+
+function _tourAddKeyNav() {
+  _tourRemoveKeyNav();
+  _tourKeyHandler = function(e) {
+    if (!document.getElementById('tour-tooltip') ||
+        document.getElementById('tour-tooltip').style.display === 'none') return;
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      tourNext();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      tourBack();
+    } else if (e.key === 'Escape') {
+      tourSkip();
+    }
+  };
+  document.addEventListener('keydown', _tourKeyHandler);
+}
+
+function _tourRemoveKeyNav() {
+  if (_tourKeyHandler) {
+    document.removeEventListener('keydown', _tourKeyHandler);
+    _tourKeyHandler = null;
+  }
+}
 
 function _tourEl(id)  { return document.getElementById(id); }
 
@@ -3993,7 +4019,7 @@ function tourStart() {
   if (overlay) overlay.classList.add('active');
 
   // Delay first step until render completes
-  setTimeout(()=>_tourShowStep(0), 300);
+  setTimeout(()=>{ _tourShowStep(0); _tourAddKeyNav(); }, 300);
 }
 
 function tourSkip() {
@@ -4051,6 +4077,7 @@ function tourBack() {
 }
 
 async function tourFinish() {
+  _tourRemoveKeyNav();
   _tourHide();
   closeShareLinksPanel && closeShareLinksPanel();
   _tourCleanup();
