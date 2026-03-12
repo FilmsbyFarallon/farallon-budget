@@ -2462,6 +2462,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Share link detection — handled in DOMContentLoaded
   const shareToken = params.get('share');
   if (shareToken) window.__shareToken = shareToken;
+  // Funnel signup — pre-open signup panel instead of signin
+  if (params.get('signup') === '1') {
+    window.__openSignup = true;
+    window.history.replaceState({}, '', window.location.pathname);
+  }
 })();
 
 function supaInit() {
@@ -2489,6 +2494,10 @@ async function authInit() {
       await cloudLoad();
       hideAuthScreen();
     } else {
+      if (window.__openSignup) {
+        authShowPanel('signup');
+        window.__openSignup = false;
+      }
       showAuthScreen();
     }
     _supa.auth.onAuthStateChange(async (event, session) => {
