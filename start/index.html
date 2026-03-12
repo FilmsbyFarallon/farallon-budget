@@ -1682,7 +1682,7 @@ footer {
           <li><span class="ex">✗</span> Share links with hidden rates</li>
           <li><span class="ex">✗</span> PO management + petty cash</li>
         </ul>
-        <a href="https://villagerpro.io?signup=1" class="pricing-btn outline">CREATE FREE ACCOUNT</a>
+        <a href="https://villagerpro.io?signup=1&plan=free" class="pricing-btn outline">CREATE FREE ACCOUNT</a>
       </div>
 
       <div class="pricing-card pro">
@@ -1809,7 +1809,7 @@ footer {
     <li><a href="#features">Features</a></li>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="https://villagerpro.io">App</a></li>
-    <li><a href="mailto:support@villagerpro.io">Support</a></li>
+    <li><a href="/cdn-cgi/l/email-protection#295a5c5959465b5d695f404545484e4c5b595b46074046">Support</a></li>
   </ul>
   <div class="footer-copy">© 2026 FARALLON STUDIOS LLC</div>
 </footer>
@@ -1819,7 +1819,7 @@ footer {
   <a href="https://villagerpro.io?signup=1" class="btn-primary">CREATE FREE ACCOUNT →</a>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 function faqToggle(btn) {
   const ans = btn.nextElementSibling;
   const isOpen = btn.classList.contains('open');
@@ -1845,10 +1845,4 @@ const io = new IntersectionObserver((entries) => {
 document.querySelectorAll('.reveal').forEach((el, i) => {
   const parent = el.parentElement;
   const siblings = [...(parent?.querySelectorAll('.reveal') || [])];
-  const idx = siblings.indexOf(el);
-  if (idx > 0 && idx < 4) el.style.transitionDelay = (idx * 90) + 'ms';
-  io.observe(el);
-});
-</script>
-</body>
-</html>
+  c

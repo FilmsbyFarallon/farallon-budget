@@ -2303,6 +2303,12 @@ function maybShowPricing() {
   if (_devMode) return false;
   const meta = _currentUser?.user_metadata || {};
   if (meta.plan_selected) return false;
+  // Coming from funnel free button — auto-select free, skip pricing screen
+  if (window.__autoFreePlan) {
+    window.__autoFreePlan = false;
+    selectFreePlan();
+    return false;
+  }
   const realBudgets = budgets.filter(b => !b._isDemo);
   if (realBudgets.length === 0) {
     showPricingScreen('new_user');
@@ -2465,6 +2471,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Funnel signup — pre-open signup panel instead of signin
   if (params.get('signup') === '1') {
     window.__openSignup = true;
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+  // Funnel free plan — auto-select free on first login, skip pricing screen
+  if (params.get('plan') === 'free') {
+    window.__autoFreePlan = true;
     window.history.replaceState({}, '', window.location.pathname);
   }
 })();
