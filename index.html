@@ -227,12 +227,19 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .status-approved{background:#0a1a10;color:#3a8a5a;border:1px solid #103020}
 .budget-card-actions{display:flex;gap:4px;margin-top:8px}
 .sidebar-footer{border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;justify-content:center;min-height:64px}
-/* Trash drop zone */
-#sb-trash-zone{display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-top:1px solid var(--border);cursor:pointer;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:color .15s,background .15s;position:relative}
-#sb-trash-zone:hover{color:var(--red);background:rgba(248,113,113,.06)}
-#sb-trash-zone.drag-active{color:var(--red);background:rgba(248,113,113,.08);animation:trashPulse .7s ease-in-out infinite alternate}
-#sb-trash-zone.drag-over{color:#fff;background:rgba(248,113,113,.22);outline:1px dashed var(--red);outline-offset:-2px}
-@keyframes trashPulse{from{color:var(--text3);background:transparent}to{color:var(--red);background:rgba(248,113,113,.08)}}
+/* Trash — small persistent icon in footer */
+#sb-trash-btn{display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-top:1px solid var(--border);cursor:pointer;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:color .15s,background .15s}
+#sb-trash-btn:hover{color:var(--red);background:rgba(248,113,113,.06)}
+/* Reveal-on-drag overlay — covers the entire sidebar list area */
+#sb-trash-overlay{position:absolute;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(6,6,8,.92);border:2px dashed #3a1515;border-radius:4px;margin:8px;pointer-events:none;opacity:0;transition:opacity .2s ease,border-color .2s ease}
+#sb-trash-overlay.visible{opacity:1;pointer-events:all}
+#sb-trash-overlay.drag-over{border-color:var(--red);background:rgba(248,113,113,.08)}
+#sb-trash-overlay-icon{color:#3a1515;transition:transform .15s ease,color .15s ease}
+#sb-trash-overlay.drag-over #sb-trash-overlay-icon{color:var(--red)}
+#sb-trash-overlay-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:#3a1515;transition:color .15s ease}
+#sb-trash-overlay.drag-over #sb-trash-overlay-label{color:var(--red)}
+@keyframes trashBounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.1)}}
+#sb-trash-overlay.drag-over #sb-trash-overlay-icon{animation:trashBounce .6s ease infinite}
 
 /* CONTENT */
 #content-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
@@ -1406,6 +1413,22 @@ body{margin:0;padding:0}
 
     <div class="sidebar-list" id="sidebar-list" oncontextmenu="sbListCtx(event)"></div>
 
+    <!-- Trash overlay — covers full sidebar on drag, hidden otherwise -->
+    <div id="sb-trash-overlay"
+      ondragover="trashDragOver(event)"
+      ondragleave="trashDragLeave(event)"
+      ondrop="trashDrop(event)">
+      <div id="sb-trash-overlay-icon">
+        <svg width="40" height="40" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2 4 14 4"/>
+          <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
+          <path d="M6 7v5M10 7v5"/>
+          <path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
+        </svg>
+      </div>
+      <div id="sb-trash-overlay-label">DROP TO TRASH</div>
+    </div>
+
     <div class="sidebar-footer" style="flex-direction:column;gap:0;padding:0">
       <button onclick="activeTab==='labor-guide' ? closeLaborGuide() : switchTab('labor-guide')" id="sb-laborguide-btn" style="display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;cursor:pointer;transition:all .15s;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
@@ -1426,18 +1449,14 @@ body{margin:0;padding:0}
         </svg>
         Vendors
       </button>
-      <div id="sb-trash-zone"
-        onclick="openTrash()"
-        ondragover="trashDragOver(event)"
-        ondragleave="trashDragLeave(event)"
-        ondrop="trashDrop(event)">
-        <svg id="sb-trash-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+      <div id="sb-trash-btn" onclick="openTrash()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="2 4 14 4"/>
           <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
           <path d="M6 7v5M10 7v5"/>
           <path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
         </svg>
-        <span id="sb-trash-label">Trash</span>
+        <span>Trash</span>
         <span id="sb-trash-count" style="margin-left:auto;font-size:9px;color:var(--text4);font-family:var(--mono);background:var(--bg3);padding:1px 6px;border-radius:8px;display:none"></span>
       </div>
     </div>
@@ -4333,7 +4352,7 @@ function sbDragStart(e, bid) {
   _sbDragGhost.textContent = '📄  ' + (b ? b.name : 'Budget');
   document.body.appendChild(_sbDragGhost);
   e.dataTransfer.setDragImage(_sbDragGhost, 10, 14);
-  setTimeout(()=>{ const el=document.getElementById('sbb-'+bid); if(el) el.classList.add('dragging'); document.getElementById('sb-trash-zone')?.classList.add('drag-active'); }, 0);
+  setTimeout(()=>{ const el=document.getElementById('sbb-'+bid); if(el) el.classList.add('dragging'); document.getElementById('sb-trash-overlay')?.classList.add('visible'); }, 0);
 }
 
 function sbDragEnd(e) {
@@ -4341,9 +4360,8 @@ function sbDragEnd(e) {
   if (_sbDragGhost) { _sbDragGhost.remove(); _sbDragGhost = null; }
   document.querySelectorAll('.sb-budget.dragging').forEach(el=>el.classList.remove('dragging'));
   document.querySelectorAll('.sb-folder.drag-over').forEach(el=>el.classList.remove('drag-over'));
-  const zone = document.getElementById('sb-trash-zone');
-  if(zone){ zone.classList.remove('drag-active','drag-over'); }
-  document.getElementById('sb-trash-label').textContent = 'Trash';
+  const overlay = document.getElementById('sb-trash-overlay');
+  if(overlay){ overlay.classList.remove('visible','drag-over'); }
 }
 
 function sbFolderDragOver(e, fid) {
@@ -5341,23 +5359,20 @@ function trashDragOver(e) {
   if(!_sbDragBid) return;
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
-  document.getElementById('sb-trash-zone')?.classList.add('drag-over');
-  document.getElementById('sb-trash-label').textContent = 'Drop to trash';
+  document.getElementById('sb-trash-overlay')?.classList.add('drag-over');
 }
 
 function trashDragLeave(e) {
-  const zone = document.getElementById('sb-trash-zone');
-  if(zone && !zone.contains(e.relatedTarget)) {
-    zone.classList.remove('drag-over');
-    document.getElementById('sb-trash-label').textContent = 'Trash';
+  const overlay = document.getElementById('sb-trash-overlay');
+  if(overlay && !overlay.contains(e.relatedTarget)) {
+    overlay.classList.remove('drag-over');
   }
 }
 
 function trashDrop(e) {
   e.preventDefault();
-  const zone = document.getElementById('sb-trash-zone');
-  if(zone) zone.classList.remove('drag-over');
-  document.getElementById('sb-trash-label').textContent = 'Trash';
+  const overlay = document.getElementById('sb-trash-overlay');
+  if(overlay){ overlay.classList.remove('drag-over','visible'); }
   const bid = _sbDragBid || e.dataTransfer.getData('text/plain');
   if(!bid) return;
   const b = budgets.find(x=>x.id===bid); if(!b) return;
@@ -5367,9 +5382,6 @@ function trashDrop(e) {
   if(activeId===bid) activeId=null;
   _sbDragBid = null;
   save(); render(); updateTrashCount();
-  // Brief flash on trash icon
-  const icon = document.getElementById('sb-trash-zone');
-  if(icon){ icon.style.color='var(--red)'; setTimeout(()=>icon.style.color='',600); }
 }
 
 function updateTrashCount() {
