@@ -231,7 +231,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 #sb-trash-btn{display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-top:1px solid var(--border);cursor:pointer;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:color .15s,background .15s}
 #sb-trash-btn:hover{color:var(--red);background:rgba(248,113,113,.06)}
 /* Reveal-on-drag overlay — covers the entire sidebar list area */
-#sb-trash-overlay{position:absolute;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(6,6,8,.92);border:2px dashed #3a1515;border-radius:4px;margin:8px;pointer-events:none;opacity:0;transition:opacity .2s ease,border-color .2s ease}
+#sb-trash-overlay{position:absolute;bottom:108px;left:0;right:0;height:90px;z-index:200;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:12px;background:rgba(6,6,8,.92);border:2px dashed #3a1515;border-radius:4px;margin:0 8px;pointer-events:none;opacity:0;transition:opacity .2s ease,border-color .2s ease}
 #sb-trash-overlay.visible{opacity:1;pointer-events:all}
 #sb-trash-overlay.drag-over{border-color:var(--red);background:rgba(248,113,113,.08)}
 #sb-trash-overlay-icon{color:#3a1515;transition:transform .15s ease,color .15s ease}
@@ -1419,7 +1419,7 @@ body{margin:0;padding:0}
       ondragleave="trashDragLeave(event)"
       ondrop="trashDrop(event)">
       <div id="sb-trash-overlay-icon">
-        <svg width="40" height="40" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="2 4 14 4"/>
           <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
           <path d="M6 7v5M10 7v5"/>
