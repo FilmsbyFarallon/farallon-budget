@@ -3180,7 +3180,7 @@ async function loadShareView(token) {
 }
 
 function renderShareView(payload) {
-  const { name, client, director, groups, grandBidTotal, grandActual, hasActuals, feeLabel, feeAmount } = payload;
+  const { name, client, director, groups, grandBidTotal, grandActual, hasActuals, feeLabel, feeAmount, linkName } = payload;
   let rows = '';
   (groups||[]).forEach(g => {
     rows += `<tr class="share-group"><td colspan="${hasActuals?3:2}">${g.label}</td></tr>`;
@@ -3200,7 +3200,9 @@ function renderShareView(payload) {
     </tr>`;
   }
   const sharedOn = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const preparedFor = linkName ? `<div style="display:inline-block;margin-bottom:16px;padding:4px 12px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);border-radius:2px;font-size:10px;font-family:var(--mono);color:var(--accent);letter-spacing:.06em">PREPARED FOR ${esc(linkName).toUpperCase()}</div>` : '';
   document.getElementById('share-content').innerHTML = `
+    ${preparedFor}
     <div class="share-project-name">${esc(name||'Untitled Budget')}</div>
     <div class="share-project-meta">
       ${client ? esc(client) + (director ? ' · ' : '') : ''}${director ? 'Dir. ' + esc(director) : ''}${(client||director) ? ' · ' : ''}Shared ${sharedOn}
@@ -3299,43 +3301,16 @@ async function createShareLink(bid) {
   openShareLinksPanel();
 }
 
-async function pushShareLinkUpdate(token, bid, btn) {
+async function renameShareLink(token, bid) {
   const b = budgets.find(x=>x.id===bid); if(!b) return;
-  if (btn) { btn.textContent='Pushing…'; btn.disabled=true; btn.style.opacity='0.6'; }
-  if (!b._shareLinks) b._shareLinks = [];
-  const localLink = b._shareLinks.find(l=>l.token===token);
-  const linkName = localLink?.linkName || 'Untitled Link';
-  const createdAt = localLink?.createdAt || Date.now();
-  const id = localLink?.id || (bid + '_' + createdAt);
-  const now = Date.now();
-  const payload = buildSharePayload(b);
-  const updatedData = { ...payload, linkName, createdAt, updatedAt: now };
-  // Try UPDATE first; if RLS blocks it, fall back to delete+insert
-  let { error } = await _supa.from('share_links').update({ data: updatedData }).eq('token', token);
-  if (error) {
-    // Fallback: delete the old row and re-insert with fresh data
-    await _supa.from('share_links').delete().eq('token', token);
-    const ins = await _supa.from('share_links').insert({
-      id, user_id: _currentUser.id, budget_id: bid, token,
-      data: updatedData,
-    });
-    if (ins.error) {
-      if (btn) { btn.disabled=false; btn.style.opacity=''; btn.textContent='Push Update'; }
-      alert('Failed to push update: ' + ins.error.message); return;
-    }
-  }
-  if (btn) { btn.disabled=false; btn.style.opacity=''; }
-  // Update local metadata timestamp
-  if (localLink) { localLink.updatedAt = now; save(); }
-  // Flash the row green, then re-render
-  const row = document.getElementById('slr-' + token);
-  if (row) {
-    row.style.background='rgba(52,211,153,.12)';
-    if (btn) { btn.textContent='✓ Updated'; btn.style.color='var(--green)'; }
-    setTimeout(()=>{ row.style.background=''; renderShareLinksList(); }, 1500);
-  } else {
-    renderShareLinksList();
-  }
+  if (!b._shareLinks) return;
+  const localLink = b._shareLinks.find(l=>l.token===token); if(!localLink) return;
+  const newName = prompt('Rename this share link:', localLink.linkName || '');
+  if (newName === null) return;
+  const trimmed = newName.trim() || localLink.linkName || 'Untitled Link';
+  localLink.linkName = trimmed;
+  save();
+  renderShareLinksList();
 }
 
 async function deleteShareLink(token) {
@@ -3363,7 +3338,7 @@ function closeShareLinksPanel() {
   document.getElementById('share-links-modal').style.display = 'none';
 }
 
-async function renderShareLinksList() {
+function renderShareLinksList() {
   const container = document.getElementById('share-links-list');
   if (!container) return;
   // Build list from local budget metadata — no Supabase query needed
@@ -3374,45 +3349,47 @@ async function renderShareLinksList() {
     }
   });
   if (!allLinks.length) {
-    container.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text4);font-family:var(--mono);font-size:11px">No share links yet.<br><br>Right-click any budget → Create Share Link…</div>';
+    container.innerHTML = '<div style="padding:48px 0;text-align:center;color:var(--text4);font-family:var(--mono);font-size:11px;line-height:1.9">No share links yet.<br>Right-click any budget → Create Share Link…</div>';
     return;
   }
-  // Group by budget
+  // Group by budget, preserving sidebar order
   const byBudget = {};
-  allLinks.forEach(l => {
-    if (!byBudget[l.budget_id]) byBudget[l.budget_id] = [];
-    byBudget[l.budget_id].push(l);
-  });
+  budgets.forEach(b => { if (b._shareLinks?.length) byBudget[b.id] = b._shareLinks.map(l=>({...l,budget_id:b.id})); });
   let html = '';
   Object.entries(byBudget).forEach(([bid, bLinks]) => {
     const b = budgets.find(x=>x.id===bid);
     const budgetName = b ? b.name : 'Deleted Budget';
-    html += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:3px;overflow:hidden">
-      <div style="padding:8px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:11px;font-weight:600;color:var(--text2)">${esc(budgetName)}</div>
-        ${b ? `<button onclick="createShareLink('${bid}')" style="padding:3px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--accent);border-radius:2px;cursor:pointer">+ New Link</button>` : ''}
+    const canAdd = b && bLinks.length < 3;
+    html += `<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:2px">
+      <div style="padding:8px 14px 8px 12px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--text3)" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M4 4V3a1 1 0 011-1h6a1 1 0 011 1v1M6 7v5M10 7v5"/><rect x="2" y="4" width="12" height="10" rx="1" stroke="none" fill="var(--bg3)"/><path d="M3 4l.8 9a1 1 0 001 .9h6.4a1 1 0 001-.9L13 4"/></svg>
+        <span style="font-size:11px;font-weight:600;color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(budgetName)}</span>
+        <span style="font-size:9px;color:var(--text4);font-family:var(--mono);flex-shrink:0">${bLinks.length}/3</span>
+        ${canAdd ? `<button onclick="createShareLink('${bid}')" style="padding:2px 9px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--accent);border-radius:2px;cursor:pointer;flex-shrink:0;letter-spacing:.02em">+ New</button>` : ''}
       </div>`;
-    bLinks.forEach(l => {
+    bLinks.forEach((l, idx) => {
       const url = window.location.origin + '?share=' + l.token;
-      const updated = l.updatedAt ? new Date(l.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
-      html += `<div id="slr-${l.token}" style="padding:10px 14px;border-bottom:1px solid var(--border);transition:background .3s;display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><line x1="6" y1="7" x2="10" y2="5"/><line x1="6" y1="9" x2="10" y2="11"/></svg>
+      const createdDate = l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      const isLast = idx === bLinks.length - 1;
+      html += `<div id="slr-${l.token}" style="padding:10px 14px;${isLast?'':'border-bottom:1px solid var(--border);'}background:var(--bg2);transition:background .4s;display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><line x1="6" y1="7" x2="10" y2="5"/><line x1="6" y1="9" x2="10" y2="11"/></svg>
           <span style="font-size:12px;font-weight:600;color:var(--text);flex:1">${esc(l.linkName||'Untitled Link')}</span>
-          <span style="font-size:9px;color:var(--text4);font-family:var(--mono)">Updated ${updated}</span>
+          <button onclick="renameShareLink('${l.token}','${bid}')" title="Rename" style="padding:2px 7px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;flex-shrink:0">Rename</button>
+          <button onclick="deleteShareLink('${l.token}')" title="Delete link" style="padding:2px 6px;font-size:12px;background:transparent;border:1px solid transparent;color:var(--text4);border-radius:2px;cursor:pointer;flex-shrink:0;line-height:1" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--text4)';this.style.borderColor='transparent'">✕</button>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
-          <input value="${url}" readonly onclick="this.select()" style="flex:1;background:var(--bg1);border:1px solid var(--border2);border-radius:2px;padding:5px 8px;font-size:10px;font-family:var(--mono);color:var(--text3);outline:none;min-width:0">
-          <button onclick="navigator.clipboard.writeText('${url}');this.textContent='✓ Copied';this.style.color='var(--green)';setTimeout(()=>{this.textContent='Copy';this.style.color=''},2000)" style="padding:5px 10px;font-size:10px;font-family:var(--mono);background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0">Copy</button>
-          ${b ? `<button onclick="pushShareLinkUpdate('${l.token}','${bid}',this)" style="padding:5px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Push current budget numbers to this link">Push Update</button>` : ''}
-          <button onclick="deleteShareLink('${l.token}')" style="padding:5px 8px;font-size:11px;background:transparent;border:1px solid transparent;color:var(--text4);border-radius:2px;cursor:pointer;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text4)'">✕</button>
+          <input value="${url}" readonly onclick="this.select()" style="flex:1;background:var(--bg1);border:1px solid var(--border2);border-radius:2px;padding:5px 8px;font-size:10px;font-family:var(--mono);color:var(--text3);outline:none;min-width:0;cursor:text">
+          <button onclick="navigator.clipboard.writeText('${url}');this.textContent='✓ Copied';this.style.color='var(--green)';this.style.borderColor='var(--green)';setTimeout(()=>{this.textContent='Copy';this.style.color='';this.style.borderColor=''},2000)" style="padding:5px 11px;font-size:10px;font-family:var(--mono);background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0">Copy</button>
         </div>
+        <div style="font-size:9px;color:var(--text4);font-family:var(--mono)">Created ${createdDate}</div>
       </div>`;
     });
     html += '</div>';
   });
   container.innerHTML = html;
 }
+
 
 function updateShareLinksCount() {
   const count = budgets.reduce((n, b) => n + (b._shareLinks?.length || 0), 0);
