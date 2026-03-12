@@ -2496,6 +2496,7 @@ async function authInit() {
     // Check if we're handling a password reset link
     const hash = window.location.hash;
     if (hash && hash.includes('type=recovery')) {
+      window.__isPasswordRecovery = true;
       authShowPanel('reset');
       showAuthScreen();
       return;
@@ -2512,20 +2513,25 @@ async function authInit() {
       showAuthScreen();
     }
     _supa.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        window.__isPasswordRecovery = true;
+        authShowPanel('reset');
+        showAuthScreen();
+        return;
+      }
       if (event === 'SIGNED_IN' && session?.user) {
         _currentUser = session.user;
-        // If this is after a password reset, show the reset panel
-        if (window.location.hash.includes('type=recovery')) {
+        if (window.__isPasswordRecovery || window.location.hash.includes('type=recovery')) {
+          window.__isPasswordRecovery = true;
           authShowPanel('reset');
+          showAuthScreen();
           return;
         }
         await cloudLoad();
         hideAuthScreen();
-      } else if (event === 'PASSWORD_RECOVERY') {
-        authShowPanel('reset');
-        showAuthScreen();
       } else if (event === 'SIGNED_OUT') {
         _currentUser = null;
+        window.__isPasswordRecovery = false;
         showAuthScreen();
       }
     });
@@ -2702,6 +2708,7 @@ async function authResetPassword() {
       const { data: { session } } = await _supa.auth.getSession();
       if (session?.user) {
         _currentUser = session.user;
+        window.__isPasswordRecovery = false;
         await cloudLoad();
         hideAuthScreen();
         window.location.hash = '';
