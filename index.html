@@ -10884,6 +10884,25 @@ function saveSnapshot() {
   spRefresh('snapshots');
 }
 
+function autoSnapshot(b, label) {
+  if (!b) return;
+  const snap = {
+    id: Date.now().toString(),
+    budgetId: b.id,
+    label: label || 'Auto-save',
+    ts: Date.now(),
+    data: JSON.parse(JSON.stringify(b))
+  };
+  snapshots.unshift(snap);
+  // Keep max 20 snapshots per budget
+  const budgetSnaps = snapshots.filter(s=>s.budgetId===b.id);
+  if(budgetSnaps.length > 20) {
+    const oldest = budgetSnaps[budgetSnaps.length-1];
+    snapshots = snapshots.filter(s=>s.id!==oldest.id);
+  }
+  save();
+}
+
 async function restoreSnapshot(id) {
   if (!gateSnapshot()) return;
   const snap = snapshots.find(s=>s.id===id); if(!snap) return;
@@ -10891,6 +10910,8 @@ async function restoreSnapshot(id) {
   const ts = new Date(snap.ts);
   const dateStr = ts.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   if(!await cmDanger(`Restore snapshot`,`Restore snapshot <strong>${snap.label}</strong> from ${dateStr}? Current values will be replaced and this cannot be undone.`,'Restore')) return;
+  // Auto-snapshot current state before overwriting
+  autoSnapshot(b, `Before restore: ${snap.label}`);
   // Copy all budget data fields from snapshot, keep id
   const snap_data = JSON.parse(JSON.stringify(snap.data));
   snap_data.id = b.id;
@@ -12539,6 +12560,8 @@ function saveLineNote(lineId, value) {
 async function clearBudgetById(id) {
   const b = budgets.find(x=>x.id===id); if(!b) return;
   if(!await cmDanger('Clear budget values','This will clear all line item values in <strong>'+b.name+'</strong>. Project info and markup settings are kept.','Clear Values')) return;
+  // Auto-snapshot before clearing
+  autoSnapshot(b, 'Before clear');
   if(activeId === id) { activeId = id; clearBudget(); return; }
   b.values = {}; b.actuals = {}; b.fringes = {}; b.lineNotes = {}; b.sectionNotes = {};
   render();
@@ -12548,6 +12571,8 @@ let _clearUndo = null;
 let _clearUndoTimer = null;
 function clearBudget() {
   const b = active(); if(!b) return;
+  // Auto-snapshot for persistent recovery (in addition to in-memory undo)
+  autoSnapshot(b, 'Before clear');
   // Snapshot for undo
   _clearUndo = {
     id: b.id,
