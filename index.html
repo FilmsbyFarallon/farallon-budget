@@ -5587,17 +5587,19 @@ function trashDragLeave(e) {
 
 function trashDrop(e) {
   e.preventDefault();
+  e.stopPropagation();
   const overlay = document.getElementById('sb-trash-overlay');
   if(overlay){ overlay.classList.remove('drag-over','visible'); }
   const bid = _sbDragBid || e.dataTransfer.getData('text/plain');
+  _sbDragBid = null; // clear immediately before any renders
   if(!bid) return;
   const b = budgets.find(x=>x.id===bid); if(!b) return;
-  autoSnapshot(b, 'Before trash');
-  trash.unshift({ id: b.id, name: b.name, deletedAt: Date.now(), data: JSON.parse(JSON.stringify(b)) });
+  // Remove from budgets FIRST, then snapshot (snapshot calls save/render)
   budgets = budgets.filter(x=>x.id!==bid);
   if(activeId===bid) activeId=null;
-  _sbDragBid = null;
-  save(); render(); updateTrashCount();
+  trash.unshift({ id: b.id, name: b.name, deletedAt: Date.now(), data: JSON.parse(JSON.stringify(b)) });
+  autoSnapshot(b, 'Before trash');
+  updateTrashCount();
 }
 
 function updateTrashCount() {
@@ -11234,6 +11236,24 @@ async function deleteTemplate(id) {
 // ─────────────────────────────────────────────────────────────────────────────
 // SNAPSHOTS — named version saves for the active budget
 // ─────────────────────────────────────────────────────────────────────────────
+function autoSnapshot(b, label) {
+  if (!b) return;
+  const snap = {
+    id: Date.now().toString(),
+    budgetId: b.id,
+    label: label || 'Auto-save',
+    ts: Date.now(),
+    data: JSON.parse(JSON.stringify(b))
+  };
+  snapshots.unshift(snap);
+  const budgetSnaps = snapshots.filter(s=>s.budgetId===b.id);
+  if(budgetSnaps.length > 20) {
+    const oldest = budgetSnaps[budgetSnaps.length-1];
+    snapshots = snapshots.filter(s=>s.id!==oldest.id);
+  }
+  save();
+}
+
 function saveSnapshot() {
   if (!gateSnapshot()) return;
   const b = active(); if(!b) return;
@@ -11264,6 +11284,8 @@ async function restoreSnapshot(id) {
   const ts = new Date(snap.ts);
   const dateStr = ts.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   if(!await cmDanger(`Restore snapshot`,`Restore snapshot <strong>${snap.label}</strong> from ${dateStr}? Current values will be replaced and this cannot be undone.`,'Restore')) return;
+  // Auto-snapshot current state before overwriting
+  autoSnapshot(b, `Before restore: ${snap.label}`);
   // Copy all budget data fields from snapshot, keep id
   const snap_data = JSON.parse(JSON.stringify(snap.data));
   snap_data.id = b.id;
@@ -12912,6 +12934,7 @@ function saveLineNote(lineId, value) {
 async function clearBudgetById(id) {
   const b = budgets.find(x=>x.id===id); if(!b) return;
   if(!await cmDanger('Clear budget values','This will clear all line item values in <strong>'+b.name+'</strong>. Project info and markup settings are kept.','Clear Values')) return;
+  autoSnapshot(b, 'Before clear');
   if(activeId === id) { activeId = id; clearBudget(); return; }
   b.values = {}; b.actuals = {}; b.fringes = {}; b.lineNotes = {}; b.sectionNotes = {};
   render();
@@ -12921,6 +12944,8 @@ let _clearUndo = null;
 let _clearUndoTimer = null;
 function clearBudget() {
   const b = active(); if(!b) return;
+  // Auto-snapshot for persistent recovery
+  autoSnapshot(b, 'Before clear');
   // Snapshot for undo
   _clearUndo = {
     id: b.id,
