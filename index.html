@@ -4283,6 +4283,10 @@ function _tourRunAction(action) {
     setTimeout(function() {
       spClose && spClose();
       spToggle && spToggle('keyboard');
+      setTimeout(function() {
+        var dd = document.getElementById('sp-dropdown');
+        if (dd) dd.style.zIndex = '10001';
+      }, 50);
     }, 200);
   }
 
