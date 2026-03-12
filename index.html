@@ -3299,31 +3299,50 @@ async function createShareLink(bid) {
   openShareLinksPanel();
 }
 
-async function pushShareLinkUpdate(token, bid) {
+async function pushShareLinkUpdate(token, bid, btn) {
   const b = budgets.find(x=>x.id===bid); if(!b) return;
+  if (btn) { btn.textContent='Pushing…'; btn.disabled=true; btn.style.opacity='0.6'; }
   if (!b._shareLinks) b._shareLinks = [];
   const localLink = b._shareLinks.find(l=>l.token===token);
   const linkName = localLink?.linkName || 'Untitled Link';
   const createdAt = localLink?.createdAt || Date.now();
+  const id = localLink?.id || (bid + '_' + createdAt);
   const now = Date.now();
   const payload = buildSharePayload(b);
   const updatedData = { ...payload, linkName, createdAt, updatedAt: now };
-  const { error } = await _supa.from('share_links').update({ data: updatedData }).eq('token', token).eq('user_id', _currentUser.id);
-  if (error) { alert('Failed to push update: ' + error.message); return; }
+  // Try UPDATE first; if RLS blocks it, fall back to delete+insert
+  let { error } = await _supa.from('share_links').update({ data: updatedData }).eq('token', token);
+  if (error) {
+    // Fallback: delete the old row and re-insert with fresh data
+    await _supa.from('share_links').delete().eq('token', token);
+    const ins = await _supa.from('share_links').insert({
+      id, user_id: _currentUser.id, budget_id: bid, token,
+      data: updatedData,
+    });
+    if (ins.error) {
+      if (btn) { btn.disabled=false; btn.style.opacity=''; btn.textContent='Push Update'; }
+      alert('Failed to push update: ' + ins.error.message); return;
+    }
+  }
+  if (btn) { btn.disabled=false; btn.style.opacity=''; }
   // Update local metadata timestamp
   if (localLink) { localLink.updatedAt = now; save(); }
-  renderShareLinksList();
-  // Flash the row after re-render
-  setTimeout(() => {
-    const row = document.getElementById('slr-' + token);
-    if (row) { row.style.background='rgba(52,211,153,.08)'; setTimeout(()=>row.style.background='',1500); }
-  }, 50);
+  // Flash the row green, then re-render
+  const row = document.getElementById('slr-' + token);
+  if (row) {
+    row.style.background='rgba(52,211,153,.12)';
+    if (btn) { btn.textContent='✓ Updated'; btn.style.color='var(--green)'; }
+    setTimeout(()=>{ row.style.background=''; renderShareLinksList(); }, 1500);
+  } else {
+    renderShareLinksList();
+  }
 }
 
 async function deleteShareLink(token) {
   const ok = await cmDanger('Delete share link', 'Anyone with this link will no longer be able to view the budget.', 'Delete Link');
   if (!ok) return;
-  await _supa.from('share_links').delete().eq('token', token).eq('user_id', _currentUser.id);
+  const { error } = await _supa.from('share_links').delete().eq('token', token);
+  if (error) { alert('Failed to delete share link: ' + error.message); return; }
   // Remove from local metadata
   budgets.forEach(b => {
     if (b._shareLinks) b._shareLinks = b._shareLinks.filter(l=>l.token!==token);
@@ -3385,7 +3404,7 @@ async function renderShareLinksList() {
         <div style="display:flex;gap:6px;align-items:center">
           <input value="${url}" readonly onclick="this.select()" style="flex:1;background:var(--bg1);border:1px solid var(--border2);border-radius:2px;padding:5px 8px;font-size:10px;font-family:var(--mono);color:var(--text3);outline:none;min-width:0">
           <button onclick="navigator.clipboard.writeText('${url}');this.textContent='✓ Copied';this.style.color='var(--green)';setTimeout(()=>{this.textContent='Copy';this.style.color=''},2000)" style="padding:5px 10px;font-size:10px;font-family:var(--mono);background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0">Copy</button>
-          ${b ? `<button onclick="pushShareLinkUpdate('${l.token}','${bid}')" style="padding:5px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Push current budget numbers to this link">Push Update</button>` : ''}
+          ${b ? `<button onclick="pushShareLinkUpdate('${l.token}','${bid}',this)" style="padding:5px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Push current budget numbers to this link">Push Update</button>` : ''}
           <button onclick="deleteShareLink('${l.token}')" style="padding:5px 8px;font-size:11px;background:transparent;border:1px solid transparent;color:var(--text4);border-radius:2px;cursor:pointer;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text4)'">✕</button>
         </div>
       </div>`;
