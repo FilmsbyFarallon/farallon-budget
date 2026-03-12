@@ -2478,6 +2478,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.__autoFreePlan = true;
     window.history.replaceState({}, '', window.location.pathname);
   }
+  // Intercept recovery token before Supabase consumes it
+  const _hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
+  const _urlParams = new URLSearchParams(window.location.search);
+  if (_hashParams.get('type') === 'recovery' || _urlParams.get('type') === 'recovery') {
+    window.__isPasswordRecovery = true;
+  }
 })();
 
 function supaInit() {
