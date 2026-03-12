@@ -3085,6 +3085,33 @@ async function cloudLoad() {
     if (budgets.length === 0) await migrateFromLocalStorage();
     companySettings = companies[0]||{};
     budgets.forEach(b=>{ if(!('folderId' in b)) b.folderId=null; });
+    // Migrate share links: if any budget has no _shareLinks, fetch from Supabase to backfill
+    const needsMigration = budgets.some(b => !b._shareLinks);
+    if (needsMigration) {
+      try {
+        const { data: slRows } = await _supa.from('share_links').select('token,budget_id,data,id').eq('user_id', uid);
+        if (slRows && slRows.length) {
+          budgets.forEach(b => { if (!b._shareLinks) b._shareLinks = []; });
+          slRows.forEach(row => {
+            const b = budgets.find(x=>x.id===row.budget_id);
+            if (b && !b._shareLinks.find(l=>l.token===row.token)) {
+              b._shareLinks.push({
+                token: row.token, id: row.id,
+                linkName: row.data?.linkName || 'Untitled Link',
+                createdAt: row.data?.createdAt || Date.now(),
+                updatedAt: row.data?.updatedAt || Date.now(),
+              });
+            }
+          });
+          // Ensure all budgets have the array even if they had no links
+          budgets.forEach(b => { if (!b._shareLinks) b._shareLinks = []; });
+        } else {
+          budgets.forEach(b => { if (!b._shareLinks) b._shareLinks = []; });
+        }
+      } catch(e) {
+        budgets.forEach(b => { if (!b._shareLinks) b._shareLinks = []; });
+      }
+    }
     syncShow('saved', '✓ loaded');
   } catch(err) {
     syncShow('error', '✗ load failed');
@@ -3246,9 +3273,9 @@ function buildSharePayload(b) {
 async function createShareLink(bid) {
   const b = budgets.find(x=>x.id===bid); if(!b) return;
   if (!_currentUser) return;
-  // Check existing count for this budget
-  const { data: existing } = await _supa.from('share_links').select('id').eq('budget_id', bid).eq('user_id', _currentUser.id);
-  if (existing && existing.length >= 3) {
+  // Check existing count from local metadata
+  if (!b._shareLinks) b._shareLinks = [];
+  if (b._shareLinks.length >= 3) {
     alert('You can have up to 3 share links per budget. Please delete an existing one first.');
     openShareLinksPanel(); return;
   }
@@ -3256,12 +3283,16 @@ async function createShareLink(bid) {
   if (!linkName?.trim()) return;
   const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   const id = bid + '_' + Date.now();
+  const now = Date.now();
   const payload = buildSharePayload(b);
   const { error } = await _supa.from('share_links').insert({
     id, user_id: _currentUser.id, budget_id: bid, token,
-    data: { ...payload, linkName: linkName.trim(), createdAt: Date.now(), updatedAt: Date.now() },
+    data: { ...payload, linkName: linkName.trim(), createdAt: now, updatedAt: now },
   });
   if (error) { alert('Failed to create share link: ' + error.message); return; }
+  // Store metadata locally on the budget so panel renders without RLS user_id query
+  b._shareLinks.push({ token, id, linkName: linkName.trim(), createdAt: now, updatedAt: now });
+  save();
   const url = window.location.origin + '?share=' + token;
   await navigator.clipboard.writeText(url).catch(()=>{});
   updateShareLinksCount();
@@ -3270,33 +3301,43 @@ async function createShareLink(bid) {
 
 async function pushShareLinkUpdate(token, bid) {
   const b = budgets.find(x=>x.id===bid); if(!b) return;
-  // Get existing link to preserve linkName and createdAt
-  const { data: existing } = await _supa.from('share_links').select('data').eq('token', token).single();
-  if (!existing) return;
+  if (!b._shareLinks) b._shareLinks = [];
+  const localLink = b._shareLinks.find(l=>l.token===token);
+  const linkName = localLink?.linkName || 'Untitled Link';
+  const createdAt = localLink?.createdAt || Date.now();
+  const now = Date.now();
   const payload = buildSharePayload(b);
-  const updatedData = { ...payload, linkName: existing.data.linkName, createdAt: existing.data.createdAt, updatedAt: Date.now() };
+  const updatedData = { ...payload, linkName, createdAt, updatedAt: now };
   const { error } = await _supa.from('share_links').update({ data: updatedData }).eq('token', token).eq('user_id', _currentUser.id);
-  if (error) { alert('Failed to push update.'); return; }
+  if (error) { alert('Failed to push update: ' + error.message); return; }
+  // Update local metadata timestamp
+  if (localLink) { localLink.updatedAt = now; save(); }
   renderShareLinksList();
-  // Flash the row
-  const row = document.getElementById('slr-' + token);
-  if (row) { row.style.background='rgba(52,211,153,.08)'; setTimeout(()=>row.style.background='',1500); }
+  // Flash the row after re-render
+  setTimeout(() => {
+    const row = document.getElementById('slr-' + token);
+    if (row) { row.style.background='rgba(52,211,153,.08)'; setTimeout(()=>row.style.background='',1500); }
+  }, 50);
 }
 
 async function deleteShareLink(token) {
   const ok = await cmDanger('Delete share link', 'Anyone with this link will no longer be able to view the budget.', 'Delete Link');
   if (!ok) return;
   await _supa.from('share_links').delete().eq('token', token).eq('user_id', _currentUser.id);
+  // Remove from local metadata
+  budgets.forEach(b => {
+    if (b._shareLinks) b._shareLinks = b._shareLinks.filter(l=>l.token!==token);
+  });
+  save();
   updateShareLinksCount();
   renderShareLinksList();
 }
 
-async function openShareLinksPanel() {
+function openShareLinksPanel() {
   const modal = document.getElementById('share-links-modal');
   if (!modal) return;
   modal.style.display = 'flex';
-  document.getElementById('share-links-list').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text4);font-family:var(--mono);font-size:11px">Loading…</div>';
-  await renderShareLinksList();
+  renderShareLinksList();
 }
 
 function closeShareLinksPanel() {
@@ -3304,24 +3345,29 @@ function closeShareLinksPanel() {
 }
 
 async function renderShareLinksList() {
-  if (!_currentUser || !_supa) return;
-  const { data: links } = await _supa.from('share_links').select('token,budget_id,data').eq('user_id', _currentUser.id).order('created_at', { ascending: false });
   const container = document.getElementById('share-links-list');
   if (!container) return;
-  if (!links || links.length === 0) {
+  // Build list from local budget metadata — no Supabase query needed
+  const allLinks = [];
+  budgets.forEach(b => {
+    if (b._shareLinks && b._shareLinks.length) {
+      b._shareLinks.forEach(l => allLinks.push({ ...l, budget_id: b.id }));
+    }
+  });
+  if (!allLinks.length) {
     container.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text4);font-family:var(--mono);font-size:11px">No share links yet.<br><br>Right-click any budget → Create Share Link…</div>';
     return;
   }
   // Group by budget
   const byBudget = {};
-  links.forEach(l => {
+  allLinks.forEach(l => {
     if (!byBudget[l.budget_id]) byBudget[l.budget_id] = [];
     byBudget[l.budget_id].push(l);
   });
   let html = '';
   Object.entries(byBudget).forEach(([bid, bLinks]) => {
     const b = budgets.find(x=>x.id===bid);
-    const budgetName = b ? b.name : (bLinks[0]?.data?.name || 'Deleted Budget');
+    const budgetName = b ? b.name : 'Deleted Budget';
     html += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:3px;overflow:hidden">
       <div style="padding:8px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:11px;font-weight:600;color:var(--text2)">${esc(budgetName)}</div>
@@ -3329,12 +3375,11 @@ async function renderShareLinksList() {
       </div>`;
     bLinks.forEach(l => {
       const url = window.location.origin + '?share=' + l.token;
-      const d = l.data || {};
-      const updated = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      const updated = l.updatedAt ? new Date(l.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
       html += `<div id="slr-${l.token}" style="padding:10px 14px;border-bottom:1px solid var(--border);transition:background .3s;display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;align-items:center;gap:8px">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><line x1="6" y1="7" x2="10" y2="5"/><line x1="6" y1="9" x2="10" y2="11"/></svg>
-          <span style="font-size:12px;font-weight:600;color:var(--text);flex:1">${esc(d.linkName||'Untitled Link')}</span>
+          <span style="font-size:12px;font-weight:600;color:var(--text);flex:1">${esc(l.linkName||'Untitled Link')}</span>
           <span style="font-size:9px;color:var(--text4);font-family:var(--mono)">Updated ${updated}</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -3350,9 +3395,8 @@ async function renderShareLinksList() {
   container.innerHTML = html;
 }
 
-async function updateShareLinksCount() {
-  if (!_currentUser || !_supa) return;
-  const { count } = await _supa.from('share_links').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id);
+function updateShareLinksCount() {
+  const count = budgets.reduce((n, b) => n + (b._shareLinks?.length || 0), 0);
   const badge = document.getElementById('sb-sharelinks-count');
   if (!badge) return;
   if (count > 0) { badge.textContent = count; badge.style.display = ''; }
