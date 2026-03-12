@@ -2495,7 +2495,8 @@ async function authInit() {
     const { data: { session } } = await _supa.auth.getSession();
     // Check if we're handling a password reset link
     const hash = window.location.hash;
-    if (hash && hash.includes('type=recovery')) {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (hash && hash.includes('type=recovery') || searchParams.get('type') === 'recovery') {
       window.__isPasswordRecovery = true;
       authShowPanel('reset');
       showAuthScreen();
