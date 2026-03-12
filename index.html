@@ -227,22 +227,26 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .status-approved{background:#0a1a10;color:#3a8a5a;border:1px solid #103020}
 .budget-card-actions{display:flex;gap:4px;margin-top:8px}
 .sidebar-footer{border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;justify-content:center;min-height:64px}
-/* Trash — small persistent icon in footer */
-#sb-trash-btn{display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-top:1px solid var(--border);cursor:pointer;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:color .15s,background .15s}
-#sb-trash-btn:hover{color:var(--red);background:rgba(248,113,113,.06)}
-/* Reveal-on-drag overlay — covers the entire sidebar list area */
-#sb-trash-overlay{position:absolute;bottom:108px;left:0;right:0;height:90px;z-index:200;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:12px;background:rgba(6,6,8,.92);border:2px dashed #3a1515;border-radius:4px;margin:0 8px;pointer-events:none;opacity:0;transition:opacity .2s ease,border-color .2s ease}
-#sb-trash-overlay.visible{opacity:1;pointer-events:all}
-#sb-trash-overlay.drag-over{border-color:var(--red);background:rgba(248,113,113,.08)}
-#sb-trash-overlay-icon{color:#3a1515;transition:transform .15s ease,color .15s ease}
-#sb-trash-overlay.drag-over #sb-trash-overlay-icon{color:var(--red)}
-#sb-trash-overlay-label{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:#3a1515;transition:color .15s ease}
-#sb-trash-overlay.drag-over #sb-trash-overlay-label{color:var(--red)}
-@keyframes trashBounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.1)}}
-#sb-trash-overlay.drag-over #sb-trash-overlay-icon{animation:trashBounce .6s ease infinite}
 
 /* CONTENT */
 #content-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* Share view — full-page read-only topsheet */
+#share-view{display:none;position:fixed;inset:0;background:var(--bg);z-index:3000;overflow-y:auto;font-family:var(--sans)}
+#share-view.active{display:block}
+.share-header{background:var(--bg1);border-bottom:1px solid var(--border);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.share-body{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+.share-project-name{font-size:22px;font-weight:700;color:var(--text);font-family:var(--display);margin-bottom:4px}
+.share-project-meta{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.share-table{width:100%;border-collapse:collapse;margin-top:32px}
+.share-table th{font-size:9px;letter-spacing:.12em;color:var(--text4);font-family:var(--mono);padding:6px 16px;text-align:left;border-bottom:1px solid var(--border2)}
+.share-table th.num{text-align:right}
+.share-group td{padding:10px 16px 4px;font-size:10px;letter-spacing:.1em;color:var(--accent2);font-family:var(--mono);background:var(--bg2);border-top:1px solid var(--border)}
+.share-row td{padding:7px 16px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border)}
+.share-row:hover td{background:var(--bg2)}
+.share-row .num{text-align:right;font-family:var(--mono);font-size:11px}
+.share-total td{padding:14px 16px;border-top:2px solid var(--gold-dim);font-family:var(--mono);font-weight:700}
+.share-watermark{font-size:10px;color:var(--text4);font-family:var(--mono);letter-spacing:.08em}
 #content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative}
 
 /* New layout: app is flex-row, sidebar full height on left */
@@ -1413,22 +1417,6 @@ body{margin:0;padding:0}
 
     <div class="sidebar-list" id="sidebar-list" oncontextmenu="sbListCtx(event)"></div>
 
-    <!-- Trash overlay — covers full sidebar on drag, hidden otherwise -->
-    <div id="sb-trash-overlay"
-      ondragover="trashDragOver(event)"
-      ondragleave="trashDragLeave(event)"
-      ondrop="trashDrop(event)">
-      <div id="sb-trash-overlay-icon">
-        <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="2 4 14 4"/>
-          <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
-          <path d="M6 7v5M10 7v5"/>
-          <path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
-        </svg>
-      </div>
-      <div id="sb-trash-overlay-label">DROP TO TRASH</div>
-    </div>
-
     <div class="sidebar-footer" style="flex-direction:column;gap:0;padding:0">
       <button onclick="activeTab==='labor-guide' ? closeLaborGuide() : switchTab('labor-guide')" id="sb-laborguide-btn" style="display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;cursor:pointer;transition:all .15s;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
@@ -1449,16 +1437,6 @@ body{margin:0;padding:0}
         </svg>
         Vendors
       </button>
-      <div id="sb-trash-btn" onclick="openTrash()">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="2 4 14 4"/>
-          <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
-          <path d="M6 7v5M10 7v5"/>
-          <path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
-        </svg>
-        <span>Trash</span>
-        <span id="sb-trash-count" style="margin-left:auto;font-size:9px;color:var(--text4);font-family:var(--mono);background:var(--bg3);padding:1px 6px;border-radius:8px;display:none"></span>
-      </div>
     </div>
   </div>
 
@@ -2445,7 +2423,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkout = params.get('checkout');
   if (checkout === 'success') {
     window.history.replaceState({}, '', window.location.pathname);
-    // Show success banner once app loads
     window.__checkoutSuccess = true;
   } else if (checkout === 'cancelled') {
     window.history.replaceState({}, '', window.location.pathname);
@@ -2455,6 +2432,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.history.replaceState({}, '', window.location.pathname);
     window.__portalReturn = true;
   }
+  // Share link detection — handled in DOMContentLoaded
+  const shareToken = params.get('share');
+  if (shareToken) window.__shareToken = shareToken;
 })();
 
 function supaInit() {
@@ -3113,6 +3093,170 @@ async function cloudSave() {
 function cloudSaveDebounced() {
   clearTimeout(_syncTimer);
   _syncTimer = setTimeout(cloudSave, 1200);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARE LINKS — read-only public topsheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function loadShareView(token) {
+  // Show share view shell immediately, hide app chrome
+  document.getElementById('share-view').classList.add('active');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('share-content').innerHTML = '<div style="padding:60px 0;text-align:center;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.1em">LOADING…</div>';
+  try {
+    const { data, error } = await _supa
+      .from('share_links')
+      .select('data')
+      .eq('token', token)
+      .single();
+    if (error || !data) {
+      document.getElementById('share-content').innerHTML = '<div style="padding:60px 0;text-align:center"><div style="font-size:18px;color:var(--text);margin-bottom:8px">Link not found</div><div style="font-size:12px;color:var(--text3);font-family:var(--mono)">This share link may have been revoked or expired.</div></div>';
+      return;
+    }
+    renderShareView(data.data);
+  } catch(e) {
+    document.getElementById('share-content').innerHTML = '<div style="padding:60px 0;text-align:center;color:var(--red);font-family:var(--mono);font-size:11px">Failed to load. Please try again.</div>';
+  }
+}
+
+function renderShareView(b) {
+  const GROUPS = [
+    { key:'atl', label:'ABOVE THE LINE' },
+    { key:'btl', label:'BELOW THE LINE' },
+    { key:'post', label:'POST PRODUCTION' },
+    { key:'other', label:'OTHER' },
+  ];
+  // Build section totals only — no rates, no line details
+  let rows = '';
+  let grandBid = 0, grandActual = 0;
+  const hasActuals = SECTIONS.some(sec => sectionTotal(sec, b, true) > 0);
+
+  GROUPS.forEach(g => {
+    const groupSections = SECTIONS.filter(s => s.group === g.key);
+    if (!groupSections.length) return;
+    const groupBid = groupSections.reduce((s,sec) => s + sectionTotal(sec,b) + sectionFringeTotal(sec,b), 0);
+    const groupActual = hasActuals ? groupSections.reduce((s,sec) => s + sectionTotal(sec,b,true) + sectionFringeTotal(sec,b,true), 0) : 0;
+    if (groupBid === 0 && groupActual === 0) return;
+    rows += `<tr class="share-group"><td colspan="${hasActuals?3:2}">${g.label}</td></tr>`;
+    groupSections.forEach(sec => {
+      const bid = sectionTotal(sec,b) + sectionFringeTotal(sec,b);
+      const actual = hasActuals ? sectionTotal(sec,b,true) + sectionFringeTotal(sec,b,true) : 0;
+      if (bid === 0 && actual === 0) return;
+      rows += `<tr class="share-row">
+        <td style="padding-left:28px;color:var(--text3)">[${sec.code}] ${esc(sec.name)}</td>
+        <td class="num" style="color:var(--gold)">$${fmt(bid)}</td>
+        ${hasActuals ? `<td class="num" style="color:${actual>bid?'var(--red)':'var(--green)'}">$${fmt(actual)}</td>` : ''}
+      </tr>`;
+      grandBid += bid;
+      grandActual += actual;
+    });
+  });
+
+  // Production fee / markup if present
+  const fee = (b.markup||0) > 0 ? grandBid * ((b.markup||0)/100) : 0;
+  if (fee > 0) {
+    grandBid += fee;
+    grandActual += hasActuals ? fee : 0;
+    rows += `<tr class="share-row"><td style="padding-left:28px;color:var(--text3)">Production Fee (${b.markup}%)</td><td class="num" style="color:var(--gold)">$${fmt(fee)}</td>${hasActuals?`<td class="num">$${fmt(fee)}</td>`:''}</tr>`;
+  }
+
+  const sharedOn = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('share-content').innerHTML = `
+    <div class="share-project-name">${esc(b.name||'Untitled Budget')}</div>
+    <div class="share-project-meta">
+      ${b.client ? esc(b.client) + ' · ' : ''}${b.director ? 'Dir. ' + esc(b.director) + ' · ' : ''}Shared ${sharedOn}
+    </div>
+    <table class="share-table">
+      <thead>
+        <tr>
+          <th style="width:100%">SECTION</th>
+          <th class="num">BID</th>
+          ${hasActuals ? '<th class="num">ACTUAL</th>' : ''}
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+        <tr class="share-total">
+          <td style="font-size:13px;letter-spacing:.08em;color:var(--gold)">GRAND TOTAL</td>
+          <td class="num" style="font-size:16px;color:var(--gold)">$${fmt(grandBid)}</td>
+          ${hasActuals ? `<td class="num" style="font-size:16px;color:${grandActual>grandBid?'var(--red)':'var(--green)'}">$${fmt(grandActual)}</td>` : ''}
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:32px;padding-top:20px;border-top:1px solid var(--border);font-size:10px;color:var(--text4);font-family:var(--mono)">
+      Individual line item rates and vendor details are not included in this view.
+    </div>
+  `;
+}
+
+async function generateShareLink(bid) {
+  const b = budgets.find(x=>x.id===bid); if(!b) return;
+  if (!_currentUser) return;
+  // Check if one already exists for this budget
+  const existing = await _supa.from('share_links').select('token').eq('budget_id', bid).eq('user_id', _currentUser.id).single();
+  let token;
+  if (existing.data?.token) {
+    token = existing.data.token;
+  } else {
+    token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    const { error } = await _supa.from('share_links').insert({
+      id: bid + '_share',
+      user_id: _currentUser.id,
+      budget_id: bid,
+      token,
+      data: JSON.parse(JSON.stringify(b)),
+    });
+    if (error) { alert('Failed to create share link. Please try again.'); return; }
+  }
+  const url = window.location.origin + '?share=' + token;
+  await navigator.clipboard.writeText(url).catch(()=>{});
+  showShareLinkModal(url, bid, token);
+}
+
+async function refreshShareLink(bid, token) {
+  // Update the snapshot data to current budget state
+  const b = budgets.find(x=>x.id===bid); if(!b) return;
+  const { error } = await _supa.from('share_links').update({ data: JSON.parse(JSON.stringify(b)) }).eq('token', token).eq('user_id', _currentUser.id);
+  if (error) { alert('Failed to refresh share link.'); return; }
+  const modal = document.getElementById('share-link-modal');
+  if(modal) { const msg = modal.querySelector('#share-link-status'); if(msg){ msg.textContent = '✓ Link updated with latest budget data'; msg.style.color='var(--green)'; setTimeout(()=>msg.textContent='',3000); } }
+}
+
+async function revokeShareLink(bid, token) {
+  const ok = await cmDanger('Revoke share link', 'Anyone with this link will no longer be able to view the budget.', 'Revoke');
+  if (!ok) return;
+  await _supa.from('share_links').delete().eq('token', token).eq('user_id', _currentUser.id);
+  document.getElementById('share-link-modal')?.remove();
+}
+
+function showShareLinkModal(url, bid, token) {
+  document.getElementById('share-link-modal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'share-link-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:min(92vw,500px);box-shadow:0 24px 80px rgba(0,0,0,.8)">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--text)">Share Budget</div>
+        <button onclick="document.getElementById('share-link-modal').remove()" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px">&#x2715;</button>
+      </div>
+      <div style="padding:20px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px;font-family:var(--mono);letter-spacing:.04em">SHARE LINK — SECTION TOTALS ONLY, RATES HIDDEN</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input id="share-url-input" value="${url}" readonly style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:2px;padding:8px 12px;font-size:11px;font-family:var(--mono);color:var(--text2);outline:none" onclick="this.select()">
+          <button onclick="navigator.clipboard.writeText('${url}');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)" style="padding:8px 14px;font-size:11px;font-family:var(--mono);background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;white-space:nowrap;font-weight:600">Copy</button>
+        </div>
+        <div id="share-link-status" style="font-size:10px;font-family:var(--mono);height:16px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)">
+          <button onclick="revokeShareLink('${bid}','${token}')" style="padding:7px 14px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--red);border-radius:2px;cursor:pointer">Revoke Link</button>
+          <button onclick="refreshShareLink('${bid}','${token}')" style="padding:7px 14px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer">Update to Latest</button>
+        </div>
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
 }
 async function cloudDelete(table, id) {
   if (!_supa || !_currentUser) return;
@@ -4237,7 +4381,6 @@ let _sbDragBid = null; // budget id being dragged
 function renderSidebar() {
   const list = document.getElementById('sidebar-list');
   document.getElementById('budget-count').textContent = 'PRODUCTIONS';
-  updateTrashCount();
   let html = '';
 
   folders.forEach(f => {
@@ -4352,7 +4495,7 @@ function sbDragStart(e, bid) {
   _sbDragGhost.textContent = '📄  ' + (b ? b.name : 'Budget');
   document.body.appendChild(_sbDragGhost);
   e.dataTransfer.setDragImage(_sbDragGhost, 10, 14);
-  setTimeout(()=>{ const el=document.getElementById('sbb-'+bid); if(el) el.classList.add('dragging'); document.getElementById('sb-trash-overlay')?.classList.add('visible'); }, 0);
+  setTimeout(()=>{ const el=document.getElementById('sbb-'+bid); if(el) el.classList.add('dragging'); }, 0);
 }
 
 function sbDragEnd(e) {
@@ -4360,8 +4503,6 @@ function sbDragEnd(e) {
   if (_sbDragGhost) { _sbDragGhost.remove(); _sbDragGhost = null; }
   document.querySelectorAll('.sb-budget.dragging').forEach(el=>el.classList.remove('dragging'));
   document.querySelectorAll('.sb-folder.drag-over').forEach(el=>el.classList.remove('drag-over'));
-  const overlay = document.getElementById('sb-trash-overlay');
-  if(overlay){ overlay.classList.remove('visible','drag-over'); }
 }
 
 function sbFolderDragOver(e, fid) {
@@ -4432,6 +4573,7 @@ function sbBudgetCtx(e, bid) {
     { label: '🏷  Set color tag…', action: ()=>sbColorTagMenu(e.clientX, e.clientY, bid) },
     { sep: true },
     { label: '⎘  Duplicate', action: ()=>dupBudget(bid) },
+    { label: '🔗  Share link…', action: ()=>generateShareLink(bid) },
     ...(hasSnaps ? [{ label: '⏱  Revert to snapshot…', action: ()=>sbRevertMenu(e.clientX, e.clientY, bid) }] : []),
     { sep: true },
     ...(folders.length ? [{ label: '📁  Move to folder…', action: ()=>sbMoveToFolderMenu(e.clientX, e.clientY, bid) }] : []),
@@ -5341,123 +5483,7 @@ function createFromTemplateAndClose(id) {
   createFromTemplate(id);
 }
 function selectBudget(id) { activeId=id; if(activeTab==='contacts') activeTab='budget'; render(); }
-// ── Trash (soft delete) ──────────────────────────────────────────────────────
-let trash = []; // { id, name, deletedAt, data }
-
-async function delBudget(id) {
-  const ok = await cmDanger('Move to Trash','This budget will be moved to the Trash. You can restore it from there.','Move to Trash');
-  if(!ok) return;
-  const b = budgets.find(x=>x.id===id); if(!b) return;
-  autoSnapshot(b, 'Before trash');
-  trash.unshift({ id: b.id, name: b.name, deletedAt: Date.now(), data: JSON.parse(JSON.stringify(b)) });
-  budgets = budgets.filter(x=>x.id!==id);
-  if(activeId===id) activeId=null;
-  save(); render(); updateTrashCount();
-}
-
-function trashDragOver(e) {
-  if(!_sbDragBid) return;
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  document.getElementById('sb-trash-overlay')?.classList.add('drag-over');
-}
-
-function trashDragLeave(e) {
-  const overlay = document.getElementById('sb-trash-overlay');
-  if(overlay && !overlay.contains(e.relatedTarget)) {
-    overlay.classList.remove('drag-over');
-  }
-}
-
-function trashDrop(e) {
-  e.preventDefault();
-  const overlay = document.getElementById('sb-trash-overlay');
-  if(overlay){ overlay.classList.remove('drag-over','visible'); }
-  const bid = _sbDragBid || e.dataTransfer.getData('text/plain');
-  if(!bid) return;
-  const b = budgets.find(x=>x.id===bid); if(!b) return;
-  autoSnapshot(b, 'Before trash');
-  trash.unshift({ id: b.id, name: b.name, deletedAt: Date.now(), data: JSON.parse(JSON.stringify(b)) });
-  budgets = budgets.filter(x=>x.id!==bid);
-  if(activeId===bid) activeId=null;
-  _sbDragBid = null;
-  save(); render(); updateTrashCount();
-}
-
-function updateTrashCount() {
-  const badge = document.getElementById('sb-trash-count');
-  if(!badge) return;
-  if(trash.length > 0){ badge.textContent = trash.length; badge.style.display=''; }
-  else { badge.style.display='none'; }
-}
-
-function openTrash() {
-  const modal = document.getElementById('trash-modal');
-  if(!modal) return;
-  renderTrashList();
-  modal.style.display = 'flex';
-}
-
-function closeTrash() {
-  document.getElementById('trash-modal').style.display = 'none';
-}
-
-function renderTrashList() {
-  const list = document.getElementById('trash-list');
-  const emptyMsg = document.getElementById('trash-empty-msg');
-  const emptyBtn = document.getElementById('trash-empty-btn');
-  if(!list) return;
-  if(trash.length === 0) {
-    list.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text4);font-size:11px;font-family:var(--mono)">Trash is empty</div>';
-    if(emptyMsg) emptyMsg.textContent = '';
-    if(emptyBtn) emptyBtn.style.display='none';
-    return;
-  }
-  if(emptyMsg) emptyMsg.textContent = trash.length + ' item' + (trash.length===1?'':'s');
-  if(emptyBtn) emptyBtn.style.display='';
-  list.innerHTML = trash.map(t => {
-    const d = new Date(t.deletedAt);
-    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border);transition:background .12s" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--text4)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 14 4"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M6 7v5M10 7v5"/><path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;color:var(--text2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</div>
-        <div style="font-size:10px;color:var(--text4);font-family:var(--mono)">Deleted ${dateStr}</div>
-      </div>
-      <button onclick="restoreFromTrash('${t.id}')" style="padding:4px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer;white-space:nowrap;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">Restore</button>
-      <button onclick="permanentlyDelete('${t.id}')" style="padding:4px 8px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid transparent;color:var(--text4);border-radius:2px;cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text4)'">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function restoreFromTrash(id) {
-  const item = trash.find(t=>t.id===id); if(!item) return;
-  const b = JSON.parse(JSON.stringify(item.data));
-  // Avoid id collision
-  if(budgets.find(x=>x.id===b.id)) b.id = Date.now().toString();
-  budgets.unshift(b);
-  trash = trash.filter(t=>t.id!==id);
-  activeId = b.id; activeTab = 'budget';
-  save(); render(); updateTrashCount(); renderTrashList();
-}
-
-async function permanentlyDelete(id) {
-  const item = trash.find(t=>t.id===id); if(!item) return;
-  const ok = await cmDanger('Permanently Delete','<strong>' + esc(item.name) + '</strong> will be permanently deleted. This cannot be undone.','Delete Forever');
-  if(!ok) return;
-  trash = trash.filter(t=>t.id!==id);
-  cloudDelete('budgets', id);
-  save(); updateTrashCount(); renderTrashList();
-}
-
-async function emptyTrash() {
-  if(!trash.length) return;
-  const ok = await cmDanger('Empty Trash','All ' + trash.length + ' budget' + (trash.length===1?'':'s') + ' will be permanently deleted. This cannot be undone.','Empty Trash');
-  if(!ok) return;
-  trash.forEach(t=>cloudDelete('budgets',t.id));
-  trash = [];
-  save(); updateTrashCount(); renderTrashList();
-}
+async function delBudget(id) { const ok = await cmDanger('Delete budget','This will permanently delete this budget and all its data. This cannot be undone.','Delete Budget'); if(!ok) return; budgets=budgets.filter(b=>b.id!==id); if(activeId===id) activeId=null; cloudDelete('budgets',id); render(); }
 function dupBudget(id) { const src=budgets.find(b=>b.id===id); if(!src) return; const b=JSON.parse(JSON.stringify(src)); b.id=Date.now().toString(); b.name+=' (Copy)'; b.createdAt=Date.now(); b.folderId=src.folderId||null; budgets.unshift(b); activeId=b.id; activeTab='budget'; render(); flashNewBudget(); }
 
 function switchTab(tab) {
@@ -11042,25 +11068,6 @@ function saveSnapshot() {
   spRefresh('snapshots');
 }
 
-function autoSnapshot(b, label) {
-  if (!b) return;
-  const snap = {
-    id: Date.now().toString(),
-    budgetId: b.id,
-    label: label || 'Auto-save',
-    ts: Date.now(),
-    data: JSON.parse(JSON.stringify(b))
-  };
-  snapshots.unshift(snap);
-  // Keep max 20 snapshots per budget
-  const budgetSnaps = snapshots.filter(s=>s.budgetId===b.id);
-  if(budgetSnaps.length > 20) {
-    const oldest = budgetSnaps[budgetSnaps.length-1];
-    snapshots = snapshots.filter(s=>s.id!==oldest.id);
-  }
-  save();
-}
-
 async function restoreSnapshot(id) {
   if (!gateSnapshot()) return;
   const snap = snapshots.find(s=>s.id===id); if(!snap) return;
@@ -11068,8 +11075,6 @@ async function restoreSnapshot(id) {
   const ts = new Date(snap.ts);
   const dateStr = ts.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   if(!await cmDanger(`Restore snapshot`,`Restore snapshot <strong>${snap.label}</strong> from ${dateStr}? Current values will be replaced and this cannot be undone.`,'Restore')) return;
-  // Auto-snapshot current state before overwriting
-  autoSnapshot(b, `Before restore: ${snap.label}`);
   // Copy all budget data fields from snapshot, keep id
   const snap_data = JSON.parse(JSON.stringify(snap.data));
   snap_data.id = b.id;
@@ -12718,8 +12723,6 @@ function saveLineNote(lineId, value) {
 async function clearBudgetById(id) {
   const b = budgets.find(x=>x.id===id); if(!b) return;
   if(!await cmDanger('Clear budget values','This will clear all line item values in <strong>'+b.name+'</strong>. Project info and markup settings are kept.','Clear Values')) return;
-  // Auto-snapshot before clearing
-  autoSnapshot(b, 'Before clear');
   if(activeId === id) { activeId = id; clearBudget(); return; }
   b.values = {}; b.actuals = {}; b.fringes = {}; b.lineNotes = {}; b.sectionNotes = {};
   render();
@@ -12729,8 +12732,6 @@ let _clearUndo = null;
 let _clearUndoTimer = null;
 function clearBudget() {
   const b = active(); if(!b) return;
-  // Auto-snapshot for persistent recovery (in addition to in-memory undo)
-  autoSnapshot(b, 'Before clear');
   // Snapshot for undo
   _clearUndo = {
     id: b.id,
@@ -13323,6 +13324,11 @@ loadRCEData(); load(); render();
 // ── Cloud boot: init Supabase after DOM is ready ──
 window.addEventListener('DOMContentLoaded', function() {
   supaInit();
+  // If this is a share link, load read-only view — skip auth entirely
+  if (window.__shareToken) {
+    loadShareView(window.__shareToken);
+    return;
+  }
   if (_supa) {
     authInit().catch(function(e){ console.warn('authInit failed:', e); });
   }
@@ -15121,24 +15127,6 @@ function renderCompareView(ids) {
 
 
 
-<!-- TRASH MODAL -->
-<div id="trash-modal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.7);align-items:center;justify-content:center" onclick="if(event.target===this)closeTrash()">
-  <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:min(92vw,520px);max-height:75vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.8)">
-    <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-      <div style="display:flex;align-items:center;gap:10px">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 14 4"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M6 7v5M10 7v5"/><path d="M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/></svg>
-        <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--text)">Trash</div>
-      </div>
-      <button onclick="closeTrash()" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px">&#x2715;</button>
-    </div>
-    <div id="trash-list" style="flex:1;overflow-y:auto;padding:8px 0"></div>
-    <div style="padding:10px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center;flex-shrink:0">
-      <span id="trash-empty-msg" style="font-size:10px;color:var(--text4);font-family:var(--mono)"></span>
-      <button id="trash-empty-btn" onclick="emptyTrash()" style="padding:6px 14px;font-family:var(--mono);font-size:10px;background:transparent;border:1px solid var(--border2);color:var(--red);border-radius:2px;cursor:pointer;letter-spacing:.04em;display:none">Empty Trash</button>
-    </div>
-  </div>
-</div>
-
 <!-- COMPARE MODAL -->
 <div id="compare-modal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
   <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:min(90vw,440px);max-height:70vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.8)">
@@ -15189,6 +15177,23 @@ function renderCompareView(ids) {
       </div>
     </div>
     <div id="spotlight-results" style="display:none"></div>
+  </div>
+</div>
+
+<!-- SHARE VIEW — read-only topsheet, shown when ?share=TOKEN -->
+<div id="share-view">
+  <div class="share-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <svg width="18" height="18" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="6" fill="#6c8ef0"/><path d="M8 24V12l8-4 8 4v12l-8 4-8-4z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span style="font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--text3)">VILLAGER PRO</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="share-watermark">READ-ONLY · RATES CONFIDENTIAL</span>
+      <a href="https://villagerpro.io" target="_blank" style="padding:6px 14px;font-size:10px;font-family:var(--mono);background:var(--accent);color:#fff;border-radius:2px;text-decoration:none;letter-spacing:.06em">Get Villager Pro</a>
+    </div>
+  </div>
+  <div class="share-body">
+    <div id="share-content"></div>
   </div>
 </div>
 
