@@ -1442,6 +1442,14 @@ body{margin:0;padding:0}
         </svg>
         Vendors
       </button>
+      <button onclick="openShareLinksPanel()" id="sb-sharelinks-btn" style="display:flex;align-items:center;gap:9px;width:100%;padding:0 16px;height:36px;background:transparent;border:none;border-top:1px solid var(--border);border-radius:0;cursor:pointer;transition:all .15s;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:.06em">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/>
+          <line x1="6" y1="7" x2="10" y2="5"/><line x1="6" y1="9" x2="10" y2="11"/>
+        </svg>
+        Share Links
+        <span id="sb-sharelinks-count" style="margin-left:auto;font-size:9px;color:var(--text4);font-family:var(--mono);background:var(--bg3);padding:1px 6px;border-radius:8px;display:none"></span>
+      </button>
       <div id="sb-trash-btn"
         onclick="openTrash()"
         ondragover="trashDragOver(event)"
@@ -3193,9 +3201,11 @@ function renderShareView(payload) {
   `;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARE LINKS — Frame.io style, up to 3 per budget
+// ─────────────────────────────────────────────────────────────────────────────
+
 function buildSharePayload(b) {
-  // Pre-compute all section and group totals at generation time
-  // so the read-only view has zero runtime dependencies
   const GROUPS = [
     { key:'atl', label:'ABOVE THE LINE' },
     { key:'production', label:'BELOW THE LINE — PRODUCTION' },
@@ -3204,7 +3214,7 @@ function buildSharePayload(b) {
     { key:'other', label:'OTHER' },
   ];
   const groups = [];
-  let grandBid = 0, grandActual = 0;
+  let grandActual = 0;
   GROUPS.forEach(g => {
     const secs = SECTIONS.filter(s => s.group === g.key);
     if (!secs.length) return;
@@ -3214,103 +3224,141 @@ function buildSharePayload(b) {
       const actual = actualSectionTotal(sec, b);
       if (bid === 0 && actual === 0) return;
       sections.push({ code: sec.code, name: sec.name, bid, actual });
-      grandBid += bid;
       grandActual += actual;
     });
     if (sections.length) groups.push({ label: g.label, sections });
   });
-  // Production fee
   const btl = btlSubtotal(b);
   const fee = btl * ((parseFloat(b.markup?.prodFee)||0)/100);
   const fringesAdj = btl * ((parseFloat(b.markup?.fringes)||0)/100);
   const cont = (btl+fee) * ((parseFloat(b.markup?.contingency)||0)/100);
   const totalFee = fee + fringesAdj + cont;
-  if (totalFee > 0) grandBid += totalFee;
   const hasActuals = grandActual > 0;
   if (hasActuals && totalFee > 0) grandActual += totalFee;
   return {
-    name: b.name,
-    client: b.client,
-    director: b.director,
-    groups,
-    grandBid: grandTotal(b),
-    grandActual,
-    hasActuals,
+    name: b.name, client: b.client, director: b.director,
+    groups, grandBidTotal: grandTotal(b), grandActual, hasActuals,
     feeLabel: totalFee > 0 ? 'Production Fee & Markup' : null,
     feeAmount: totalFee,
-    grandBidTotal: grandTotal(b),
   };
 }
 
-async function generateShareLink(bid) {
+async function createShareLink(bid) {
   const b = budgets.find(x=>x.id===bid); if(!b) return;
   if (!_currentUser) return;
-  const payload = buildSharePayload(b);
-  // Check if one already exists for this budget
-  const existing = await _supa.from('share_links').select('token').eq('budget_id', bid).eq('user_id', _currentUser.id).maybeSingle();
-  let token;
-  if (existing.data?.token) {
-    token = existing.data.token;
-  } else {
-    token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-    const { error } = await _supa.from('share_links').insert({
-      id: bid + '_share',
-      user_id: _currentUser.id,
-      budget_id: bid,
-      token,
-      data: payload,
-    });
-    if (error) { alert('Failed to create share link: ' + error.message); return; }
+  // Check existing count for this budget
+  const { data: existing } = await _supa.from('share_links').select('id').eq('budget_id', bid).eq('user_id', _currentUser.id);
+  if (existing && existing.length >= 3) {
+    alert('You can have up to 3 share links per budget. Please delete an existing one first.');
+    openShareLinksPanel(); return;
   }
+  const linkName = prompt('Name this share link (e.g. "Bob @ Agency", "Director cut", "EP review"):');
+  if (!linkName?.trim()) return;
+  const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  const id = bid + '_' + Date.now();
+  const payload = buildSharePayload(b);
+  const { error } = await _supa.from('share_links').insert({
+    id, user_id: _currentUser.id, budget_id: bid, token,
+    data: { ...payload, linkName: linkName.trim(), createdAt: Date.now(), updatedAt: Date.now() },
+  });
+  if (error) { alert('Failed to create share link: ' + error.message); return; }
   const url = window.location.origin + '?share=' + token;
   await navigator.clipboard.writeText(url).catch(()=>{});
-  showShareLinkModal(url, bid, token);
+  updateShareLinksCount();
+  openShareLinksPanel();
 }
 
-async function refreshShareLink(bid, token) {
+async function pushShareLinkUpdate(token, bid) {
   const b = budgets.find(x=>x.id===bid); if(!b) return;
+  // Get existing link to preserve linkName and createdAt
+  const { data: existing } = await _supa.from('share_links').select('data').eq('token', token).single();
+  if (!existing) return;
   const payload = buildSharePayload(b);
-  const { error } = await _supa.from('share_links').update({ data: payload }).eq('token', token).eq('user_id', _currentUser.id);
-  if (error) { alert('Failed to refresh share link.'); return; }
-  const modal = document.getElementById('share-link-modal');
-  if(modal) { const msg = modal.querySelector('#share-link-status'); if(msg){ msg.textContent = '✓ Link updated with latest budget data'; msg.style.color='var(--green)'; setTimeout(()=>msg.textContent='',3000); } }
+  const updatedData = { ...payload, linkName: existing.data.linkName, createdAt: existing.data.createdAt, updatedAt: Date.now() };
+  const { error } = await _supa.from('share_links').update({ data: updatedData }).eq('token', token).eq('user_id', _currentUser.id);
+  if (error) { alert('Failed to push update.'); return; }
+  renderShareLinksList();
+  // Flash the row
+  const row = document.getElementById('slr-' + token);
+  if (row) { row.style.background='rgba(52,211,153,.08)'; setTimeout(()=>row.style.background='',1500); }
 }
 
-async function revokeShareLink(bid, token) {
-  const ok = await cmDanger('Revoke share link', 'Anyone with this link will no longer be able to view the budget.', 'Revoke');
+async function deleteShareLink(token) {
+  const ok = await cmDanger('Delete share link', 'Anyone with this link will no longer be able to view the budget.', 'Delete Link');
   if (!ok) return;
   await _supa.from('share_links').delete().eq('token', token).eq('user_id', _currentUser.id);
-  document.getElementById('share-link-modal')?.remove();
+  updateShareLinksCount();
+  renderShareLinksList();
 }
 
-function showShareLinkModal(url, bid, token) {
-  document.getElementById('share-link-modal')?.remove();
-  const modal = document.createElement('div');
-  modal.id = 'share-link-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center';
-  modal.innerHTML = `
-    <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:min(92vw,500px);box-shadow:0 24px 80px rgba(0,0,0,.8)">
-      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--text)">Share Budget</div>
-        <button onclick="document.getElementById('share-link-modal').remove()" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px">&#x2715;</button>
-      </div>
-      <div style="padding:20px">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:10px;font-family:var(--mono);letter-spacing:.04em">SHARE LINK — SECTION TOTALS ONLY, RATES HIDDEN</div>
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <input id="share-url-input" value="${url}" readonly style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:2px;padding:8px 12px;font-size:11px;font-family:var(--mono);color:var(--text2);outline:none" onclick="this.select()">
-          <button onclick="navigator.clipboard.writeText('${url}');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)" style="padding:8px 14px;font-size:11px;font-family:var(--mono);background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;white-space:nowrap;font-weight:600">Copy</button>
-        </div>
-        <div id="share-link-status" style="font-size:10px;font-family:var(--mono);height:16px;margin-bottom:12px"></div>
-        <div style="display:flex;gap:8px;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)">
-          <button onclick="revokeShareLink('${bid}','${token}')" style="padding:7px 14px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--red);border-radius:2px;cursor:pointer">Revoke Link</button>
-          <button onclick="refreshShareLink('${bid}','${token}')" style="padding:7px 14px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer">Update to Latest</button>
-        </div>
-      </div>
-    </div>
-  `;
-  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
-  document.body.appendChild(modal);
+async function openShareLinksPanel() {
+  const modal = document.getElementById('share-links-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  document.getElementById('share-links-list').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text4);font-family:var(--mono);font-size:11px">Loading…</div>';
+  await renderShareLinksList();
 }
+
+function closeShareLinksPanel() {
+  document.getElementById('share-links-modal').style.display = 'none';
+}
+
+async function renderShareLinksList() {
+  if (!_currentUser || !_supa) return;
+  const { data: links } = await _supa.from('share_links').select('token,budget_id,data').eq('user_id', _currentUser.id).order('created_at', { ascending: false });
+  const container = document.getElementById('share-links-list');
+  if (!container) return;
+  if (!links || links.length === 0) {
+    container.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--text4);font-family:var(--mono);font-size:11px">No share links yet.<br><br>Right-click any budget → Create Share Link…</div>';
+    return;
+  }
+  // Group by budget
+  const byBudget = {};
+  links.forEach(l => {
+    if (!byBudget[l.budget_id]) byBudget[l.budget_id] = [];
+    byBudget[l.budget_id].push(l);
+  });
+  let html = '';
+  Object.entries(byBudget).forEach(([bid, bLinks]) => {
+    const b = budgets.find(x=>x.id===bid);
+    const budgetName = b ? b.name : (bLinks[0]?.data?.name || 'Deleted Budget');
+    html += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:3px;overflow:hidden">
+      <div style="padding:8px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:11px;font-weight:600;color:var(--text2)">${esc(budgetName)}</div>
+        ${b ? `<button onclick="createShareLink('${bid}')" style="padding:3px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--accent);border-radius:2px;cursor:pointer">+ New Link</button>` : ''}
+      </div>`;
+    bLinks.forEach(l => {
+      const url = window.location.origin + '?share=' + l.token;
+      const d = l.data || {};
+      const updated = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      html += `<div id="slr-${l.token}" style="padding:10px 14px;border-bottom:1px solid var(--border);transition:background .3s;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><line x1="6" y1="7" x2="10" y2="5"/><line x1="6" y1="9" x2="10" y2="11"/></svg>
+          <span style="font-size:12px;font-weight:600;color:var(--text);flex:1">${esc(d.linkName||'Untitled Link')}</span>
+          <span style="font-size:9px;color:var(--text4);font-family:var(--mono)">Updated ${updated}</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input value="${url}" readonly onclick="this.select()" style="flex:1;background:var(--bg1);border:1px solid var(--border2);border-radius:2px;padding:5px 8px;font-size:10px;font-family:var(--mono);color:var(--text3);outline:none;min-width:0">
+          <button onclick="navigator.clipboard.writeText('${url}');this.textContent='✓ Copied';this.style.color='var(--green)';setTimeout(()=>{this.textContent='Copy';this.style.color=''},2000)" style="padding:5px 10px;font-size:10px;font-family:var(--mono);background:var(--accent);border:none;color:#fff;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0">Copy</button>
+          ${b ? `<button onclick="pushShareLinkUpdate('${l.token}','${bid}')" style="padding:5px 10px;font-size:10px;font-family:var(--mono);background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="Push current budget numbers to this link">Push Update</button>` : ''}
+          <button onclick="deleteShareLink('${l.token}')" style="padding:5px 8px;font-size:11px;background:transparent;border:1px solid transparent;color:var(--text4);border-radius:2px;cursor:pointer;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text4)'">✕</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+async function updateShareLinksCount() {
+  if (!_currentUser || !_supa) return;
+  const { count } = await _supa.from('share_links').select('id', { count: 'exact', head: true }).eq('user_id', _currentUser.id);
+  const badge = document.getElementById('sb-sharelinks-count');
+  if (!badge) return;
+  if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
+}
+
 async function cloudDelete(table, id) {
   if (!_supa || !_currentUser) return;
   await _supa.from(table).delete().eq('id',id).eq('user_id',_currentUser.id);
@@ -4435,6 +4483,7 @@ function renderSidebar() {
   const list = document.getElementById('sidebar-list');
   document.getElementById('budget-count').textContent = 'PRODUCTIONS';
   updateTrashCount();
+  updateShareLinksCount();
   let html = '';
 
   folders.forEach(f => {
@@ -4631,13 +4680,13 @@ function sbBudgetCtx(e, bid) {
     { label: '🏷  Set color tag…', action: ()=>sbColorTagMenu(e.clientX, e.clientY, bid) },
     { sep: true },
     { label: '⎘  Duplicate', action: ()=>dupBudget(bid) },
-    { label: '🔗  Share link…', action: ()=>generateShareLink(bid) },
+    { label: '🔗  Create Share Link…', action: ()=>createShareLink(bid) },
     ...(hasSnaps ? [{ label: '⏱  Revert to snapshot…', action: ()=>sbRevertMenu(e.clientX, e.clientY, bid) }] : []),
     { sep: true },
     ...(folders.length ? [{ label: '📁  Move to folder…', action: ()=>sbMoveToFolderMenu(e.clientX, e.clientY, bid) }] : []),
     ...(b.folderId ? [{ label: '↑  Remove from folder', action: ()=>{ b.folderId=null; save(); renderSidebar(); } }] : []),
     { sep: true },
-    { label: '🗑  Delete', danger: true, action: ()=>delBudget(bid) },
+    { label: '🗑  Move to Trash', danger: true, action: ()=>delBudget(bid) },
   ];
   sbShowCtx(e.clientX, e.clientY, items);
 }
@@ -15328,6 +15377,24 @@ function renderCompareView(ids) {
 </script>
 
 
+
+<!-- SHARE LINKS PANEL -->
+<div id="share-links-modal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.7);align-items:center;justify-content:center" onclick="if(event.target===this)closeShareLinksPanel()">
+  <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:4px;width:min(96vw,640px);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.8)">
+    <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12" r="2"/><line x1="6" y1="7" x2="10" y2="5"/><line x1="6" y1="9" x2="10" y2="11"/></svg>
+        <div style="font-family:var(--display);font-size:14px;font-weight:700;color:var(--text)">Share Links</div>
+        <div style="font-size:10px;color:var(--text4);font-family:var(--mono)">Section totals only · rates hidden</div>
+      </div>
+      <button onclick="closeShareLinksPanel()" style="background:transparent;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px">&#x2715;</button>
+    </div>
+    <div id="share-links-list" style="flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:12px"></div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);flex-shrink:0">
+      <div style="font-size:10px;color:var(--text4);font-family:var(--mono)">Up to 3 share links per budget. Recipients see section totals only — no rates, no line details.</div>
+    </div>
+  </div>
+</div>
 
 <!-- TRASH MODAL -->
 <div id="trash-modal" style="display:none;position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.7);align-items:center;justify-content:center" onclick="if(event.target===this)closeTrash()">
