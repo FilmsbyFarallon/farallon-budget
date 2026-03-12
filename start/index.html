@@ -1845,4 +1845,10 @@ const io = new IntersectionObserver((entries) => {
 document.querySelectorAll('.reveal').forEach((el, i) => {
   const parent = el.parentElement;
   const siblings = [...(parent?.querySelectorAll('.reveal') || [])];
-  c
+  const delay = siblings.indexOf(el) * 80;
+  el.style.transitionDelay = delay + 'ms';
+  io.observe(el);
+});
+</script>
+</body>
+</html>
