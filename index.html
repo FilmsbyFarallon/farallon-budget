@@ -15887,10 +15887,10 @@ function exportCalendarPDF() {
       </div>
     </div>
     <div class="legend">
-      <div class="legend-item"><div class="legend-swatch" style="background:#dce8fb;border:1px solid #4a7cc7"></div> Prep (${sched.prepDays}d)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#dce8fb;border:1px solid #4a7cc7"></div> Prep (${sched.prepDur}d)</div>
       <div class="legend-item"><div class="legend-swatch" style="background:#d4edda;border:1px solid #2ecc71"></div> Shoot (${sched.shootDays}d)</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#fde8d5;border:1px solid #fb923c"></div> Wrap (${sched.wrapDays}d)</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#ede1f7;border:1px solid #a855f7"></div> Post (${sched.postDays}d)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#fde8d5;border:1px solid #fb923c"></div> Wrap (${sched.wrapDur}d)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#ede1f7;border:1px solid #a855f7"></div> Post (${sched.postDur}d)</div>
       ${(sched.milestones||[]).map(ms=>`<div class="legend-item"><div style="width:8px;height:8px;background:${ms.color||'#6c8ef0'};transform:rotate(45deg);flex-shrink:0"></div> ${esc(ms.label||'Milestone')}</div>`).join('')}
     </div>
   `;
