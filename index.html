@@ -15779,7 +15779,7 @@ function exportCalendarPDF() {
            ${!isStart && !isEnd ? `border-top:2px solid ${ph.color};border-bottom:2px solid ${ph.color};` : ''}`
         : `height:18px;background:${cellBg};`;
       const inner = isStart
-        ? `<span style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;color:${ph.color};white-space:nowrap;letter-spacing:.06em;z-index:10">${ph.label} ${ph.days}d · ${CalDate.rangeLabel(ph.start, ph.end)}</span>`
+        ? `<span style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;color:${ph.color};letter-spacing:.06em;z-index:10;overflow:hidden;white-space:nowrap;max-width:${(ei-si+1)*DW - 12}px;display:block;text-overflow:ellipsis">${ph.label} ${ph.days}d</span>`
         : '';
       cells += `<td style="${barStyle}${inRange ? '' : 'border-left:1px solid #eee;border-bottom:1px solid #eee;'}overflow:visible">${inner}</td>`;
     });
