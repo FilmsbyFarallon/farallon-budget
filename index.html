@@ -15823,7 +15823,7 @@ function exportCalendarPDF() {
     allDates.forEach((iso,i) => {
       const inRange = i >= si && i <= ei;
       const wknd = isWeekend(iso);
-      const bg = inRange ? (isShoot(iso)?'rgba(46,204,113,.18)':isPrep(iso)?'rgba(74,124,199,.18)':isPost(iso)?'rgba(168,85,247,.18)':'rgba(251,146,60,.18)') : (wknd?'#f5f5f3':rowBg);
+      const bg = inRange ? (isShoot(iso)?'rgba(46,204,113,.18)':isPrep(iso)?'rgba(74,124,199,.18)':isWrap(iso)?'rgba(251,146,60,.18)':isPost(iso)?'rgba(168,85,247,.18)':'rgba(108,142,240,.18)') : (wknd?'#f5f5f3':rowBg);
       cells += `<td style="background:${bg};border-left:1px solid #eee;border-bottom:1px solid #eee;height:18px;${i===si?`border-left:2px solid ${barColor}`:''}${i===ei?`;border-right:2px solid ${barColor}`:''}"></td>`;
     });
     crewRows += `<tr>${cells}</tr>`;
