@@ -15843,7 +15843,7 @@ function exportCalendarPDF() {
     });
     crewRows += `<tr>${cells}</tr>`;
   });
-  const crewOverflow = crew.length > 100 ? `<div style="font-size:9px;color:#888;margin-top:8px;padding:4px 8px;background:#f9f9f9;border-left:2px solid #ddd">+ ${crew.length-100} additional crew members not shown</div>` : '';
+  const crewOverflow = crew.length > 40 ? `<div style="font-size:9px;color:#888;margin-top:8px;padding:4px 8px;background:#f9f9f9;border-left:2px solid #ddd">+ ${crew.length-40} additional crew members not shown</div>` : '';
 
   // ── Burn rows ──
   const burn = calSectionBurn(b, sched);
