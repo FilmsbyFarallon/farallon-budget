@@ -15720,7 +15720,10 @@ function exportCalendarPDF() {
     return '#fff';
   };
 
-  const DW = 28; // day column width in px — narrower for PDF
+  const totalCols = allDates.length;
+  const pageWidthPx = 1120; // ~Letter landscape at 96dpi minus margins
+  const labelColPx = 180;
+  const DW = Math.max(14, Math.floor((pageWidthPx - labelColPx) / totalCols));
 
   // ── Date header rows ──
   // Month row
