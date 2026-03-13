@@ -15705,6 +15705,13 @@ function exportCalendarPDF() {
   const allDates = CalDate.dateRange(sched.arcStart, sched.arcEnd);
   const pageWidthPx = 1120;
   const labelColPx = 180;
+  const minDays = Math.ceil((pageWidthPx - labelColPx) / 28);
+  if (allDates.length < minDays) {
+    const extra = minDays - allDates.length;
+    for (let i = 1; i <= extra; i++) allDates.push(CalDate.addDays(sched.arcEnd, i));
+  }
+  const pageWidthPx = 1120;
+  const labelColPx = 180;
   const DW = 28;
   const minDays = Math.ceil((pageWidthPx - labelColPx) / DW);
   if (allDates.length < minDays) {
