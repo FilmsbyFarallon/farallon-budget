@@ -15781,7 +15781,7 @@ function exportCalendarPDF() {
       const inner = (isStart && ph.days > 2)
         ? `<span style="position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;color:${ph.color};white-space:nowrap;letter-spacing:.06em">${ph.label} ${ph.days}d</span>`
         : '';
-      cells += `<td style="${barStyle}border-left:1px solid #eee;border-bottom:1px solid #eee;overflow:visible">${inner}</td>`;
+      cells += `<td style="${barStyle}${inRange ? '' : 'border-left:1px solid #eee;border-bottom:1px solid #eee;'}overflow:visible">${inner}</td>`;
     });
     phaseRows += `<tr>${cells}</tr>`;
   });
