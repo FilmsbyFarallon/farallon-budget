@@ -15702,10 +15702,7 @@ function exportCalendarPDF() {
   const crew  = calGetAllCrew(b);
 
   // Build full date range
-  const allDates = [];
-  let d = new Date(sched.timelineStart + 'T12:00:00');
-  const endD = new Date(sched.timelineEnd + 'T12:00:00');
-  while(d <= endD) { allDates.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  const allDates = CalDate.dateRange(sched.arcStart, sched.arcEnd);
 
   const dowAbbr = ['Su','Mo','Tu','We','Th','Fr','Sa'];
   const isWeekend = iso => { const w=new Date(iso+'T12:00:00').getDay(); return w===0||w===6; };
