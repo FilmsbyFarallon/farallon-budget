@@ -15701,18 +15701,11 @@ function exportCalendarPDF() {
   const sched = calGetSchedule(b);
   const crew  = calGetAllCrew(b);
 
-  // Build full date range
+  // Build full date range, padded to fill page width
   const allDates = CalDate.dateRange(sched.arcStart, sched.arcEnd);
-  const pageWidthPx = 1120;
-  const labelColPx = 180;
-  const minDays = Math.ceil((pageWidthPx - labelColPx) / 28);
-  if (allDates.length < minDays) {
-    const extra = minDays - allDates.length;
-    for (let i = 1; i <= extra; i++) allDates.push(CalDate.addDays(sched.arcEnd, i));
-  }
-  const pageWidthPx = 1120;
-  const labelColPx = 180;
   const DW = 28;
+  const labelColPx = 180;
+  const pageWidthPx = 1120;
   const minDays = Math.ceil((pageWidthPx - labelColPx) / DW);
   if (allDates.length < minDays) {
     const extra = minDays - allDates.length;
@@ -15727,22 +15720,8 @@ function exportCalendarPDF() {
   const isPost  = iso => iso > sched.wrapEnd     && iso <= sched.postEnd;
   const dateIdx = iso => allDates.indexOf(iso);
 
-  const phaseColor = iso => {
-    if(isShoot(iso)) return '#d4edda';
-    if(isPrep(iso))  return '#dce8fb';
-    if(isWrap(iso))  return '#fde8d5';
-    if(isPost(iso))  return '#ede1f7';
-    return '#fff';
-  };
-
-  const totalCols = allDates.length;
-  const pageWidthPx = 1120; // ~Letter landscape at 96dpi minus margins
-  const labelColPx = 180;
-  const DW = Math.max(14, Math.floor((pageWidthPx - labelColPx) / totalCols));
-
   // ── Date header rows ──
-  // Month row
-  let monthCells = '<td style="width:180px;min-width:180px;background:#1a1810;color:#c8973a;font-size:8px;letter-spacing:.1em;padding:4px 8px;font-weight:700">PRODUCTION SCHEDULE</td>';
+  let monthCells = `<td style="width:${labelColPx}px;min-width:${labelColPx}px;background:#1a1810;color:#c8973a;font-size:8px;letter-spacing:.1em;padding:4px 8px;font-weight:700">PRODUCTION SCHEDULE</td>`;
   let prevMonth = '';
   let monthSpan = 0;
   const monthRanges = [];
@@ -15758,12 +15737,11 @@ function exportCalendarPDF() {
     monthCells += `<td colspan="${mr.span}" style="background:#1a1810;color:#fff;font-size:9px;font-weight:700;padding:4px 6px;text-align:center;border-left:1px solid #333">${mr.label}</td>`;
   });
 
-  // Day-of-week + date row
-  let dayCells = '<td style="background:#2a2820;color:#888;font-size:7px;padding:3px 8px;letter-spacing:.06em">CREW / ROLE</td>';
+  let dayCells = `<td style="background:#2a2820;color:#888;font-size:7px;padding:3px 8px;letter-spacing:.06em">CREW / ROLE</td>`;
   allDates.forEach(iso => {
     const w = new Date(iso+'T12:00:00').getDay();
     const wknd = isWeekend(iso);
-    const bg = isShoot(iso) ? '#1a3d1a' : isPrep(iso) ? '#1a2a3d' : isWrap(iso) ? '#3d2a1a' : isPost(iso) ? '#2a1a3d' : wknd ? '#1e1e1e' : '#2a2820';
+    const bg = isShoot(iso)?'#1a3d1a':isPrep(iso)?'#1a2a3d':isWrap(iso)?'#3d2a1a':isPost(iso)?'#2a1a3d':wknd?'#1e1e1e':'#2a2820';
     const dd = new Date(iso+'T12:00:00').getDate();
     dayCells += `<td style="background:${bg};color:${wknd?'#444':'#aaa'};font-size:7px;text-align:center;padding:2px 0;border-left:1px solid #222;min-width:${DW}px;width:${DW}px">
       <div>${dowAbbr[w]}</div><div style="font-weight:700;color:${isShoot(iso)?'#6dbb6d':wknd?'#444':'#ccc'}">${dd}</div>
@@ -15772,10 +15750,10 @@ function exportCalendarPDF() {
 
   // ── Phase Gantt rows ──
   const phases = [
-    { label:'PREP',  start:sched.prepStart,  end:allDates[dateIdx(sched.shootStart)-1] || sched.prepStart, color:'#4a7cc7', bg:'rgba(74,124,199,.15)', days:sched.prepDur },
-    { label:'SHOOT', start:sched.shootStart, end:sched.shootEnd, color:'#2ecc71', bg:'rgba(46,204,113,.15)', days:sched.shootDays },
-    { label:'WRAP',  start:sched.wrapStart,  end:sched.wrapEnd,  color:'#fb923c', bg:'rgba(251,146,60,.15)', days:sched.wrapDur },
-    { label:'POST',  start:sched.postStart,  end:sched.postEnd,  color:'#a855f7', bg:'rgba(168,85,247,.15)', days:sched.postDur },
+    { label:'PREP',  start:sched.prepStart,  end:sched.prepEnd,  color:'#4a7cc7', bg:'rgba(74,124,199,.15)',  days:sched.prepDur },
+    { label:'SHOOT', start:sched.shootStart, end:sched.shootEnd, color:'#2ecc71', bg:'rgba(46,204,113,.15)',  days:sched.shootDays },
+    { label:'WRAP',  start:sched.wrapStart,  end:sched.wrapEnd,  color:'#fb923c', bg:'rgba(251,146,60,.15)',  days:sched.wrapDur },
+    { label:'POST',  start:sched.postStart,  end:sched.postEnd,  color:'#a855f7', bg:'rgba(168,85,247,.15)',  days:sched.postDur },
   ];
 
   let phaseRows = '';
@@ -15812,10 +15790,9 @@ function exportCalendarPDF() {
     sched.milestones.forEach(ms => { msMap[ms.date] = ms; });
     allDates.forEach(iso => {
       const ms = msMap[iso];
-      msCells += `<td style="text-align:center;border-left:1px solid #eee;height:18px;${isWeekend(iso)?'background:#f5f5f3':''}">${ms?`<span title="${esc(ms.label||'')}" style="display:inline-block;width:8px;height:8px;background:${ms.color||'#6c8ef0'};transform:rotate(45deg)" ></span>`:''}</td>`;
+      msCells += `<td style="text-align:center;border-left:1px solid #eee;height:18px;${isWeekend(iso)?'background:#f5f5f3':''}">${ms?`<span style="display:inline-block;width:8px;height:8px;background:${ms.color||'#6c8ef0'};transform:rotate(45deg)"></span>`:''}</td>`;
     });
     msRow = `<tr>${msCells}</tr>`;
-    // Milestone labels row
     let mlCells = `<td style="padding:2px 8px;font-size:8px;color:#aaa"></td>`;
     allDates.forEach(iso => {
       const ms = msMap[iso];
@@ -15826,25 +15803,20 @@ function exportCalendarPDF() {
 
   // ── Crew rows ──
   let crewRows = '';
-  const visibleCrew = crew.slice(0,40); // cap at 40 rows for PDF readability
+  const visibleCrew = crew.slice(0,40);
   visibleCrew.forEach((c,ci) => {
     const rowBg = ci%2===0 ? '#fff' : '#fafaf8';
-    // Determine start/end from their phase assignment
     let crewStart = null, crewEnd = null;
     c.bookings.forEach(bk => {
-      const start = bk.isoStart;
-      const end   = bk.isoEnd;
-      if(!crewStart || start < crewStart) crewStart = start;
-      if(!crewEnd   || end   > crewEnd)   crewEnd   = end;
+      if(!crewStart || bk.isoStart < crewStart) crewStart = bk.isoStart;
+      if(!crewEnd   || bk.isoEnd   > crewEnd)   crewEnd   = bk.isoEnd;
     });
     if(!crewStart) { crewStart = sched.prepStart; crewEnd = sched.shootEnd; }
-
     const si = dateIdx(crewStart);
     const ei = dateIdx(crewEnd);
     const mainPhase = c.bookings[0]?.phase || 'shoot';
     const barColor = mainPhase==='prep'?'#4a7cc7':mainPhase==='shoot'?'#2ecc71':mainPhase==='post'?'#a855f7':'#fb923c';
-
-    let cells = `<td style="padding:3px 8px;background:${rowBg};border-bottom:1px solid #eee;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis">
+    let cells = `<td style="padding:3px 8px;background:${rowBg};border-bottom:1px solid #eee;white-space:nowrap;max-width:${labelColPx}px;overflow:hidden;text-overflow:ellipsis">
       <span style="font-size:9px;font-weight:600;color:#1a1810">${esc(c.name)}</span>
       <span style="font-size:8px;color:#888;margin-left:4px">${esc(c.role!==c.name?c.role:'')}</span>
       <span style="float:right;font-size:8px;color:#aaa;font-family:monospace">${c.totalDays}d</span>
@@ -15862,13 +15834,12 @@ function exportCalendarPDF() {
            ${isEnd   ? `border-right:2px solid ${barColor};border-top:2px solid ${barColor};border-bottom:2px solid ${barColor};border-radius:0 3px 3px 0;` : ''}
            ${!isStart && !isEnd ? `border-top:2px solid ${barColor};border-bottom:2px solid ${barColor};` : ''}`
         : '';
-      // Role name label on start cell, total days on end cell
       const inner = isStart
-        ? `<span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);font-size:7px;font-weight:700;color:${barColor};white-space:nowrap;letter-spacing:.04em;pointer-events:none">${esc(c.role||c.name)}</span>`
+        ? `<span style="position:absolute;left:4px;top:50%;transform:translateY(-50%);font-size:7px;font-weight:700;color:${barColor};white-space:nowrap;letter-spacing:.04em;pointer-events:none;overflow:hidden;max-width:${(ei-si+1)*DW - 20}px;display:block;text-overflow:ellipsis">${esc(c.role||c.name)}</span>`
         : isEnd
         ? `<span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:7px;color:${barColor};opacity:.7;white-space:nowrap;pointer-events:none">${c.totalDays}d</span>`
         : '';
-      cells += `<td style="position:relative;background:${cellBg};border-left:1px solid #eee;border-bottom:1px solid #eee;height:18px;${barBorder}overflow:visible">${inner}</td>`;
+      cells += `<td style="position:relative;background:${cellBg};${inRange ? barBorder : 'border-left:1px solid #eee;border-bottom:1px solid #eee;'}overflow:visible;height:18px">${inner}</td>`;
     });
     crewRows += `<tr>${cells}</tr>`;
   });
@@ -15877,7 +15848,7 @@ function exportCalendarPDF() {
   // ── Full table ──
   const table = `
     <div style="overflow-x:auto">
-    <table style="border-collapse:collapse;table-layout:fixed;width:${180 + allDates.length*DW}px">
+    <table style="border-collapse:collapse;table-layout:fixed;width:100%">
       <thead>
         <tr>${monthCells}</tr>
         <tr>${dayCells}</tr>
@@ -15905,7 +15876,7 @@ function exportCalendarPDF() {
     .legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:#555}
     .legend-swatch{width:14px;height:10px;border-radius:2px}
     .footer{margin-top:20px;text-align:center;font-size:8px;color:#bbb;border-top:1px solid #eee;padding-top:8px}
-    @media print{body{padding:14px}@page{size:landscape}}
+    @media print{body{padding:14px}@page{size:landscape;margin:10mm}}
   `;
 
   const header = `
@@ -15914,8 +15885,7 @@ function exportCalendarPDF() {
         ${compLogo?`<img src="${compLogo}" style="height:40px;max-width:110px;object-fit:contain;flex-shrink:0" alt="">`: ''}
         <div>
           <div class="co-name">${esc(compName)}</div>
-          <div class="co-sub">${compAddr?esc(compAddr):''}
-          </div>
+          <div class="co-sub">${compAddr?esc(compAddr):''}</div>
         </div>
       </div>
       <div>
