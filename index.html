@@ -15703,6 +15703,14 @@ function exportCalendarPDF() {
 
   // Build full date range
   const allDates = CalDate.dateRange(sched.arcStart, sched.arcEnd);
+  const pageWidthPx = 1120;
+  const labelColPx = 180;
+  const DW = 28;
+  const minDays = Math.ceil((pageWidthPx - labelColPx) / DW);
+  if (allDates.length < minDays) {
+    const extra = minDays - allDates.length;
+    for (let i = 1; i <= extra; i++) allDates.push(CalDate.addDays(sched.arcEnd, i));
+  }
 
   const dowAbbr = ['Su','Mo','Tu','We','Th','Fr','Sa'];
   const isWeekend = iso => { const w=new Date(iso+'T12:00:00').getDay(); return w===0||w===6; };
