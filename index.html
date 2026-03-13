@@ -11781,108 +11781,210 @@ function esc(s){ return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').r
 // ─────────────────────────────────────────────────────────────────────────────
 // BUILT-IN PRODUCTION TYPE TEMPLATES
 // ─────────────────────────────────────────────────────────────────────────────
-function createBudget() {
-  const existing = document.getElementById('new-budget-modal');
-  if(existing) { existing.remove(); return; }
+const BUILTIN_TEMPLATES = [
+  {
+    id:'tpl-aicp-commercial',
+    name:'AICP Commercial',
+    icon:'🎬',
+    desc:'Standard 1-3 day national commercial. Full crew, agency on set, AICP format.',
+    shootDays:2, prepDays:3,
+    fringeDefault:'Non-Union',
+    rateCardId:'builtin-nu-mid',
+    markup:{ prodFee:20, contingency:5 },
+    notes:'AICP Commercial — [Client] / [Agency]. Contact your EP for markup guidance.',
+    crew:{
+      'A01':3,'A02':2,'A03':2,'A04':1,'A07':2,'A11':1,'A16':1,'A24':1,'A26':2,'A37':2,'A39':2,'A47':3,'A48':3,'A49':3,
+      'B51':2,'B52':2,'B53':2,'B54':2,'B55':2,'B56':2,'B57':2,'B58':2,'B60':2,'B61':2,'B62':2,'B63':2,'B66':2,'B67':2,'B68':2,'B74':2,'B75':2,'B76':2,'B77':2,'B78':2,'B79':2,'B80':2,'B81':2,'B87':2,'B89':2,'B90':2,'B91':2,'B97':2,'B99':2,'B100':2,
+      'G168':3,'G170':2,'G172':2,
+      'O01':5,'O02':5,'O03':3,'Q01':2,'R01':1,
+    },
+  },
+  {
+    id:'tpl-union-commercial',
+    name:'Union Commercial',
+    icon:'🎬',
+    desc:'IATSE/union crew. Bay Area or LA. Full agency service.',
+    shootDays:2, prepDays:3,
+    fringeDefault:'Union',
+    rateCardId:'builtin-union-iatse',
+    markup:{ prodFee:20, contingency:5 },
+    notes:'Union Commercial — verify IATSE local with your UPM before locking rates.',
+    crew:{
+      'A01':3,'A02':3,'A03':2,'A04':2,'A05':1,'A07':2,'A08':1,'A11':2,'A12':1,'A16':2,'A17':1,'A24':2,'A25':1,'A26':2,'A27':1,'A28':1,'A30':1,'A37':3,'A39':3,'A47':3,'A48':3,'A49':3,'A50':3,
+      'B51':2,'B52':2,'B53':2,'B54':2,'B55':2,'B56':2,'B57':2,'B58':2,'B60':2,'B61':2,'B62':2,'B63':2,'B64':2,'B66':2,'B67':2,'B68':2,'B69':2,'B74':2,'B75':2,'B76':2,'B77':2,'B78':2,'B79':2,'B80':2,'B81':2,'B86':2,'B87':2,'B89':2,'B90':2,'B91':2,'B97':2,'B98':2,'B99':2,'B100':2,
+      'G168':4,'G170':3,'G172':3,'G173':2,'G175':2,'G176':2,
+      'O01':5,'O02':5,'O03':4,'Q01':2,'R01':2,
+    },
+  },
+  {
+    id:'tpl-music-video',
+    name:'Music Video',
+    icon:'🎵',
+    desc:'1-2 day music video. Non-union, leaner crew, lower rates.',
+    shootDays:1, prepDays:2,
+    fringeDefault:'Non-Union',
+    rateCardId:'builtin-nu-low',
+    markup:{ prodFee:15, contingency:5 },
+    notes:'Music Video — label deal / self-financed. Confirm rights and deliverables.',
+    crew:{
+      'A01':2,'A03':1,'A07':1,'A26':1,'A47':2,'A49':2,
+      'B51':1,'B53':1,'B54':1,'B55':1,'B61':1,'B62':1,'B66':1,'B67':1,'B74':1,'B76':1,'B80':1,'B99':1,
+      'O01':3,'O02':3,'Q01':1,'R01':1,
+    },
+  },
+  {
+    id:'tpl-documentary',
+    name:'Documentary',
+    icon:'🎞',
+    desc:'Small crew, flexible schedule, doc-style run-and-gun.',
+    shootDays:5, prepDays:2,
+    fringeDefault:'Non-Union',
+    rateCardId:'builtin-nu-low',
+    markup:{ prodFee:15, contingency:10 },
+    notes:'Documentary — confirm shoot days, archive licensing, and post schedule.',
+    crew:{
+      'A01':2,'A03':1,'A37':2,'A47':2,'A49':2,
+      'B51':5,'B53':5,'B54':5,'B80':5,'B99':5,
+      'O01':10,'O02':10,'O03':5,'Q01':2,'R01':2,
+    },
+  },
+  {
+    id:'tpl-corporate',
+    name:'Corporate / Branded',
+    icon:'🏢',
+    desc:'Brand content, internal video, or corporate communications.',
+    shootDays:1, prepDays:1,
+    fringeDefault:'Non-Union',
+    rateCardId:'builtin-nu-low',
+    markup:{ prodFee:18, contingency:5 },
+    notes:'Corporate/Branded — confirm usage rights and approval chain before bidding.',
+    crew:{
+      'A01':1,'A03':1,'A47':1,'A49':1,
+      'B51':1,'B53':1,'B54':1,'B61':1,'B62':1,'B66':1,'B74':1,'B80':1,'B99':1,
+      'O01':3,'O02':3,'Q01':1,'R01':1,
+    },
+  },
+  {
+    id:'tpl-photo-shoot',
+    name:'Photo Shoot',
+    icon:'📷',
+    desc:'Still photography production — product, lifestyle, or campaign.',
+    shootDays:1, prepDays:1,
+    fringeDefault:'Non-Union',
+    rateCardId:'builtin-nu-mid',
+    markup:{ prodFee:18, contingency:5 },
+    notes:'Photo Shoot — confirm usage rights, licensing, and post retouching scope.',
+    crew:{
+      'A01':1,'A07':1,'A26':1,'A47':1,
+      'B51':1,'B53':1,'B54':1,'B61':1,'B62':1,'B66':1,'B74':1,'B76':1,'B99':1,
+    },
+  },
+  {
+    id:'tpl-post-only',
+    name:'Post Only',
+    icon:'🖥',
+    desc:'Edit, color, audio, and VFX. No shoot crew.',
+    shootDays:0, prepDays:0,
+    fringeDefault:'Non-Union',
+    rateCardId:'builtin-nu-mid',
+    markup:{ prodFee:15, contingency:5 },
+    notes:'Post Only — confirm deliverable formats, versioning, and archive requirements.',
+    crew:{
+      'O01':10,'O02':10,'O03':5,'Q01':3,'R01':2,
+    },
+  },
+];
 
-  const modal = document.createElement('div');
-  modal.id = 'new-budget-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
-
-  // Close on backdrop click
-  modal.addEventListener('mousedown', e => { if(e.target === modal) modal.remove(); });
-
-  const templateCards = BUILTIN_TEMPLATES.map(t => `
-    <button onclick="createBlankThenApply('${t.id}')"
-      style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;cursor:pointer;text-align:left;transition:all .15s;min-height:110px"
-      onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(108,142,240,.06)'"
-      onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--bg2)'">
-      <span style="font-size:20px;line-height:1">${t.icon}</span>
-      <span style="font-size:12px;font-family:var(--mono);color:var(--text);font-weight:600;letter-spacing:.02em">${t.name}</span>
-      <span style="font-size:9px;color:var(--text4);line-height:1.5">${t.desc}</span>
-      <div style="display:flex;gap:6px;margin-top:auto;flex-wrap:wrap">
-        ${t.shootDays > 0 ? `<span style="font-size:8px;font-family:var(--mono);color:var(--text4);background:var(--bg3);border:1px solid var(--border);padding:1px 6px;border-radius:2px">${t.shootDays}d shoot</span>` : ''}
-        ${t.fringeDefault ? `<span style="font-size:8px;font-family:var(--mono);color:var(--text4);background:var(--bg3);border:1px solid var(--border);padding:1px 6px;border-radius:2px">${t.fringeDefault}</span>` : ''}
-        ${t.markup ? `<span style="font-size:8px;font-family:var(--mono);color:var(--text4);background:var(--bg3);border:1px solid var(--border);padding:1px 6px;border-radius:2px">${t.markup.prodFee}% fee</span>` : ''}
-      </div>
-    </button>`
-  ).join('');
-
-  const userTemplateSection = templates.length ? `
-    <div style="margin-top:24px">
-      <div style="font-size:9px;font-family:var(--mono);color:var(--gold);letter-spacing:.1em;margin-bottom:10px">SAVED TEMPLATES</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
-        ${templates.map(t => `
-        <button onclick="createFromTemplateAndClose('${t.id}')"
-          style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 14px;background:var(--bg2);border:1px solid var(--gold-dim);border-radius:4px;cursor:pointer;text-align:left;transition:all .15s"
-          onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(200,169,110,.06)'"
-          onmouseout="this.style.borderColor='var(--gold-dim)';this.style.background='var(--bg2)'">
-          <span style="font-size:11px;font-family:var(--mono);color:var(--gold);font-weight:600">${esc(t.name)}</span>
-          <span style="font-size:9px;color:var(--text4)">Saved template</span>
-        </button>`).join('')}
-      </div>
-    </div>` : '';
-
-  modal.innerHTML = `
-    <div style="background:var(--bg1);border:1px solid var(--border2);border-radius:6px;padding:32px;max-width:780px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.9)">
-
-      <!-- Header -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px">
-        <div>
-          <div style="font-size:16px;font-family:var(--mono);color:var(--text);letter-spacing:.06em;font-weight:700">NEW BUDGET</div>
-          <div style="font-size:10px;color:var(--text4);margin-top:4px">Choose a production type to pre-fill crew, rates, and fringe</div>
-        </div>
-        <button onclick="document.getElementById('new-budget-modal').remove()"
-          style="background:transparent;border:1px solid var(--border2);color:var(--text4);cursor:pointer;font-size:14px;padding:4px 10px;border-radius:2px;font-family:var(--mono);letter-spacing:.06em;transition:all .15s"
-          onmouseover="this.style.borderColor='var(--text3)';this.style.color='var(--text)'"
-          onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text4)'">✕</button>
-      </div>
-
-      <!-- Blank budget — first and most prominent -->
-      <div style="margin-bottom:20px">
-        <button onclick="addBudget();document.getElementById('new-budget-modal').remove()"
-          style="width:100%;display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--bg2);border:1px solid var(--accent);border-radius:4px;cursor:pointer;text-align:left;transition:all .15s"
-          onmouseover="this.style.background='rgba(108,142,240,.08)';this.style.borderColor='var(--accent)'"
-          onmouseout="this.style.background='var(--bg2)';this.style.borderColor='var(--accent)'">
-          <div style="width:36px;height:36px;border:1.5px solid var(--accent);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
-          </div>
-          <div>
-            <div style="font-size:12px;font-family:var(--mono);color:var(--accent);font-weight:700;letter-spacing:.04em">Blank Budget</div>
-            <div style="font-size:9px;color:var(--text4);margin-top:2px">Start from scratch — no pre-filled rates or crew</div>
-          </div>
-        </button>
-      </div>
-
-      <!-- Divider -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <div style="flex:1;height:1px;background:var(--border2)"></div>
-        <span style="font-size:9px;font-family:var(--mono);color:var(--text4);letter-spacing:.1em">OR START FROM A TEMPLATE</span>
-        <div style="flex:1;height:1px;background:var(--border2)"></div>
-      </div>
-
-      <!-- Production type label -->
-      <div style="font-size:9px;font-family:var(--mono);color:var(--accent);letter-spacing:.1em;margin-bottom:10px">PRODUCTION TYPE</div>
-
-      <!-- Template grid -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
-        ${templateCards}
-      </div>
-
-      ${userTemplateSection}
-
-      <!-- Footer -->
-      <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border2);display:flex;justify-content:flex-end">
-        <button onclick="document.getElementById('new-budget-modal').remove()"
-          style="padding:7px 20px;font-size:10px;font-family:var(--mono);letter-spacing:.06em;background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:2px;cursor:pointer;transition:all .15s"
-          onmouseover="this.style.borderColor='var(--text2)';this.style.color='var(--text)'"
-          onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">CANCEL</button>
-      </div>
-
-    </div>`;
-
-  document.body.appendChild(modal);
-}
+const BUILTIN_RATE_CARDS = [
+  {
+    id:'builtin-nu-low', name:'Non-Union — Low Budget', builtin:true,
+    fringeDefault:'Non-Union',
+    get hourly() {
+      const h={};
+      Object.entries(this.rates).forEach(([k,v])=>{ h[k]=Math.round(v/8*4)/4; });
+      return h;
+    },
+    rates:{
+      'A01':950,'A02':750,'A03':1100,'A04':550,'A05':400,'A06':600,'A07':500,'A08':375,'A10':550,'A11':600,'A12':475,'A13':375,'A14':375,'A15':375,'A16':600,'A17':475,'A18':375,
+      'B51':1200,'B52':950,'B53':1400,'B54':650,'B55':475,'B56':750,'B57':600,'B58':450,'B60':700,'B61':750,'B62':600,'B63':475,'B64':450,'B66':750,'B67':600,'B68':475,'B69':450,'B70':550,'B71':625,'B72':900,'B74':575,'B75':425,'B76':600,'B77':425,'B78':525,'B79':475,'B80':650,'B81':475,'B83':500,'B84':350,
+      'G168':800,'G170':650,'G171':450,'G172':600,'G173':450,'G175':525,'G176':450,'G177':475,'G178':475,
+      'M234':783,'M235':783,'M236':783,'M237':783,'M258':783,
+      'O01':700,'O02':425,'O03':600,
+      'Q01':800,
+      'R01':700,
+      'A19':375,'A20':425,'A21':475,'A22':675,'A23':550,'A24':450,'A25':325,'A26':450,'A27':325,'A28':400,'A29':375,'A30':500,'A31':375,'A32':600,'A33':375,'A34':275,'A35':500,'A36':275,'A37':450,'A38':300,'A39':500,'A40':350,'A41':275,'A42':400,'A43':400,'A44':350,'A45':425,'A46':425,'A47':650,'A48':475,'A49':250,'A50':250,
+      'B65':375,'B73':725,'B82':800,'B85':500,'B86':350,'B87':600,'B88':400,'B89':650,'B90':450,'B91':350,'B92':525,'B93':525,'B94':475,'B95':550,'B96':550,'B97':850,'B98':625,'B99':300,'B100':300,
+      'G174':400,
+      'M238':783,'M239':783,'M240':783,'M241':783,'M242':783,'M244':225,'M246':200,'M247':225,'M248':225,'M249':225,'M250':225,'M251':225,'M255':500,
+    }
+  },
+  {
+    id:'builtin-nu-mid', name:'Non-Union — Mid-Range', builtin:true,
+    fringeDefault:'Non-Union',
+    get hourly() {
+      const h={};
+      Object.entries(this.rates).forEach(([k,v])=>{ h[k]=Math.round(v/8*4)/4; });
+      return h;
+    },
+    rates:{
+      'A01':1200,'A02':1000,'A03':1500,'A04':700,'A05':525,'A06':800,'A07':650,'A08':500,'A10':725,'A11':750,'A12':600,'A13':475,'A14':475,'A15':475,'A16':750,'A17':600,'A18':475,
+      'B51':1500,'B52':1250,'B53':2000,'B54':850,'B55':625,'B56':1000,'B57':800,'B58':600,'B60':950,'B61':950,'B62':775,'B63':600,'B64':575,'B66':950,'B67':775,'B68':600,'B69':575,'B70':725,'B71':825,'B72':1250,'B74':750,'B75':550,'B76':800,'B77':575,'B78':700,'B79':625,'B80':875,'B81':625,'B83':650,'B84':450,
+      'G168':1100,'G170':875,'G171':600,'G172':800,'G173':600,'G175':700,'G176':600,'G177':625,'G178':600,
+      'M234':783,'M235':783,'M236':783,'M237':783,'M258':783,
+      'O01':1000,'O02':575,'O03':800,
+      'Q01':1200,
+      'R01':1000,
+      'A19':475,'A20':550,'A21':625,'A22':950,'A23':750,'A24':575,'A25':425,'A26':600,'A27':425,'A28':525,'A29':475,'A30':675,'A31':475,'A32':825,'A33':500,'A34':350,'A35':700,'A36':350,'A37':600,'A38':400,'A39':675,'A40':450,'A41':350,'A42':525,'A43':525,'A44':475,'A45':550,'A46':550,'A47':875,'A48':625,'A49':325,'A50':325,
+      'B65':475,'B73':1000,'B82':1100,'B85':700,'B86':450,'B87':800,'B88':525,'B89':875,'B90':600,'B91':450,'B92':700,'B93':700,'B94':625,'B95':725,'B96':725,'B97':1125,'B98':825,'B99':400,'B100':400,
+      'G174':525,
+      'M238':783,'M239':783,'M240':783,'M241':783,'M242':783,'M244':225,'M246':200,'M247':225,'M248':225,'M249':225,'M250':225,'M251':225,'M255':500,
+    }
+  },
+  {
+    id:'builtin-union-iatse', name:'Union — IATSE / Bay Area', builtin:true,
+    fringeDefault:'Union',
+    get hourly() {
+      const h={};
+      Object.entries(this.rates).forEach(([k,v])=>{ h[k]=Math.round(v/8*4)/4; });
+      return h;
+    },
+    rates:{
+      'A01':1500,'A02':1250,'A03':1900,'A04':900,'A05':675,'A06':1000,'A07':850,'A08':650,'A10':925,'A11':975,'A12':775,'A13':625,'A14':625,'A15':625,'A16':975,'A17':775,'A18':625,
+      'B51':1900,'B52':1600,'B53':2500,'B54':1100,'B55':800,'B56':1300,'B57':1050,'B58':775,'B60':1200,'B61':1250,'B62':1000,'B63':775,'B64':750,'B66':1250,'B67':1000,'B68':775,'B69':750,'B70':950,'B71':1075,'B72':1600,'B74':975,'B75':725,'B76':1050,'B77':750,'B78':900,'B79':825,'B80':1125,'B81':825,'B83':850,'B84':575,
+      'G168':1400,'G170':1125,'G171':775,'G172':1050,'G173':775,'G175':900,'G176':775,'G177':825,'G178':775,
+      'M234':783,'M235':783,'M236':783,'M237':783,'M258':1204,
+      'O01':1300,'O02':750,'O03':1050,
+      'Q01':1550,
+      'R01':1300,
+      'A19':625,'A20':725,'A21':825,'A22':1225,'A23':975,'A24':750,'A25':550,'A26':800,'A27':575,'A28':675,'A29':625,'A30':875,'A31':625,'A32':1075,'A33':650,'A34':450,'A35':900,'A36':450,'A37':775,'A38':525,'A39':875,'A40':600,'A41':450,'A42':675,'A43':675,'A44':625,'A45':725,'A46':725,'A47':1125,'A48':825,'A49':425,'A50':425,
+      'B65':625,'B73':1300,'B82':1425,'B85':900,'B86':600,'B87':1050,'B88':675,'B89':1125,'B90':775,'B91':600,'B92':900,'B93':900,'B94':825,'B95':950,'B96':950,'B97':1450,'B98':1075,'B99':525,'B100':525,
+      'G174':675,
+      'M238':783,'M239':783,'M240':783,'M241':783,'M242':783,'M244':225,'M246':200,'M247':225,'M248':225,'M249':225,'M250':225,'M251':225,'M255':500,
+    }
+  },
+  {
+    id:'builtin-union-la', name:'Union — IATSE / LA', builtin:true,
+    fringeDefault:'Union',
+    get hourly() {
+      const h={};
+      Object.entries(this.rates).forEach(([k,v])=>{ h[k]=Math.round(v/8*4)/4; });
+      return h;
+    },
+    rates:{
+      'A01':1700,'A02':1400,'A03':2100,'A04':1000,'A05':750,'A06':1100,'A07':950,'A08':725,'A10':1050,'A11':1100,'A12':875,'A13':700,'A14':700,'A15':700,'A16':1100,'A17':875,'A18':700,
+      'B51':2200,'B52':1800,'B53':2750,'B54':1250,'B55':900,'B56':1450,'B57':1175,'B58':875,'B60':1375,'B61':1400,'B62':1125,'B63':875,'B64':850,'B66':1400,'B67':1125,'B68':875,'B69':850,'B70':1075,'B71':1200,'B72':1800,'B74':1100,'B75':825,'B76':1175,'B77':850,'B78':1025,'B79':925,'B80':1275,'B81':925,'B83':975,'B84':650,
+      'G168':1575,'G170':1275,'G171':875,'G172':1175,'G173':875,'G175':1025,'G176':875,'G177':925,'G178':875,
+      'M234':783,'M235':783,'M236':783,'M237':783,'M258':1204,
+      'O01':1500,'O02':850,'O03':1200,
+      'Q01':1750,
+      'R01':1500,
+      'A19':700,'A20':825,'A21':925,'A22':1375,'A23':1100,'A24':850,'A25':625,'A26':900,'A27':650,'A28':775,'A29':700,'A30':975,'A31':700,'A32':1200,'A33':750,'A34':500,'A35':1025,'A36':525,'A37':875,'A38':600,'A39':975,'A40':675,'A41':525,'A42':775,'A43':775,'A44':700,'A45':825,'A46':825,'A47':1275,'A48':925,'A49':475,'A50':475,
+      'B65':700,'B73':1450,'B82':1600,'B85':1025,'B86':675,'B87':1175,'B88':775,'B89':1275,'B90':875,'B91':675,'B92':1025,'B93':1025,'B94':925,'B95':1075,'B96':1075,'B97':1650,'B98':1200,'B99':600,'B100':600,
+      'G174':775,
+      'M238':783,'M239':783,'M240':783,'M241':783,'M242':783,'M244':225,'M246':200,'M247':225,'M248':225,'M249':225,'M250':225,'M251':225,'M255':500,
+    }
+  },
+];
 
 // ============================================
 // SECTION: Smart Panel
