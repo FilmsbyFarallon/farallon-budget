@@ -15845,6 +15845,38 @@ function exportCalendarPDF() {
   });
   const crewOverflow = crew.length > 40 ? `<div style="font-size:9px;color:#888;margin-top:8px;padding:4px 8px;background:#f9f9f9;border-left:2px solid #ddd">+ ${crew.length-40} additional crew members not shown</div>` : '';
 
+  // ── Burn rows ──
+  const burn = calSectionBurn(b, sched);
+  const fmtK = v => v >= 1000 ? '$' + (v/1000).toFixed(1) + 'k' : '$' + Math.round(v).toLocaleString();
+
+  // Header
+  let burnRows = `<tr><td colspan="${1+allDates.length}" style="padding:4px 8px;font-size:8px;font-weight:700;letter-spacing:.1em;color:#c8973a;background:#1a1810">DAILY COST BREAKDOWN</td></tr>`;
+
+  burn.groups.forEach((g, gi) => {
+    const rowBg = gi % 2 === 0 ? '#fff' : '#fafaf8';
+    let cells = `<td style="padding:3px 8px;font-size:9px;font-weight:600;color:${g.color === 'var(--gold)' ? '#c8973a' : g.color === 'var(--text3)' ? '#888' : g.color};background:${rowBg};border-bottom:1px solid #eee;white-space:nowrap">${g.label}</td>`;
+    allDates.forEach(dt => {
+      const val = (burn.data[dt] || {})[g.key] || 0;
+      cells += `<td style="background:${rowBg};border-left:1px solid #eee;border-bottom:1px solid #eee;text-align:center;font-size:8px;font-family:monospace;color:${val > 0 ? (g.color === 'var(--gold)' ? '#c8973a' : g.color === 'var(--text3)' ? '#888' : g.color) : '#ccc'}">${val > 0 ? fmtK(val) : '–'}</td>`;
+    });
+    burnRows += `<tr>${cells}</tr>`;
+  });
+
+  // Total row
+  let totalCells = `<td style="padding:3px 8px;font-size:9px;font-weight:700;color:#c8973a;background:#f9f6ef;border-bottom:1px solid #eee;white-space:nowrap">TOTAL / DAY</td>`;
+  allDates.forEach(dt => {
+    const dayData = burn.data[dt];
+    const total = dayData ? Object.values(dayData).reduce((s,v) => s+v, 0) : 0;
+    const phase = CAL_PHASES.find(p => {
+      const ps = p.key==='prep'?sched.prepStart:p.key==='shoot'?sched.shootStart:p.key==='wrap'?sched.wrapStart:sched.postStart;
+      const pe = p.key==='prep'?sched.prepEnd:p.key==='shoot'?sched.shootEnd:p.key==='wrap'?sched.wrapEnd:sched.postEnd;
+      return dt >= ps && dt <= pe;
+    });
+    const bg = total > 0 && phase ? phase.bg.replace('.13)', '.08)').replace('.15)', '.08)') : '#f9f6ef';
+    totalCells += `<td style="background:${bg};border-left:1px solid #eee;border-bottom:1px solid #eee;text-align:center;font-size:9px;font-weight:700;font-family:monospace;color:${total > 0 ? '#c8973a' : '#ccc'}">${total > 0 ? fmtK(total) : '–'}</td>`;
+  });
+  burnRows += `<tr>${totalCells}</tr>`;
+
   // ── Full table ──
   const table = `
     <div style="overflow-x:auto">
@@ -15858,6 +15890,8 @@ function exportCalendarPDF() {
         ${msRow}
         <tr><td colspan="${1+allDates.length}" style="height:6px;background:#f0ede8"></td></tr>
         ${crewRows}
+        <tr><td colspan="${1+allDates.length}" style="height:6px;background:#f0ede8"></td></tr>
+        ${burnRows}
       </tbody>
     </table>
     </div>
