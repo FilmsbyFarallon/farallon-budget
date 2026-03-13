@@ -15805,13 +15805,9 @@ function exportCalendarPDF() {
     const rowBg = ci%2===0 ? '#fff' : '#fafaf8';
     // Determine start/end from their phase assignment
     let crewStart = null, crewEnd = null;
-    c.phases.forEach(ph => {
-      let start, end;
-      if(ph.phase === 'prep')  { start = sched.prepStart;  end = allDates[dateIdx(sched.shootStart)-1] || sched.prepStart; }
-      else if(ph.phase === 'shoot') { start = sched.shootStart; end = sched.shootEnd; }
-      else if(ph.phase === 'wrap')  { start = sched.wrapStart;  end = sched.wrapEnd; }
-      else if(ph.phase === 'post')  { start = sched.postStart;  end = sched.postEnd; }
-      else { start = sched.prepStart; end = sched.postEnd; }
+    c.bookings.forEach(bk => {
+      const start = bk.isoStart;
+      const end   = bk.isoEnd;
       if(!crewStart || start < crewStart) crewStart = start;
       if(!crewEnd   || end   > crewEnd)   crewEnd   = end;
     });
