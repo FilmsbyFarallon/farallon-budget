@@ -15815,7 +15815,7 @@ function exportCalendarPDF() {
 
     const si = dateIdx(crewStart);
     const ei = dateIdx(crewEnd);
-    const mainPhase = c.phases[0]?.phase || 'shoot';
+    const mainPhase = c.bookings[0]?.phase || 'shoot';
     const barColor = mainPhase==='prep'?'#4a7cc7':mainPhase==='shoot'?'#2ecc71':mainPhase==='post'?'#a855f7':'#fb923c';
 
     let cells = `<td style="padding:3px 8px;background:${rowBg};border-bottom:1px solid #eee;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis">
