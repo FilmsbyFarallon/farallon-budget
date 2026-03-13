@@ -15754,10 +15754,10 @@ function exportCalendarPDF() {
 
   // ── Phase Gantt rows ──
   const phases = [
-    { label:'PREP',  start:sched.prepStart,  end:allDates[dateIdx(sched.shootStart)-1] || sched.prepStart, color:'#4a7cc7', bg:'rgba(74,124,199,.15)', days:sched.prepDays },
+    { label:'PREP',  start:sched.prepStart,  end:allDates[dateIdx(sched.shootStart)-1] || sched.prepStart, color:'#4a7cc7', bg:'rgba(74,124,199,.15)', days:sched.prepDur },
     { label:'SHOOT', start:sched.shootStart, end:sched.shootEnd, color:'#2ecc71', bg:'rgba(46,204,113,.15)', days:sched.shootDays },
-    { label:'WRAP',  start:sched.wrapStart,  end:sched.wrapEnd,  color:'#fb923c', bg:'rgba(251,146,60,.15)', days:sched.wrapDays },
-    { label:'POST',  start:sched.postStart,  end:sched.postEnd,  color:'#a855f7', bg:'rgba(168,85,247,.15)', days:sched.postDays },
+    { label:'WRAP',  start:sched.wrapStart,  end:sched.wrapEnd,  color:'#fb923c', bg:'rgba(251,146,60,.15)', days:sched.wrapDur },
+    { label:'POST',  start:sched.postStart,  end:sched.postEnd,  color:'#a855f7', bg:'rgba(168,85,247,.15)', days:sched.postDur },
   ];
 
   let phaseRows = '';
