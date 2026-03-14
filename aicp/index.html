@@ -75,6 +75,23 @@
     font-family: 'DM Mono', monospace;
   }
 
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
   .status-dot {
     width: 6px; height: 6px;
     border-radius: 50%;
@@ -588,9 +605,10 @@
 
 <nav>
   <a href="https://villagerpro.io" class="nav-logo">VILLAGER PRO</a>
-  <div class="nav-status">
-    <div class="status-dot"></div>
-    villagerpro.io/aicp
+  <div class="nav-links">
+    <a href="https://villagerpro.io" target="_blank" rel="noopener">Villager Pro</a>
+    <a href="https://filmsbyfarallon.com" target="_blank" rel="noopener">Farallon</a>
+    <a href="https://x.com/Villagerpro_io" target="_blank" rel="noopener">Follow on X</a>
   </div>
 </nav>
 
