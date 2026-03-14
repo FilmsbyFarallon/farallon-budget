@@ -1,33 +1,38 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe');
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const PDF_URL = 'https://villagerpro.io/aicp/assets/your-first-commercial-budget.pdf';
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   const sig = req.headers['stripe-signature'];
   let event;
 
   try {
-    const rawBody = await getRawBody(req);
-    event = stripe.webhooks.constructEvent(rawBody, sig, WEBHOOK_SECRET);
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+    const rawBody = Buffer.concat(chunks);
+    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
+    console.error('Webhook signature error:', err.message);
     return res.status(400).json({ error: `Webhook error: ${err.message}` });
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const email = session.customer_details?.email || session.customer_email;
+    const email = (session.customer_details && session.customer_details.email) || session.customer_email;
 
     if (!email) {
-      console.error('No email found in session:', session.id);
+      console.error('No email in session:', session.id);
       return res.status(200).json({ received: true });
     }
 
@@ -42,40 +47,29 @@ export default async function handler(req, res) {
             <h1 style="font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 24px;">Your guide is ready.</h1>
             <p style="font-size: 16px; line-height: 1.7; margin-bottom: 24px;">
               Thanks for picking up <strong>Your First Commercial Budget: The Working Producer's Guide to AICP</strong>.
-              83 pages of real rates, real math, and real format — the stuff that usually lives only in the heads of producers who've been doing this for 20 years.
+              83 pages of real rates, real math, and real format.
             </p>
             <p style="margin-bottom: 32px;">
               <a href="${PDF_URL}" style="display: inline-block; background: #1a1a1a; color: #fff; padding: 14px 28px; text-decoration: none; font-family: monospace; font-size: 13px; letter-spacing: 0.05em;">
-                DOWNLOAD PDF →
+                DOWNLOAD PDF &rarr;
               </a>
             </p>
             <p style="font-size: 14px; line-height: 1.7; color: #555; margin-bottom: 16px;">
-              Questions after reading? Reply to this email — I'm Jax, I run the Villager Pro stack and I'll get back to you.
+              Questions after reading? Reply to this email -- I'm Jax, I run the Villager Pro stack and I'll get back to you.
             </p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
             <p style="font-size: 12px; color: #999;">
-              Villager Pro · <a href="https://villagerpro.io" style="color: #999;">villagerpro.io</a>
+              Villager Pro &middot; <a href="https://villagerpro.io" style="color: #999;">villagerpro.io</a>
             </p>
           </div>
         `
       });
-
-      console.log(`PDF delivery email sent to ${email}`);
+      console.log('PDF email sent to:', email);
     } catch (emailErr) {
-      console.error('Failed to send email:', emailErr);
+      console.error('Email failed:', emailErr);
       return res.status(500).json({ error: 'Email delivery failed' });
     }
   }
 
   return res.status(200).json({ received: true });
-}
-
-// Read raw body for Stripe signature verification
-async function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => resolve(Buffer.from(data)));
-    req.on('error', reject);
-  });
-}
+};
