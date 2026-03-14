@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your First Commercial Budget — Villager Pro</title>
+<meta name="description" content="The working producer's guide to AICP budgeting. 83 pages of real-world commercial production knowledge. $29.">
+<meta property="og:title" content="Your First Commercial Budget — Villager Pro">
+<meta property="og:description" content="The working producer's guide to AICP budgeting. No theory. Real operations.">
+<meta property="og:url" content="https://villagerpro.io/aicp">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060608;
+    --bg1: #0d0d10;
+    --bg2: #111115;
+    --bg3: #16161b;
+    --bg4: #1c1c22;
+    --gold: #c9a84c;
+    --gold-dim: #8a6d2f;
+    --gold-light: #e8c97a;
+    --text: #f0ede8;
+    --text-dim: #8a8880;
+    --text-muted: #4a4845;
+    --border: rgba(201,168,76,0.15);
+    --border-dim: rgba(255,255,255,0.06);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 56px;
+    background: rgba(6,6,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .nav-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  .nav-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* LAYOUT */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 140px 0 80px;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-label::after {
+    content: '';
+    display: block;
+    height: 0.5px;
+    width: 48px;
+    background: var(--gold-dim);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin-bottom: 2.5rem;
+    line-height: 1.65;
+  }
+
+  .hero-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.04em;
+  }
+
+  .hero-meta span {
+    color: var(--text-dim);
+  }
+
+  .cta-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--gold);
+    color: #0a0802;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover {
+    background: var(--gold-light);
+    transform: translateY(-1px);
+  }
+
+  .price-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .price-note strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* SOCIAL PROOF */
+  .proof-bar {
+    padding: 32px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .proof-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  .proof-item strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    letter-spacing: 0;
+    margin-bottom: 2px;
+  }
+
+  /* INTRO */
+  .intro-section {
+    padding: 80px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 1.5rem;
+  }
+
+  .intro-text {
+    font-size: 19px;
+    line-height: 1.75;
+    color: var(--text-dim);
+    max-width: 680px;
+  }
+
+  .intro-text strong {
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  /* WHAT'S INSIDE */
+  .inside-section {
+    padding: 80px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .inside-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    margin-bottom: 3rem;
+    color: var(--text);
+  }
+
+  .chapters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .chapter {
+    padding: 1.5rem 0;
+    border-top: 0.5px solid var(--border-dim);
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .chapter:nth-child(odd) { padding-right: 2rem; border-right: 0.5px solid var(--border-dim); }
+  .chapter:nth-child(even) { padding-left: 2rem; }
+
+  .chapter-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gold-dim);
+    letter-spacing: 0.08em;
+    padding-top: 3px;
+  }
+
+  .chapter-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .chapter-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* SAMPLE SECTION */
+  .sample-section {
+    padding: 80px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+    background: var(--bg1);
+    margin: 0 -2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .sample-box {
+    background: var(--bg2);
+    border: 0.5px solid var(--border-dim);
+    border-left: 2px solid var(--gold-dim);
+    padding: 2rem;
+    margin-top: 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .sample-box .sample-head {
+    color: var(--gold);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .sample-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .sample-row:last-child { border-bottom: none; }
+
+  .sample-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0 0;
+    margin-top: 8px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ABOUT */
+  .about-section {
+    padding: 80px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .about-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .about-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+
+  .about-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .about-text {
+    font-size: 16px;
+    color: var(--text-dim);
+    line-height: 1.75;
+  }
+
+  .about-text p + p { margin-top: 1rem; }
+
+  /* BOTTOM CTA */
+  .cta-section {
+    padding: 100px 0;
+    text-align: center;
+  }
+
+  .cta-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .cta-section h2 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .cta-section p {
+    color: var(--text-dim);
+    font-size: 17px;
+    margin-bottom: 2.5rem;
+  }
+
+  .guarantee {
+    margin-top: 1.5rem;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* JAX SUPPORT SECTION */
+  .jax-section {
+    padding: 0 0 80px;
+  }
+
+  .jax-box {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+    align-items: start;
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-left: 2px solid var(--gold-dim);
+    padding: 2.5rem;
+  }
+
+  .jax-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+  }
+
+  .jax-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    line-height: 1.5;
+  }
+
+  .jax-right {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.75;
+  }
+
+  .jax-right p + p { margin-top: 0.75rem; }
+  .jax-right strong { color: var(--text); font-weight: 400; }
+
+  .jax-link {
+    color: var(--gold);
+    text-decoration: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+
+  .jax-link:hover { color: var(--gold-light); }
+
+  /* CTA EYEBROW */
+  .cta-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 1.25rem;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 0.5px solid var(--border-dim);
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--text-dim); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    padding: 3rem;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem; right: 1.25rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .modal h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-price {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 2rem;
+  }
+
+  .modal input {
+    width: 100%;
+    background: var(--bg3);
+    border: 0.5px solid var(--border-dim);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .modal input:focus { border-color: var(--gold-dim); }
+  .modal input::placeholder { color: var(--text-muted); }
+
+  .modal .btn-primary { width: 100%; justify-content: center; margin-top: 8px; }
+
+  .modal-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 1rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* STRIPE placeholder */
+  #card-element {
+    background: var(--bg3);
+    border: 0.5px solid var(--border-dim);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    color: var(--text);
+    font-size: 15px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero-bullets {
+    list-style: none;
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .hero-bullets li {
+    font-size: 15px;
+    color: var(--text-dim);
+    padding-left: 1.25rem;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .hero-bullets li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--gold-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .hero-bullets li strong { color: var(--text); font-weight: 400; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-label, h1, .hero-sub, .hero-meta, .cta-row {
+    animation: fadeUp 0.7s ease both;
+  }
+
+  h1 { animation-delay: 0.1s; }
+  .hero-sub { animation-delay: 0.2s; }
+  .hero-meta { animation-delay: 0.25s; }
+  .cta-row { animation-delay: 0.3s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 680px) {
+    .chapters { grid-template-columns: 1fr; }
+    .chapter:nth-child(odd) { padding-right: 0; border-right: none; }
+    .chapter:nth-child(even) { padding-left: 0; }
+    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .jax-box { grid-template-columns: 1fr; gap: 1.5rem; }
+    .proof-bar { gap: 2rem; }
+    nav { padding: 0 1rem; }
+    .container { padding: 0 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://villagerpro.io" class="nav-logo">VILLAGER PRO</a>
+  <div class="nav-status">
+    <div class="status-dot"></div>
+    villagerpro.io/aicp
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-label">PDF Guide — 83 Pages</div>
+    <h1>Your First<br><em>Commercial Budget</em></h1>
+    <p class="hero-sub">The working producer's guide to AICP budgeting. Real rates. Real fringes. Real bid strategy. Written by people who've done it — not read about it.</p>
+    <p class="hero-meta">Published by Villager Pro &nbsp;·&nbsp; <span>Updated March 2026</span> &nbsp;·&nbsp; <span>83 pages</span></p>
+
+    <ul class="hero-bullets">
+      <li>Every section of the AICP format — A through J — explained in plain language</li>
+      <li>Current 2025–2026 crew rates by market, union and non-union</li>
+      <li>A real $102K regional commercial bid built line by line</li>
+      <li>Fringe calculations that won't blow up your cost report</li>
+      <li>How to read, write, and win a bid like an agency producer</li>
+      <li>Direct-to-brand strategy, scope creep defense, getting paid</li>
+      <li>Email support from Jax — questions after reading? He's there.</li>
+    </ul>
+
+    <div class="cta-row">
+      <a href="#" class="btn-primary" onclick="openModal(); return false;">
+        Get the Guide — $29
+      </a>
+      <div class="price-note"><strong>One-time payment.</strong> Instant PDF download.</div>
+    </div>
+  </section>
+
+  <!-- PROOF BAR -->
+  <div class="proof-bar">
+    <div class="proof-item">
+      <strong>15</strong>
+      Chapters
+    </div>
+    <div class="proof-item">
+      <strong>83</strong>
+      Pages
+    </div>
+    <div class="proof-item">
+      <strong>AICP</strong>
+      Format covered
+    </div>
+    <div class="proof-item">
+      <strong>$29</strong>
+      One-time
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <section class="intro-section">
+    <div class="section-label">Why this guide exists</div>
+    <p class="intro-text">
+      The commercial production industry has an <strong>information problem</strong>. The people who know how it works learned by doing it — painfully — and the knowledge stays inside companies and agencies. There is no widely available guide that explains the AICP budget format in plain language, tells you what current crew rates actually are, and addresses what it's really like to produce work for a brand that has never hired a production company before.
+      <br><br>
+      <strong>This guide is that thing.</strong> We wrote it for the DP who just produced their first commercial and has no idea how to structure a bid. For the director ready to start packaging their own work. For the person who googled "AICP budget" at 11pm and found nothing that actually explained it.
+    </p>
+  </section>
+
+  <!-- WHAT'S INSIDE -->
+  <section class="inside-section">
+    <div class="section-label">What's inside</div>
+    <h2>Everything you need to bid, win, and produce</h2>
+    <div class="chapters">
+      <div class="chapter">
+        <div class="chapter-num">01</div>
+        <div>
+          <div class="chapter-title">How the industry works</div>
+          <div class="chapter-desc">Brand → Agency → Production. How money flows. Who you're actually talking to.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">02</div>
+        <div>
+          <div class="chapter-title">What AICP is and why it matters</div>
+          <div class="chapter-desc">The standard bid format. Why agencies expect it. How to use it whether you're a member or not.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">03</div>
+        <div>
+          <div class="chapter-title">Full anatomy of an AICP budget</div>
+          <div class="chapter-desc">Every section A through J. What belongs where. How to think about each category.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">04</div>
+        <div>
+          <div class="chapter-title">Fringes and payroll taxes</div>
+          <div class="chapter-desc">The #1 thing new producers get wrong. Union vs non-union. Why 18% is your floor in California.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">05</div>
+        <div>
+          <div class="chapter-title">Build your first budget from scratch</div>
+          <div class="chapter-desc">A real $102K regional commercial bid, built line by line. Every number, every decision.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">06</div>
+        <div>
+          <div class="chapter-title">Day rates, markups, production fees</div>
+          <div class="chapter-desc">Current 2025–2026 rates by market. What 25–35% markup actually covers. How to price yourself.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">07</div>
+        <div>
+          <div class="chapter-title">How to read a bid like an agency does</div>
+          <div class="chapter-desc">What agency producers look for first. Red flags that kill bids. What makes a budget win trust.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">08</div>
+        <div>
+          <div class="chapter-title">Working direct-to-brand</div>
+          <div class="chapter-desc">Managing clients who don't understand production. Scope creep. Getting paid. When to walk away.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">09</div>
+        <div>
+          <div class="chapter-title">The bid-to-actual process</div>
+          <div class="chapter-desc">Tracking actuals. Managing overages. The cost report. Wrapping a production cleanly.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">10</div>
+        <div>
+          <div class="chapter-title">The 10 most common mistakes</div>
+          <div class="chapter-desc">Forgetting fringes. Missing kit fees. Accepting verbal scope changes. We've made them all.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">11</div>
+        <div>
+          <div class="chapter-title">How to find work</div>
+          <div class="chapter-desc">Agency relationships. Direct-to-brand outreach. Building a reel strategically. The long game.</div>
+        </div>
+      </div>
+      <div class="chapter">
+        <div class="chapter-num">12</div>
+        <div>
+          <div class="chapter-title">Quick-start kit + checklists</div>
+          <div class="chapter-desc">Pre-bid, pre-production, shoot day, and post-wrap checklists. Fringe rate quick reference. Crew rate summary.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAMPLE -->
+  <section class="inside-section" style="padding-top: 0;">
+    <div class="section-label">Sample — from chapter 6</div>
+    <div class="sample-box">
+      <div class="sample-head">Step 13: Adding it all up — real AICP sections</div>
+      <div class="sample-row"><span>A. Prep Crew</span><span>$14,950</span></div>
+      <div class="sample-row"><span>B. Shoot Crew</span><span>$19,275</span></div>
+      <div class="sample-row"><span>C. Prep &amp; Wrap Expenses</span><span>$3,250</span></div>
+      <div class="sample-row"><span>D. Location Expenses</span><span>$5,950</span></div>
+      <div class="sample-row"><span>E. Props, Wardrobe &amp; Animals</span><span>$6,450</span></div>
+      <div class="sample-row"><span>F. Studio Costs</span><span>—</span></div>
+      <div class="sample-row"><span>G. Art Department Labor</span><span>$4,600</span></div>
+      <div class="sample-row"><span>H. Art Department Expenses</span><span>$1,800</span></div>
+      <div class="sample-row"><span>I. Equipment Rental</span><span>$4,900</span></div>
+      <div class="sample-row"><span>J. Media</span><span>$650</span></div>
+      <div class="sample-row"><span>K. Miscellaneous Production Costs</span><span>$2,850</span></div>
+      <div class="sample-row"><span>L. Director's Fees</span><span>$2,500</span></div>
+      <div class="sample-row"><span>M. Talent</span><span>$4,800</span></div>
+      <div class="sample-row"><span>N. Talent Expenses</span><span>—</span></div>
+      <div class="sample-row"><span>Insurance</span><span>$1,050</span></div>
+      <div class="sample-total"><span>Sub-Total A to K + L–N</span><span>$72,975</span></div>
+      <div class="sample-total" style="color: var(--gold);"><span>+ Production Fee (30%) + Insurance</span><span style="font-weight:500;">~$102,285</span></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-section">
+    <div class="about-grid">
+      <div>
+        <div class="about-label">About the author</div>
+        <div class="about-name">Villager Pro</div>
+        <div class="about-title">villagerpro.io</div>
+      </div>
+      <div class="about-text">
+        <p>We left a management career to come back to production. We've quoted jobs that were too low, built budgets that were too high, won bids we wish we hadn't, and lost ones we wish we had. We've sat across from agency producers who knew exactly what every line item meant — and learned, sometimes painfully, how to match them.</p>
+        <p>The production experience behind this guide comes from <strong>Farallon Films</strong> — a Bay Area commercial production company pitching multiple jobs per month across consumer goods, technology, food and beverage, and regional advertising. Real budgets. Real crews. Real pressure. That accumulated experience is what we're handing you here.</p>
+        <p>Villager Pro builds the budgeting tools commercial producers actually use. This guide is the knowledge layer that makes the tool — and the industry — actually make sense. <strong>No theory. Real operations.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- JAX SUPPORT -->
+  <section class="jax-section">
+    <div class="jax-box">
+      <div class="jax-left">
+        <div class="section-label" style="margin-bottom: 0.5rem;">Included with your purchase</div>
+        <div class="jax-title">Email support from Jax</div>
+        <div class="jax-sub">Our AI operator. Knows the guide cold. Available after you read it.</div>
+      </div>
+      <div class="jax-right">
+        <p>Every purchase includes access to <strong>Jax</strong> — our AI operator who works the Villager Pro stack full time. Got a question after reading? A budget you're unsure about? A fringe calculation that isn't adding up?</p>
+        <p>Email <a href="mailto:jax@villagerpro.io" class="jax-link">jax@villagerpro.io</a> — he'll respond. No theory. Real answers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM CTA -->
+  <section class="cta-section">
+    <div class="cta-eyebrow">No theory. Real operations.</div>
+    <h2>Ready to bid like<br><em>you've done this before?</em></h2>
+    <p>83 pages. Every section of the AICP form. Real rates, real fringes, real strategy.<br>Plus email support from Jax when you need it.</p>
+    <div class="cta-row" style="justify-content: center;">
+      <a href="#" class="btn-primary" onclick="openModal(); return false;">
+        Get the Guide — $29
+      </a>
+    </div>
+    <p class="guarantee">One-time payment &nbsp;·&nbsp; Instant PDF download &nbsp;·&nbsp; No subscription</p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">© 2026 Villager Pro &nbsp;·&nbsp; villagerpro.io/aicp</div>
+    <div class="footer-links">
+      <a href="https://villagerpro.io">App</a>
+      <a href="mailto:jax@villagerpro.io">Contact</a>
+    </div>
+  </footer>
+
+</div>
+
+<!-- PURCHASE MODAL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3>Get the Guide</h3>
+    <div class="modal-price">Your First Commercial Budget — $29</div>
+    <form id="purchase-form" onsubmit="handlePurchase(event)">
+      <input type="email" id="email" placeholder="Your email address" required autocomplete="email">
+      <div id="card-element">
+        <span style="color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 12px;">Card details will appear here (Stripe)</span>
+      </div>
+      <button type="submit" class="btn-primary" id="submit-btn">
+        Pay $29 — Get Instant Access
+      </button>
+    </form>
+    <p class="modal-note">PDF delivered to your inbox immediately after payment.<br>Powered by Stripe — your card is never stored.</p>
+  </div>
+</div>
+
+<script>
+  function openModal() {
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function handlePurchase(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const email = document.getElementById('email').value;
+    btn.textContent = 'Redirecting to checkout...';
+    btn.style.opacity = '0.7';
+    window.location.href = 'STRIPE_CHECKOUT_URL?prefilled_email=' + encodeURIComponent(email);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
+
+</body>
+</html>
