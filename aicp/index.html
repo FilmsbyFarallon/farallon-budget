@@ -75,6 +75,23 @@
     font-family: 'DM Mono', monospace;
   }
 
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
   .status-dot {
     width: 6px; height: 6px;
     border-radius: 50%;
@@ -516,79 +533,6 @@
 
   .footer-links a:hover { color: var(--text-dim); }
 
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-  }
-
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--bg2);
-    border: 0.5px solid var(--border);
-    padding: 3rem;
-    max-width: 480px;
-    width: 100%;
-    position: relative;
-  }
-
-  .modal-close {
-    position: absolute;
-    top: 1rem; right: 1.25rem;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 20px;
-    cursor: pointer;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .modal h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
-    font-weight: 400;
-    margin-bottom: 0.5rem;
-  }
-
-  .modal-price {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--gold);
-    margin-bottom: 2rem;
-  }
-
-  .modal input {
-    width: 100%;
-    background: var(--bg3);
-    border: 0.5px solid var(--border-dim);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .modal input:focus { border-color: var(--gold-dim); }
-  .modal input::placeholder { color: var(--text-muted); }
-
-  .modal .btn-primary { width: 100%; justify-content: center; margin-top: 8px; }
-
-  .modal-note {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-align: center;
-    margin-top: 1rem;
-    font-family: 'DM Mono', monospace;
-  }
 
   /* STRIPE placeholder */
   #card-element {
@@ -661,9 +605,10 @@
 
 <nav>
   <a href="https://villagerpro.io/start" class="nav-logo">VILLAGER PRO</a>
-  <div class="nav-status">
-    <div class="status-dot"></div>
-    villagerpro.io/aicp
+  <div class="nav-links">
+    <a href="https://villagerpro.io/start" target="_blank" rel="noopener">Villager Pro</a>
+    <a href="https://filmsbyfarallon.com" target="_blank" rel="noopener">Farallon</a>
+    <a href="https://x.com/Villagerpro_io" target="_blank" rel="noopener">Follow on X</a>
   </div>
 </nav>
 
@@ -687,7 +632,7 @@
     </ul>
 
     <div class="cta-row">
-      <a href="#" class="btn-primary" onclick="openModal(); return false;">
+      <a href="https://buy.stripe.com/fZu14pcsWa4z4Ty1MlcIE00" class="btn-primary" target="_blank" rel="noopener">
         Get the Guide — $29
       </a>
       <div class="price-note"><strong>One-time payment.</strong> Instant PDF download.</div>
@@ -878,7 +823,7 @@
     <h2>Ready to bid like<br><em>you've done this before?</em></h2>
     <p>83 pages. Every section of the AICP form. Real rates, real fringes, real strategy.<br>Plus email support from Jax when you need it.</p>
     <div class="cta-row" style="justify-content: center;">
-      <a href="#" class="btn-primary" onclick="openModal(); return false;">
+      <a href="https://buy.stripe.com/fZu14pcsWa4z4Ty1MlcIE00" class="btn-primary" target="_blank" rel="noopener">
         Get the Guide — $29
       </a>
     </div>
@@ -896,49 +841,6 @@
 
 </div>
 
-<!-- PURCHASE MODAL -->
-<div class="modal-overlay" id="modal" onclick="if(event.target===this) closeModal()">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">×</button>
-    <h3>Get the Guide</h3>
-    <div class="modal-price">Your First Commercial Budget — $29</div>
-    <form id="purchase-form" onsubmit="handlePurchase(event)">
-      <input type="email" id="email" placeholder="Your email address" required autocomplete="email">
-      <div id="card-element">
-        <span style="color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 12px;">Card details will appear here (Stripe)</span>
-      </div>
-      <button type="submit" class="btn-primary" id="submit-btn">
-        Pay $29 — Get Instant Access
-      </button>
-    </form>
-    <p class="modal-note">PDF delivered to your inbox immediately after payment.<br>Powered by Stripe — your card is never stored.</p>
-  </div>
-</div>
-
-<script>
-  function openModal() {
-    document.getElementById('modal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    document.getElementById('modal').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  function handlePurchase(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    const email = document.getElementById('email').value;
-    btn.textContent = 'Redirecting to checkout...';
-    btn.style.opacity = '0.7';
-    window.location.href = 'https://buy.stripe.com/fZu14pcsWa4z4Ty1MlcIE00?prefilled_email=' + encodeURIComponent(email);
-  }
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
-  });
-</script>
 
 </body>
 </html>
