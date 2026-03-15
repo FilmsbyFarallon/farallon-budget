@@ -16264,7 +16264,7 @@ function exportExcel() {
 
   // ── Sheet data builders ────────────────────────────────────────────────────
   function budgetSheet() {
-    const nc=7, B=()=>Array(nc).fill(ce(S.blank)), rows=[];
+    const nc=6, B=()=>Array(nc).fill(ce(S.blank)), rows=[];
     // Row 0: big title (merged across all cols)
     rows.push([cs(`${company}  ·  ${b.name||'Untitled Budget'}`,S.title),...Array(nc-1).fill(ce(S.blank))]);
     // Row 1: client (if present) or blank
@@ -16273,7 +16273,7 @@ function exportExcel() {
     rows.push([cs([b.project?`Project: ${b.project}`:'',b.shootDays?`Shoot Days: ${b.shootDays}`:'',`Exported: ${new Date().toLocaleDateString()}`].filter(Boolean).join('  ·  '),S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
     // Row 4: col headers with gold bottom border
-    rows.push([cs('CODE',S.colHdrGoldB),cs('LINE ITEM',S.colHdrGoldB),cs('QTY',S.colHdrRGoldB),cs('RATE',S.colHdrRGoldB),cs('TOTAL',S.colHdrRGoldB),ce(S.colHdrGoldB),ce(S.blank)]);
+    rows.push([cs('CODE',S.colHdrGoldB),cs('LINE ITEM',S.colHdrGoldB),cs('QTY',S.colHdrRGoldB),cs('RATE',S.colHdrRGoldB),cs('TOTAL',S.colHdrRGoldB),ce(S.colHdrGoldB)]);
     let lg=null;
     SECTIONS.forEach(sec=>{
       const hd=sec.lines.some(l=>fmtN((b.values[l.id]||{}).qty)||fmtN((b.values[l.id]||{}).rate));
@@ -16284,7 +16284,7 @@ function exportExcel() {
         rows.push(B()); rows.push([cs(lbl,S.grpHdr),...Array(nc-1).fill(ce(S.grpHdr))]);
       }
       const st=sectionTotal(sec,b)+sectionFringeTotal(sec,b);
-      rows.push([cs(sec.code,S.secHdr),cs(sec.name,S.secHdr),ce(S.secHdr),ce(S.secHdr),cn(st,S.secHdrR),ce(S.secHdr),ce(S.secHdr)]);
+      rows.push([cs(sec.code,S.secHdr),cs(sec.name,S.secHdr),ce(S.secHdr),ce(S.secHdr),cn(st,S.secHdrR),ce(S.secHdr)]);
       sec.lines.forEach(line=>{
         const v=b.values[line.id]||{};
         const qty=fmtN(v.qty),rate=fmtN(v.rate);
@@ -16292,7 +16292,7 @@ function exportExcel() {
         const fp=FRINGE_RATES[(b.fringes||{})[line.id]]||0;
         const tot=lineTotal(line,b)+lineFringeAmt(line,b);
         if(!tot) return;
-rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'?cs('flat',S.dataC):cn(qty,S.dataN),cn(rate,S.dataR),cn(tot,S.dataR),ce(S.dataC),ce(S.blank)]);
+rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'?cs('flat',S.dataC):cn(qty,S.dataN),cn(rate,S.dataR),cn(tot,S.dataR),ce(S.dataC)]);
       });
     });
     const btl=btlSubtotal(b),atl=groupSubtotal('atl',b);
