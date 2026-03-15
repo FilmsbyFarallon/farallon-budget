@@ -16273,7 +16273,7 @@ function exportExcel() {
     rows.push([cs([b.project?`Project: ${b.project}`:'',b.shootDays?`Shoot Days: ${b.shootDays}`:'',`Exported: ${new Date().toLocaleDateString()}`].filter(Boolean).join('  ·  '),S.meta),...Array(nc-1).fill(ce(S.meta))]);
     rows.push(B());
     // Row 4: col headers with gold bottom border
-    rows.push([cs('CODE',S.colHdrGoldB),cs('LINE ITEM',S.colHdrGoldB),cs('QTY',S.colHdrRGoldB),cs('RATE',S.colHdrRGoldB),cs('',S.colHdrRGoldB),cs('TOTAL',S.colHdrRGoldB),ce(S.blank)]);
+    rows.push([cs('CODE',S.colHdrGoldB),cs('LINE ITEM',S.colHdrGoldB),cs('QTY',S.colHdrRGoldB),cs('RATE',S.colHdrRGoldB),cs('TOTAL',S.colHdrRGoldB),ce(S.blank)]);
     let lg=null;
     SECTIONS.forEach(sec=>{
       const hd=sec.lines.some(l=>fmtN((b.values[l.id]||{}).qty)||fmtN((b.values[l.id]||{}).rate));
@@ -16292,7 +16292,7 @@ function exportExcel() {
         const fp=FRINGE_RATES[(b.fringes||{})[line.id]]||0;
         const tot=lineTotal(line,b)+lineFringeAmt(line,b);
         if(!tot) return;
-rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'?cs('flat',S.dataC):cn(qty,S.dataN),cn(rate,S.dataR),ce(S.dataC),cn(tot,S.dataR)]);
+rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'?cs('flat',S.dataC):cn(qty,S.dataN),cn(rate,S.dataR),cn(tot,S.dataR),ce(S.blank)]);
       });
     });
     const btl=btlSubtotal(b),atl=groupSubtotal('atl',b);
@@ -16315,7 +16315,7 @@ rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'
     const lastR=rows.length-1;
     const rh={0:36,1:22,2:16,3:6,4:22}; // row index -> height
     const mg=[`A1:F1`,`A2:F2`,`A3:F3`,`A4:F4`,`G1:G4`]; // merge title rows full width
-    return {rows,cols:[4,46,9,14,18,4],freeze:5,af:-1,landscape:false,hdrRow:5,rowHeights:rh,merges:mg};
+    return {rows,cols:[5,52,10,16,22,5],freeze:5,af:-1,landscape:false,hdrRow:5,rowHeights:rh,merges:mg};
   }
 
   function costSheet() {
