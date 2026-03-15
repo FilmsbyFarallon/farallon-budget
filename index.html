@@ -16403,7 +16403,7 @@ rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'
       ?`<sheetViews><sheetView workbookViewId="0"><pane ySplit="${freeze}" topLeftCell="A${freeze+1}" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`
       :'<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
     x+='<sheetFormatPr defaultRowHeight="20" customHeight="1"/>';
-    x+=`<cols>${sd.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`;
+    x+=`<cols>${sd.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}<col min="${sd.cols.length+1}" max="26" width="3" customWidth="1"/></cols>`;
     x+='<sheetData>';
     rows.forEach((row,r)=>{
       const ht=(rowHeights&&rowHeights[r])||20;
@@ -16460,7 +16460,7 @@ rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'
       `<font><sz val="10"/><color rgb="${white}"/><name val="Arial"/><b/></font>`,
     ];
     const fills=[
-      '<fill><patternFill patternType="none"/></fill>',
+      `<fill><patternFill patternType="solid"><fgColor rgb="${dk}"/></patternFill></fill>`,
       '<fill><patternFill patternType="gray125"/></fill>',
       `<fill><patternFill patternType="solid"><fgColor rgb="${dk}"/></patternFill></fill>`,
       `<fill><patternFill patternType="solid"><fgColor rgb="${mid}"/></patternFill></fill>`,
