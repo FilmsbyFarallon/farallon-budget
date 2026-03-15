@@ -16311,7 +16311,7 @@ rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'
     if(atl) rows.push(trN('BTL (Below the Line)',btl));
     if(parseFloat(b.markup.prodFee)) rows.push(trN(`Production Fee (${b.markup.prodFee}%)`,fee));
     if(parseFloat(b.markup.contingency)) rows.push(trN(`Contingency (${b.markup.contingency}%)`,cont));
-    rows.push([ce(S.grandSepL),cs('GRAND TOTAL',S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),cn(grand,S.grandSepV)]);
+    rows.push([ce(S.grandSepL),cs('GRAND TOTAL',S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),cn(grand,S.grandSepV),ce(S.grandSepL)]);
     const lastR=rows.length-1;
     const rh={0:36,1:22,2:16,3:6,4:22}; // row index -> height
     const mg=[`A1:G1`,`A2:G2`,`A3:G3`,`A4:G4`]; // merge title rows full width
