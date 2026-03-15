@@ -16264,7 +16264,7 @@ function exportExcel() {
 
   // ── Sheet data builders ────────────────────────────────────────────────────
   function budgetSheet() {
-    const nc=6, B=()=>Array(nc).fill(ce(S.blank)), rows=[];
+    const nc=7, B=()=>Array(nc).fill(ce(S.blank)), rows=[];
     // Row 0: big title (merged across all cols)
     rows.push([cs(`${company}  ·  ${b.name||'Untitled Budget'}`,S.title),...Array(nc-1).fill(ce(S.blank))]);
     // Row 1: client (if present) or blank
@@ -16284,7 +16284,7 @@ function exportExcel() {
         rows.push(B()); rows.push([cs(lbl,S.grpHdr),...Array(nc-1).fill(ce(S.grpHdr))]);
       }
       const st=sectionTotal(sec,b)+sectionFringeTotal(sec,b);
-      rows.push([cs(sec.code,S.secHdr),cs(sec.name,S.secHdr),ce(S.secHdr),ce(S.secHdr),ce(S.secHdr),cn(st,S.secHdrR)]);
+      rows.push([cs(sec.code,S.secHdr),cs(sec.name,S.secHdr),ce(S.secHdr),ce(S.secHdr),ce(S.secHdr),cn(st,S.secHdrR),ce(S.secHdr)]);
       sec.lines.forEach(line=>{
         const v=b.values[line.id]||{};
         const qty=fmtN(v.qty),rate=fmtN(v.rate);
@@ -16314,7 +16314,7 @@ rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'
     rows.push([ce(S.grandSepL),cs('GRAND TOTAL',S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),ce(S.grandSepL),cn(grand,S.grandSepV)]);
     const lastR=rows.length-1;
     const rh={0:36,1:22,2:16,3:6,4:22}; // row index -> height
-    const mg=[`A1:F1`,`A2:F2`,`A3:F3`,`A4:F4`]; // merge title rows full width
+    const mg=[`A1:G1`,`A2:G2`,`A3:G3`,`A4:G4`]; // merge title rows full width
     return {rows,cols:[3,52,8,14,10,16,3],freeze:5,af:-1,landscape:false,hdrRow:5,rowHeights:rh,merges:mg};
   }
 
