@@ -13455,9 +13455,10 @@ function exportPDF(mode) {
   // border: #e0d8c8  muted text: #6b6245  mid: #ede8da
 
   const css = `
-  @page { margin:12mm 10mm; size:letter; }
+  @page { margin:10mm 8mm; size:letter; }
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Helvetica Neue',Arial,sans-serif; font-size:9.5px; color:#e8e4dc; background:#07070f; line-height:1.45; }
+  html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { font-family:'Helvetica Neue',Arial,sans-serif; font-size:9.5px; color:#e8e4dc; background:#07070f; line-height:1.45; max-width:100%; }
 
   /* ── PAGE HEADER ── */
   .hd { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:11px; border-bottom:1px solid #2a2a3a; margin-bottom:16px; }
