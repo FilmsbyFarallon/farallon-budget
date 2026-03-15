@@ -16299,13 +16299,13 @@ rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'
     const fee=btl*((parseFloat(b.markup.prodFee)||0)/100);
     const cont=(btl+fee)*((parseFloat(b.markup.contingency)||0)/100);
     const grand=grandTotal(b);
-    const tr=(lbl,val)=>[ce(S.totLbl),cs(lbl,S.totLbl),ce(S.totLbl),ce(S.totLbl),ce(S.totLbl),cn(val,S.totVal)];
+    const tr=(lbl,val)=>[ce(S.totLbl),cs(lbl,S.totLbl),ce(S.totLbl),ce(S.totLbl),cn(val,S.totVal),ce(S.totLbl)];
     rows.push(B());
     // TOTALS section header
     rows.push([cs('TOTALS',S.secHdr),...Array(nc-1).fill(ce(S.secHdr))]);
     // First totals row gets gold-top separator border
-    const trSep=(lbl,val)=>[ce(S.totSepL),cs(lbl,S.totSepL),ce(S.totSepL),ce(S.totSepL),ce(S.totSepL),cn(val,S.totSepV)];
-    const trN=(lbl,val)=>[ce(S.totLbl),cs(lbl,S.totLbl),ce(S.totLbl),ce(S.totLbl),ce(S.totLbl),cn(val,S.totVal)];
+    const trSep=(lbl,val)=>[ce(S.totSepL),cs(lbl,S.totSepL),ce(S.totSepL),ce(S.totSepL),cn(val,S.totSepV),ce(S.totSepL)];
+    const trN=(lbl,val)=>[ce(S.totLbl),cs(lbl,S.totLbl),ce(S.totLbl),ce(S.totLbl),cn(val,S.totVal),ce(S.totLbl)];
     if(atl) rows.push(trSep('ATL (Above the Line)',atl));
     else rows.push(trSep('BTL (Below the Line)',btl));
     if(atl) rows.push(trN('BTL (Below the Line)',btl));
