@@ -13455,79 +13455,304 @@ function exportPDF(mode) {
   // border: #e0d8c8  muted text: #6b6245  mid: #ede8da
 
   const css = `
+  @page { margin:14mm 15mm; size:letter; }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 9.5px;
+    color: #e8e4dc;
+    background: #07070f;
+    line-height: 1.45;
+  }
+
+  /* ── PAGE HEADER ── */
+  .hd {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 11px;
+    border-bottom: 1px solid #2a2a3a;
+    margin-bottom: 16px;
+  }
+  .hd-left {}
+  .hd-logo { height: 28px; width: auto; display: block; margin-bottom: 5px; }
+  .hd-tagline {
+    font-size: 7px;
+    letter-spacing: .18em;
+    color: #5a5870;
+    text-transform: uppercase;
+    font-family: monospace;
+  }
+  .hd-right { text-align: right; }
+  .hd-budgetname {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f0ece2;
+    letter-spacing: -.01em;
+  }
+  .hd-meta {
+    font-size: 7.5px;
+    color: #5a5870;
+    margin-top: 3px;
+    line-height: 1.9;
+    font-family: monospace;
+    letter-spacing: .04em;
+  }
+
+  /* ── GRAND TOTAL HERO ── */
+  .hero {
+    background: #0e0e1a;
+    border: 1px solid #2a2a3a;
+    border-left: 3px solid #c8973a;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hero-label {
+    font-size: 7.5px;
+    letter-spacing: .22em;
+    color: #c8973a;
+    text-transform: uppercase;
+    font-family: monospace;
+    margin-bottom: 5px;
+  }
+  .hero-amount {
+    font-size: 34px;
+    font-weight: 700;
+    color: #c8973a;
+    font-family: monospace;
+    letter-spacing: -.03em;
+    line-height: 1;
+  }
+  .hero-right {
+    text-align: right;
+    font-size: 8px;
+    color: #5a5870;
+    font-family: monospace;
+    line-height: 2;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  /* ── INFO CARDS ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid #2a2a3a;
+    margin-bottom: 16px;
+  }
+  .card {
+    padding: 9px 11px;
+    border-right: 1px solid #2a2a3a;
+  }
+  .card:last-child { border-right: none; }
+  .card-label {
+    font-size: 7px;
+    letter-spacing: .16em;
+    color: #5a5870;
+    text-transform: uppercase;
+    font-family: monospace;
+    margin-bottom: 4px;
+  }
+  .card-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: #e8e4dc;
+  }
+
+  /* ── SECTION GROUP HEADER ── */
+  .grp-hd {
+    background: #0e0e1a;
+    padding: 5px 8px 4px;
+    margin-top: 12px;
+    border-left: 2px solid #c8973a;
+  }
+  .grp-hd-text {
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: #c8973a;
+    text-transform: uppercase;
+    font-family: monospace;
+  }
+
+  /* ── SUMMARY TABLE ── */
+  table.summary { width: 100%; border-collapse: collapse; margin-top: 0; }
+  table.summary th {
+    font-size: 7px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #5a5870;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-bottom: 1px solid #2a2a3a;
+    text-align: left;
+    font-family: monospace;
+  }
+  table.summary th.r { text-align: right; }
+  table.summary td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #15151f;
+    font-size: 9.5px;
+    vertical-align: middle;
+    color: #c8c4bc;
+  }
+  table.summary td.r {
+    text-align: right;
+    font-family: monospace;
+    font-size: 9px;
+  }
+  table.summary td.code {
+    font-family: monospace;
+    font-size: 8px;
+    color: #5a5870;
+    width: 24px;
+    padding-right: 0;
+  }
+  table.summary td.name { padding-left: 4px; }
+  table.summary tr.atl td { color: #6a6880; font-style: italic; }
+  table.summary tr.markup td {
+    background: #0e0e1a;
+    color: #c8973a;
+    font-size: 9px;
+  }
+  table.summary tfoot tr td {
+    background: #c8973a;
+    color: #07070f;
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 8px 8px;
+    border: none;
+  }
+  table.summary tfoot tr td.r {
+    color: #07070f;
+    font-size: 14px;
+  }
+
+  /* ── DETAIL: SECTION BAND ── */
+  .sec-band {
+    background: #0e0e1a;
+    border-left: 3px solid #c8973a;
+    color: #e8e4dc;
+    padding: 7px 10px;
+    margin-top: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .sec-code {
+    font-size: 8.5px;
+    font-family: monospace;
+    color: #c8973a;
+    letter-spacing: .12em;
+    margin-right: 8px;
+  }
+  .sec-name { font-size: 10px; font-weight: 700; color: #e8e4dc; }
+  .sec-tot {
+    font-size: 10.5px;
+    font-weight: 700;
+    font-family: monospace;
+    color: #c8973a;
+  }
+
+  /* ── DETAIL: LINE ITEM TABLE ── */
+  table.detail { width: 100%; border-collapse: collapse; }
+  table.detail thead tr { background: #0d0d18; }
+  table.detail th {
+    font-size: 7px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #5a5870;
+    padding: 4px 6px;
+    border-bottom: 1px solid #2a2a3a;
+    font-weight: 600;
+    font-family: monospace;
+  }
+  table.detail th.r { text-align: right; }
+  table.detail td {
+    padding: 3.5px 6px;
+    border-bottom: 1px solid #12121c;
+    font-size: 9px;
+    vertical-align: middle;
+    color: #b8b4ac;
+  }
+  table.detail td.r {
+    text-align: right;
+    font-family: monospace;
+    font-size: 8.5px;
+  }
+  table.detail tr:nth-child(even) td { background: #0a0a14; }
+  table.detail tr.empty td { color: #3a3850; font-size: 8px; }
+  table.detail tr.empty td.r { color: #2a2840; }
+  .ln { font-size: 7.5px; color: #4a4860; font-family: monospace; margin-right: 5px; }
+  .frg { font-size: 7.5px; color: #a07820; font-family: monospace; }
+  table.detail tr.foot-sub td {
+    background: #0e0e1a;
+    font-family: monospace;
+    font-size: 8.5px;
+    color: #5a5870;
+    border-top: 1px solid #2a2a3a;
+  }
+  table.detail tr.foot-tot td {
+    background: #0e0e1a;
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 9.5px;
+    color: #c8973a;
+    border-top: 1px solid #c8973a;
+  }
+
+  /* ── MARKUP / GRAND TOTAL ── */
+  table.markup { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  table.markup td {
+    padding: 5px 8px;
+    font-size: 9px;
+    border-bottom: 1px solid #15151f;
+    color: #c8c4bc;
+  }
+  table.markup td.r { text-align: right; font-family: monospace; }
+  table.markup tr.markup-row td {
+    background: #0e0e1a;
+    color: #c8973a;
+  }
+  table.markup tfoot tr td {
+    background: #c8973a;
+    color: #07070f;
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 13px;
+    padding: 9px 8px;
+    border: none;
+  }
+  table.markup tfoot tr td.r {
+    color: #07070f;
+    font-size: 15px;
+    text-align: right;
+  }
+
+  /* ── DIVIDER ── */
+  hr {
+    border: none;
+    border-top: 1px solid #2a2a3a;
+    margin: 10px 0;
+  }
+`;
+```
+
+**To implement:** In VS Code, search for `const css = \`` inside the `exportPDF` function and replace everything from that backtick to the closing backtick of the css block with the above.
+
+The exact search string to find the block boundary in the file is:
+```
+const css = `
     @page { margin:15mm 16mm; size:letter; }
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; font-size:9.5px; color:#1a1810; background:#fff; line-height:1.4; }
+```
 
-    /* ── PAGE HEADER ── */
-    .hd { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:10px; border-bottom:1.5px solid #1a1810; margin-bottom:16px; }
-    .hd-left {}
-    .hd-logo { height:26px; width:auto; display:block; margin-bottom:5px; }
-    .hd-tagline { font-size:7.5px; letter-spacing:.18em; color:#6b6245; text-transform:uppercase; font-family:monospace; }
-    .hd-right { text-align:right; }
-    .hd-budgetname { font-size:13px; font-weight:700; color:#1a1810; letter-spacing:-.01em; }
-    .hd-meta { font-size:8px; color:#8a7a60; margin-top:3px; line-height:1.8; font-family:monospace; }
-
-    /* ── GRAND TOTAL HERO (top sheet) ── */
-    .hero { background:#1a1810; color:#fff; padding:18px 20px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
-    .hero-label { font-size:8px; letter-spacing:.2em; color:#c8973a; text-transform:uppercase; font-family:monospace; margin-bottom:4px; }
-    .hero-amount { font-size:32px; font-weight:700; color:#c8973a; font-family:monospace; letter-spacing:-.02em; line-height:1; }
-    .hero-right { text-align:right; font-size:8.5px; color:#a09070; font-family:monospace; line-height:1.9; }
-
-    /* ── INFO CARDS (top sheet) ── */
-    .cards { display:grid; grid-template-columns:repeat(4,1fr); gap:0; border:1px solid #e0d8c8; margin-bottom:16px; }
-    .card { padding:9px 11px; border-right:1px solid #e0d8c8; }
-    .card:last-child { border-right:none; }
-    .card-label { font-size:7px; letter-spacing:.14em; color:#a09070; text-transform:uppercase; font-family:monospace; margin-bottom:4px; }
-    .card-value { font-size:11.5px; font-weight:600; color:#1a1810; }
-
-    /* ── SECTION GROUP HEADER (top sheet) ── */
-    .grp-hd { background:#f5f2eb; padding:5px 8px 4px; margin-top:12px; border-left:3px solid #c8973a; }
-    .grp-hd-text { font-size:7.5px; font-weight:700; letter-spacing:.15em; color:#6b6245; text-transform:uppercase; font-family:monospace; }
-
-    /* ── SUMMARY TABLE (top sheet) ── */
-    table.summary { width:100%; border-collapse:collapse; margin-top:0; }
-    table.summary th { font-size:7.5px; letter-spacing:.1em; text-transform:uppercase; color:#8a7a60; font-weight:600; padding:5px 8px; border-bottom:1.5px solid #e0d8c8; text-align:left; }
-    table.summary th.r { text-align:right; }
-    table.summary td { padding:5px 8px; border-bottom:1px solid #ede8da; font-size:9.5px; vertical-align:middle; }
-    table.summary td.r { text-align:right; font-family:monospace; font-size:9px; }
-    table.summary td.code { font-family:monospace; font-size:8px; color:#a09070; width:24px; padding-right:0; }
-    table.summary td.name { padding-left:4px; }
-    table.summary tr.atl td { color:#8a7a60; font-style:italic; background:#faf8f3; }
-    table.summary tr.markup td { background:#f5f2eb; color:#6b6245; font-size:9px; }
-    table.summary tfoot tr td { background:#1a1810; color:#fff; font-weight:700; font-family:monospace; font-size:11px; padding:7px 5px; border:none; }
-    table.summary tfoot tr td.r { color:#c8973a; font-size:13px; }
-
-    /* ── DETAIL: SECTION BAND ── */
-    .sec-band { background:#1a1810; color:#fff; padding:6px 8px; margin-top:11px; display:flex; justify-content:space-between; align-items:baseline; }
-    .sec-code { font-size:9px; font-family:monospace; color:#c8973a; letter-spacing:.1em; margin-right:7px; }
-    .sec-name { font-size:10.5px; font-weight:700; }
-    .sec-tot { font-size:10.5px; font-weight:700; font-family:monospace; color:#c8973a; }
-
-    /* ── DETAIL: LINE ITEM TABLE ── */
-    table.detail { width:100%; border-collapse:collapse; }
-    table.detail thead tr { background:#f5f2eb; }
-    table.detail th { font-size:7px; letter-spacing:.1em; text-transform:uppercase; color:#8a7a60; padding:4px 6px; border-bottom:1.5px solid #e0d8c8; font-weight:600; }
-    table.detail th.r { text-align:right; }
-    table.detail td { padding:3.5px 6px; border-bottom:1px solid #ede8da; font-size:9px; vertical-align:middle; }
-    table.detail td.r { text-align:right; font-family:monospace; font-size:8.5px; }
-    table.detail tr:nth-child(even) td { background:#faf8f3; }
-    table.detail tr.empty td { color:#c0b89a; font-size:8px; }
-    table.detail tr.empty td.r { color:#d8d0bc; }
-    .ln { font-size:8px; color:#b0a080; font-family:monospace; margin-right:5px; }
-    .frg { font-size:7.5px; color:#a07820; font-family:monospace; }
-    table.detail tr.foot-sub td { background:#ede8da; font-family:monospace; font-size:8.5px; color:#6b6245; border-top:1px solid #d4c9a8; }
-    table.detail tr.foot-tot td { background:#e8e0cc; font-family:monospace; font-weight:700; font-size:9.5px; border-top:1.5px solid #c4b88a; }
-
-    /* ── MARKUP / GRAND ── */
-    table.markup { width:100%; border-collapse:collapse; margin-top:14px; }
-    table.markup td { padding:4px 8px; font-size:9px; border-bottom:1px solid #ede8da; }
-    table.markup td.r { text-align:right; font-family:monospace; }
-    table.markup tr.markup-row td { background:#f5f2eb; color:#6b6245; }
-    table.markup tfoot tr td { background:#1a1810; color:#fff; font-weight:700; font-family:monospace; font-size:12px; padding:8px 8px; border:none; }
-    table.markup tfoot tr td.r { color:#c8973a; font-size:14px; text-align:right; }
-
-    /* ── DIVIDER ── */
+And the closing boundary is:
+```
     hr { border:none; border-top:1px solid #e0d8c8; margin:10px 0; }
   `;
 
