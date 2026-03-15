@@ -13712,7 +13712,7 @@ function exportPDF(mode) {
     +'<title>'+esc(b.name||'Budget')+' \u2014 '+label+'</title>'
     +'<style>'+css+'</style></head><body>'+body+'</body></html>';
 
-  var win = window.open('','_blank','width=1100,height=850,height=750');
+  var win = window.open('','_blank','width=1200,height=850');
   if(!win){ alert('Allow pop-ups to export PDF.'); return; }
   win.document.write(doc);
   win.document.close();
