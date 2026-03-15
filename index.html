@@ -16291,7 +16291,7 @@ function exportExcel() {
         if(!qty&&!rate) return;
         const fp=FRINGE_RATES[(b.fringes||{})[line.id]]||0;
         const tot=lineTotal(line,b)+lineFringeAmt(line,b);
-        if(!qty&&!rate) return;
+        if(!tot) return;
 rows.push([cs(line.id,S.dataC),cs(line.name||line.id,S.dataL),line.unit==='flat'?cs('flat',S.dataC):cn(qty,S.dataN),cn(rate,S.dataR),fp?cn(fp/100,S.dataPct):cs('—',S.dataC),cn(tot,S.dataR)]);
       });
     });
