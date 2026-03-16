@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What Does a Non-Union Gaffer Actually Cost on a Commercial? — Villager Pro</title>
+  <meta name="description" content="A real breakdown of non-union gaffer rates in LA: fringe math at 24%, prep day costs, kit fees, and what the total hire actually costs on a 2-day shoot with 1 prep day." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/style.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060608;
+      --bg-surface: #0d0d12;
+      --bg-card: #10101a;
+      --border: rgba(201,168,76,0.15);
+      --border-subtle: rgba(255,255,255,0.06);
+      --gold: #c9a84c;
+      --gold-dim: rgba(201,168,76,0.6);
+      --gold-faint: rgba(201,168,76,0.08);
+      --white: #f0ede8;
+      --white-dim: rgba(240,237,232,0.6);
+      --white-faint: rgba(240,237,232,0.2);
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body { background: var(--bg); color: var(--white); font-family: var(--font-body); line-height: 1.7; }
+    a { color: inherit; text-decoration: none; }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(6,6,8,0.94);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      font-family: 'Geist Sans', 'Geist', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white-dim); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 20px;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-cta:hover { background: var(--gold); color: var(--bg); }
+
+    .page-wrapper { max-width: 1160px; margin: 0 auto; padding: 0 48px; }
+
+    .post-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 0 64px;
+      padding-top: 64px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 88px;
+      height: fit-content;
+      padding-bottom: 80px;
+    }
+
+    .toc-label { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--white-faint); margin-bottom: 20px; }
+
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .toc-list a { display: block; font-size: 0.8rem; color: var(--white-faint); padding: 6px 0 6px 14px; border-left: 1px solid var(--border-subtle); line-height: 1.4; transition: all 0.2s; }
+    .toc-list a:hover, .toc-list a.active { color: var(--gold); border-left-color: var(--gold); }
+
+    .sidebar-divider { border: none; border-top: 1px solid var(--border-subtle); margin: 32px 0; }
+    .sidebar-cta-label { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--white-faint); margin-bottom: 12px; }
+
+    .sidebar-cta-btn {
+      display: block;
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 0;
+      text-align: center;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+    .sidebar-cta-btn:hover { background: var(--gold); color: var(--bg); }
+
+    article { padding-top: 0; padding-bottom: 120px; min-width: 0; }
+
+    .post-header { padding: 80px 0 56px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 56px; }
+
+    .post-eyebrow { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .post-tag { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); border: 1px solid var(--border); padding: 4px 10px; }
+    .post-breadcrumb { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white-faint); }
+    .post-breadcrumb:hover { color: var(--white-dim); }
+
+    .opening-stat { display: flex; align-items: baseline; gap: 0; margin-bottom: 12px; }
+    .opening-stat-number { font-family: var(--font-mono); font-size: clamp(4rem, 10vw, 7rem); font-weight: 500; color: var(--gold); line-height: 1; letter-spacing: -0.03em; }
+    .opening-stat-suffix { font-family: var(--font-mono); font-size: clamp(1.5rem, 3vw, 2.5rem); color: var(--gold-dim); margin-left: 4px; }
+    .opening-stat-label { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--white-faint); margin-bottom: 0; }
+
+    .post-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 600; line-height: 1.15; color: var(--white); margin-bottom: 20px; margin-top: 32px; }
+    .post-deck { font-size: 1.05rem; color: var(--white-dim); line-height: 1.75; max-width: 640px; margin-bottom: 32px; }
+
+    .post-meta-bar { display: flex; gap: 24px; align-items: center; }
+    .post-meta-item { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white-faint); }
+    .post-meta-item span { color: var(--white-dim); }
+
+    .post-body { font-size: 1rem; line-height: 1.8; color: var(--white-dim); }
+    .post-body h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--white); margin-top: 56px; margin-bottom: 16px; scroll-margin-top: 96px; }
+    .post-body h3 { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; font-style: italic; color: var(--white); margin-top: 36px; margin-bottom: 12px; }
+    .post-body p { margin-bottom: 20px; }
+    .post-body strong { color: var(--white); font-weight: 500; }
+    .post-body ul { margin: 0 0 20px 0; padding-left: 20px; }
+    .post-body li { margin-bottom: 8px; }
+
+    .pull-quote { border-left: 2px solid var(--gold); padding: 24px 32px; margin: 40px 0; background: var(--gold-faint); }
+    .pull-quote p { font-family: var(--font-display); font-size: 1.25rem; font-style: italic; color: var(--white); line-height: 1.6; margin: 0 0 12px; }
+    .pull-quote cite { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-dim); font-style: normal; }
+
+    .callout-number { background: var(--bg-card); border: 1px solid var(--border); padding: 28px 32px; margin: 36px 0; display: flex; align-items: center; gap: 32px; }
+    .callout-number-val { font-family: var(--font-mono); font-size: 2.8rem; font-weight: 500; color: var(--gold); line-height: 1; white-space: nowrap; }
+    .callout-number-body p { font-size: 0.88rem; color: var(--white-dim); margin: 0; line-height: 1.5; }
+    .callout-number-body strong { display: block; font-size: 0.72rem; font-family: var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--white-faint); margin-bottom: 6px; }
+
+    .data-table-wrap { overflow-x: auto; margin: 36px 0; border: 1px solid var(--border-subtle); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead tr { background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    thead th { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white-faint); padding: 14px 20px; text-align: left; font-weight: 400; }
+    tbody tr { border-bottom: 1px solid var(--border-subtle); transition: background 0.15s; }
+    tbody tr:hover { background: var(--bg-surface); }
+    tbody tr.total-row { background: var(--gold-faint); border-top: 1px solid var(--border); border-bottom: none; }
+    tbody td { padding: 14px 20px; color: var(--white-dim); }
+    tbody td:first-child { color: var(--white); }
+    .mono { font-family: var(--font-mono); font-size: 0.85rem; }
+    .gold { color: var(--gold); }
+    tbody tr.total-row td { color: var(--white); font-weight: 500; }
+    tbody tr.total-row td.mono { color: var(--gold); }
+
+    .inline-note { background: var(--bg-surface); border-left: 2px solid var(--border); padding: 16px 20px; margin: 28px 0; font-size: 0.82rem; color: var(--white-faint); line-height: 1.6; }
+    .inline-note strong { color: var(--white-dim); font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+
+    .post-cta { background: var(--bg-card); border: 1px solid var(--border); padding: 48px; margin-top: 64px; }
+    .post-cta-eyebrow { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+    .post-cta h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--white); margin-bottom: 12px; }
+    .post-cta p { font-size: 0.9rem; color: var(--white-dim); max-width: 520px; line-height: 1.7; margin-bottom: 28px; }
+    .cta-btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .cta-btn-primary { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 28px; background: var(--gold); color: var(--bg); transition: opacity 0.2s; }
+    .cta-btn-primary:hover { opacity: 0.88; }
+    .cta-btn-secondary { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 28px; border: 1px solid var(--border); color: var(--white-dim); transition: all 0.2s; }
+    .cta-btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    footer { border-top: 1px solid var(--border-subtle); padding: 48px; max-width: 1160px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo {
+      font-family: 'Geist Sans', 'Geist', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white-dim);
+    }
+    .footer-logo span { color: var(--gold); }
+    .footer-copy { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--white-faint); }
+
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .page-wrapper { padding: 0 24px; }
+      .post-layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .post-header { padding: 80px 0 40px; }
+      .callout-number { flex-direction: column; gap: 12px; }
+      .post-cta { padding: 32px 24px; }
+      footer { padding: 32px 24px; flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="https://villagerpro.io" class="nav-logo">VILLAGER <span>PRO</span></a>
+    <ul class="nav-links">
+      <li><a href="https://villagerpro.io/aicp">AICP Budget</a></li>
+      <li><a href="https://villagerpro.io/start">Get Started</a></li>
+      <li><a href="/blog/">Blog</a></li>
+    </ul>
+    <a href="https://villagerpro.io/start" class="nav-cta">Start Free</a>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="post-layout">
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <p class="toc-label">In this post</p>
+        <ul class="toc-list" id="toc"></ul>
+        <hr class="sidebar-divider" />
+        <p class="sidebar-cta-label">Build this budget</p>
+        <a href="https://villagerpro.io/aicp" class="sidebar-cta-btn">AICP Template</a>
+        <a href="https://villagerpro.io/start" class="sidebar-cta-btn">Start Free</a>
+      </aside>
+
+      <!-- ARTICLE -->
+      <article>
+        <header class="post-header">
+          <div class="post-eyebrow">
+            <a href="/blog/" class="post-breadcrumb">← Blog</a>
+            <span class="post-breadcrumb" style="color:var(--border-subtle)">|</span>
+            <span class="post-tag">Crew Rates</span>
+          </div>
+
+          <div class="opening-stat">
+            <span class="opening-stat-number">$900</span>
+            <span class="opening-stat-suffix">/day</span>
+          </div>
+          <p class="opening-stat-label">Non-union gaffer day rate · LA market · 2026</p>
+
+          <h1 class="post-title">What Does a Non-Union Gaffer Actually Cost on a Commercial?</h1>
+          <p class="post-deck">The day rate is just the start. Add fringe at 24%, a prep day, a kit fee, and a full cost picture emerges that most producers don't see until the invoice hits.</p>
+
+          <div class="post-meta-bar">
+            <span class="post-meta-item">Date <span>March 16, 2026</span></span>
+            <span class="post-meta-item">Read <span>8 min</span></span>
+            <span class="post-meta-item">By <span>Villager Pro Editorial</span></span>
+          </div>
+        </header>
+
+        <div class="post-body">
+
+          <p>When a producer asks, "What does a gaffer cost?" the honest answer is: more than the number they quoted you. The day rate is real, but it's the floor, not the ceiling. By the time you account for fringe, a prep day, and a kit rental, a $900/day non-union gaffer on a 2-day commercial with 1 prep day can run north of $3,600 fully loaded.</p>
+
+          <p>This post breaks down every component of that number, explains the fringe math, and shows you exactly what to put in your budget so the final invoice doesn't come as a surprise.</p>
+
+          <h2 id="the-day-rate">The Day Rate: What $900 Actually Means</h2>
+
+          <p>Non-union gaffer rates in the LA market currently sit in the range of $800 to $1,000 per day for commercial work, with <strong>$900 being the median for experienced non-union gaffers</strong> on mid-budget spots. That number assumes a 10-hour day. Overtime kicks in at hour 10 and escalates at hour 12.</p>
+
+          <p>For a 2-day shoot without significant overtime, $900/day is a clean, defensible number to put on paper. But that's the gross rate, not the total cost of hire.</p>
+
+          <div class="pull-quote">
+            <p>"Most producers know the day rate. Almost none of them know the fully loaded cost until the invoice arrives."</p>
+            <cite>— Common producer experience on non-union commercials</cite>
+          </div>
+
+          <h2 id="fringe-math">Fringe Math at 24%</h2>
+
+          <p>Fringe covers the taxes and benefits layered on top of a crew member's gross wages. For non-union hires on a commercial production, a <strong>24% fringe rate</strong> is the standard line-item assumption when building an AICP-format budget.</p>
+
+          <p>That 24% typically breaks down as follows:</p>
+
+          <ul>
+            <li>FICA (Social Security + Medicare): ~7.65%</li>
+            <li>Federal Unemployment (FUTA): ~0.6%</li>
+            <li>State Unemployment (SUTA, California): ~3.4%</li>
+            <li>Workers' Compensation (CA commercial, camera adjacent): ~8–12%</li>
+            <li>Employer-side payroll processing / rounding buffer: ~2%</li>
+          </ul>
+
+          <p>The exact fringe rate varies by state, payroll company, and workers' comp classification. Some productions run as low as 18% for low-risk classifications; others hit 28% or higher. <strong>24% is the safe, defensible middle on a California commercial shoot.</strong></p>
+
+          <div class="callout-number">
+            <span class="callout-number-val">24%</span>
+            <div class="callout-number-body">
+              <strong>Standard non-union fringe rate · California</strong>
+              <p>Applied to all gross labor, including prep days and overtime. On a $900/day rate, that's $216 in fringe per day, before any additional costs.</p>
+            </div>
+          </div>
+
+          <h2 id="prep-days">Prep Days and Why They Cost Real Money</h2>
+
+          <p>A gaffer on a 2-day commercial shoot typically requires at least 1 prep day. During prep, they're pulling gear, coordinating with the rental house, doing a tech scout, and building out the lighting plan. <strong>This is billable time at the standard day rate</strong>, not a courtesy favor.</p>
+
+          <p>Some producers negotiate a "prep rate" at 75% of the shoot day rate. Others budget prep at full rate to avoid friction and maintain the relationship. For a gaffer at $900/day, prep at full rate adds $900 to the total labor. At 75%, that's $675.</p>
+
+          <p>For this breakdown, we're using full prep rate. It's cleaner math and a more honest budget.</p>
+
+          <h2 id="kit-fee">The Kit Fee: Often Overlooked, Always Real</h2>
+
+          <p>Non-union gaffers frequently bring their own kit, which includes hand tools, expendables, and sometimes small lighting fixtures and grip accessories. This kit is rented to the production at a day rate, separate from labor.</p>
+
+          <p>Non-union gaffer kit fees in LA typically run <strong>$75 to $200 per day</strong>. For a 2-day shoot with 1 prep day, a $100/day kit fee adds $300 to the budget — and fringe does not apply to kit fees, since it's a rental, not labor.</p>
+
+          <div class="callout-number">
+            <span class="callout-number-val">$300</span>
+            <div class="callout-number-body">
+              <strong>Kit fee · 3 days at $100/day</strong>
+              <p>Prep day plus 2 shoot days. Kit fees are gear rentals, not wages, so no fringe applies. Budget them as a separate line item.</p>
+            </div>
+          </div>
+
+          <h2 id="full-cost-table">The Full Cost Table: 2-Day Shoot, 1 Prep Day</h2>
+
+          <p>Here's every number in one place. This is what you put in your budget under Gaffer when you're building the G&E labor section of an AICP top sheet.</p>
+
+          <div class="data-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Line Item</th>
+                  <th>Days</th>
+                  <th>Rate</th>
+                  <th>Subtotal</th>
+                  <th>Fringe (24%)</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Gaffer — Shoot Days</td>
+                  <td class="mono">2</td>
+                  <td class="mono">$900.00</td>
+                  <td class="mono">$1,800.00</td>
+                  <td class="mono">$432.00</td>
+                  <td class="mono">$2,232.00</td>
+                </tr>
+                <tr>
+                  <td>Gaffer — Prep Day</td>
+                  <td class="mono">1</td>
+                  <td class="mono">$900.00</td>
+                  <td class="mono">$900.00</td>
+                  <td class="mono">$216.00</td>
+                  <td class="mono">$1,116.00</td>
+                </tr>
+                <tr>
+                  <td>Gaffer Kit Fee</td>
+                  <td class="mono">3</td>
+                  <td class="mono">$100.00</td>
+                  <td class="mono">$300.00</td>
+                  <td class="mono">—</td>
+                  <td class="mono">$300.00</td>
+                </tr>
+                <tr class="total-row">
+                  <td><strong>Fully Loaded Gaffer Hire</strong></td>
+                  <td></td>
+                  <td></td>
+                  <td class="mono">$3,000.00</td>
+                  <td class="mono">$648.00</td>
+                  <td class="mono gold"><strong>$3,648.00</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="inline-note">
+            <strong>Rate Note</strong>
+            These rates reflect the LA non-union commercial market as of early 2026. SF Bay Area rates run 5–15% higher. Remote or traveling gaffers may require travel days at scale, housing per diem, and car rental, which are not included here.
+          </div>
+
+          <h2 id="where-producers-get-burned">Where Producers Get Burned</h2>
+
+          <p>The most common budget mistake is entering the day rate without fringe, then discovering the error when the payroll company processes the invoice. On a $900/day gaffer, that's $216 per day in fringe you didn't budget. Over 3 days, that's $648 missing from your numbers before you've even thought about overtime.</p>
+
+          <p>The second most common mistake: forgetting the kit fee entirely. It's easy to do because it comes in on a separate invoice from the gaffer's personal rental account. Budget it upfront as a separate line item under G&E equipment, not labor.</p>
+
+          <p>The third: assuming prep at half-rate without confirming with the gaffer. Most experienced non-union gaffers expect full rate for prep. If you're budgeting 50%, have the conversation before you submit the bid — not after you win it.</p>
+
+          <div class="pull-quote">
+            <p>"The $900 day rate is what you say when someone asks. The $3,648 is what you budget when no one is looking."</p>
+            <cite>— The distinction that separates experienced line producers from everyone else</cite>
+          </div>
+
+          <h2 id="how-to-budget-this">How to Budget This in Villager Pro</h2>
+
+          <p>In the AICP budget template on Villager Pro, G&E labor lives in <strong>Section A (Prep Crew)</strong> and <strong>Section B (Shoot Crew)</strong>. Fringe is calculated automatically as a percentage layered on top of gross labor. Kit fees belong in Section B under G&E equipment or as a separate package line.</p>
+
+          <p>The template handles the fringe math automatically once you set your fringe rate. Set it to 24% for California non-union work, enter the day rate and number of days, and the subtotal and fringe column populate in real time. No manual calculation required.</p>
+
+          <p>The complete AICP format top sheet — with all sections, fringe logic, and contingency calculation — is available free at villagerpro.io/aicp.</p>
+
+        </div>
+
+        <!-- CTA -->
+        <div class="post-cta">
+          <p class="post-cta-eyebrow">Villager Pro</p>
+          <h2>Build this budget in minutes.</h2>
+          <p>The Villager Pro AICP template handles fringe math, kit fees, and contingency automatically. Enter your rates, set your fringe percentage, and your top sheet is done. No spreadsheets, no manual calculations, no surprises at invoice time.</p>
+          <div class="cta-btn-group">
+            <a href="https://villagerpro.io/start" class="cta-btn-primary">Start Free</a>
+            <a href="https://villagerpro.io/aicp" class="cta-btn-secondary">See the AICP Template</a>
+          </div>
+        </div>
+
+      </article>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">VILLAGER <span>PRO</span></div>
+    <p class="footer-copy">© 2026 Villager Pro · Production budgeting for the industry</p>
+  </footer>
+
+  <script>
+    const headings = document.querySelectorAll('.post-body h2');
+    const toc = document.getElementById('toc');
+    headings.forEach(h => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      li.appendChild(a);
+      toc.appendChild(li);
+    });
+
+    const tocLinks = toc.querySelectorAll('a');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const active = toc.querySelector(`a[href="#${e.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px' });
+    headings.forEach(h => observer.observe(h));
+
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+
+</body>
+</html>

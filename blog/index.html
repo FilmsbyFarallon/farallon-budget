@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — Villager Pro</title>
+  <meta name="description" content="Production budgeting insights for commercial directors, DPs, and line producers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/style.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060608;
+      --bg-surface: #0d0d12;
+      --bg-card: #10101a;
+      --border: rgba(201,168,76,0.15);
+      --border-subtle: rgba(255,255,255,0.06);
+      --gold: #c9a84c;
+      --gold-dim: rgba(201,168,76,0.6);
+      --gold-faint: rgba(201,168,76,0.08);
+      --white: #f0ede8;
+      --white-dim: rgba(240,237,232,0.55);
+      --white-faint: rgba(240,237,232,0.2);
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(6,6,8,0.92);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      font-family: 'Geist Sans', 'Geist', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+
+    .nav-logo span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--white-dim);
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 20px;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    /* ── HEADER ── */
+    .blog-header {
+      padding: 140px 48px 72px;
+      max-width: 1160px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .blog-header-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    .blog-header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 600;
+      line-height: 1.1;
+      color: var(--white);
+      max-width: 700px;
+      margin-bottom: 20px;
+    }
+
+    .blog-header h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .blog-header-sub {
+      font-size: 1rem;
+      color: var(--white-dim);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 32px 48px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .filter-btn {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--white-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-faint);
+    }
+
+    /* ── POST GRID ── */
+    .posts-container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 48px 120px;
+    }
+
+    /* Featured post */
+    .post-featured {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 0;
+      padding: 56px 0;
+    }
+
+    .post-featured:hover .post-title { color: var(--gold); }
+
+    .post-featured-left {
+      padding-right: 56px;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .post-featured-right {
+      padding-left: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .post-stat-block {
+      margin-bottom: 28px;
+    }
+
+    .post-stat-number {
+      font-family: var(--font-mono);
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 500;
+      color: var(--gold);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .post-stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--white-faint);
+      margin-top: 6px;
+    }
+
+    .post-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      margin-bottom: 16px;
+    }
+
+    .post-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--white);
+      margin-bottom: 14px;
+      transition: color 0.2s;
+    }
+
+    .post-desc {
+      font-size: 0.9rem;
+      color: var(--white-dim);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .post-meta {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--white-faint);
+    }
+
+    .post-meta span { color: var(--white-dim); }
+
+    /* Post list rows */
+    .post-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 200px;
+      gap: 0 40px;
+      align-items: start;
+      padding: 36px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .post-row:hover .post-title { color: var(--gold); }
+
+    .post-row-num {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 500;
+      color: var(--border);
+      line-height: 1;
+      padding-top: 4px;
+      transition: color 0.2s;
+    }
+
+    .post-row:hover .post-row-num { color: var(--gold-dim); }
+
+    .post-row-right {
+      text-align: right;
+    }
+
+    .post-row-right .post-tag { margin-bottom: 10px; }
+
+    .post-row-right .post-meta { margin-top: 8px; }
+
+    /* Section header */
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white-faint);
+      padding: 40px 0 0;
+      margin-bottom: -8px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 48px;
+      max-width: 1160px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-logo {
+      font-family: 'Geist Sans', 'Geist', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white-dim);
+    }
+
+    .footer-logo span { color: var(--gold); }
+
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--white-faint);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .blog-header { padding: 120px 24px 48px; }
+      .filter-bar { padding: 24px; }
+      .posts-container { padding: 0 24px 80px; }
+      .post-featured { grid-template-columns: 1fr; }
+      .post-featured-left { padding-right: 0; border-right: none; border-bottom: 1px solid var(--border-subtle); padding-bottom: 32px; margin-bottom: 32px; }
+      .post-featured-right { padding-left: 0; }
+      .post-row { grid-template-columns: 48px 1fr; }
+      .post-row-right { display: none; }
+      footer { padding: 32px 24px; flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="https://villagerpro.io" class="nav-logo">VILLAGER <span>PRO</span></a>
+    <ul class="nav-links">
+      <li><a href="https://villagerpro.io/aicp">AICP Budget</a></li>
+      <li><a href="https://villagerpro.io/start">Get Started</a></li>
+      <li><a href="/blog/" style="color:var(--white)">Blog</a></li>
+    </ul>
+    <a href="https://villagerpro.io/start" class="nav-cta">Start Free</a>
+  </nav>
+
+  <header class="blog-header">
+    <p class="blog-header-eyebrow">Villager Pro · Production Intelligence</p>
+    <h1>The numbers behind<br /><em>the numbers.</em></h1>
+    <p class="blog-header-sub">Rate breakdowns, fringe math, and budget strategy for commercial directors, DPs, and line producers who take the work seriously.</p>
+  </header>
+
+  <div class="filter-bar">
+    <button class="filter-btn active">All Posts</button>
+    <button class="filter-btn">Crew Rates</button>
+    <button class="filter-btn">Fringe & Labor</button>
+    <button class="filter-btn">Post Production</button>
+    <button class="filter-btn">Gear & Packages</button>
+    <button class="filter-btn">Bidding Strategy</button>
+  </div>
+
+  <main class="posts-container">
+
+    <!-- Featured post -->
+    <a href="/blog/commercial-gaffer-rates.html" style="display:block">
+      <article class="post-featured">
+        <div class="post-featured-left">
+          <div class="post-stat-block">
+            <div class="post-stat-number">$900</div>
+            <div class="post-stat-label">Non-union gaffer day rate · LA market</div>
+          </div>
+          <span class="post-tag">Crew Rates</span>
+          <h2 class="post-title">What Does a Non-Union Gaffer Actually Cost on a Commercial?</h2>
+          <p class="post-desc">A real breakdown of non-union gaffer rates in LA, fringe math at 24%, prep day costs, kit fees, and what the total hire actually costs on a 2-day shoot with 1 prep day.</p>
+          <p class="post-meta">March 16, 2026 · <span>8 min read</span></p>
+        </div>
+        <div class="post-featured-right">
+          <p style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--white-faint);margin-bottom:24px;">Featured Post</p>
+          <p style="font-family:var(--font-display);font-size:1.15rem;font-style:italic;color:var(--white-dim);line-height:1.6;margin-bottom:32px;">"Most producers know the day rate. Almost none of them know the fully loaded cost until the invoice arrives."</p>
+          <p style="font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);">Read the breakdown →</p>
+        </div>
+      </article>
+    </a>
+
+    <p class="section-label">Recent Posts</p>
+
+    <!-- Post rows -->
+    <a href="#" style="display:block">
+      <article class="post-row">
+        <div class="post-row-num">02</div>
+        <div>
+          <span class="post-tag">Fringe & Labor</span>
+          <h2 class="post-title" style="font-size:1.2rem;">Union vs. Non-Union Crew on a $150K Commercial: Where the Money Actually Goes</h2>
+          <p class="post-desc">Side-by-side fringe comparison across IATSE, Teamsters, and non-union hires. Spoiler: the gap is smaller than you think once you factor kit fees.</p>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+        <div class="post-row-right">
+          <span class="post-tag">Fringe & Labor</span>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+      </article>
+    </a>
+
+    <a href="#" style="display:block">
+      <article class="post-row">
+        <div class="post-row-num">03</div>
+        <div>
+          <span class="post-tag">Bidding Strategy</span>
+          <h2 class="post-title" style="font-size:1.2rem;">How to Build a 5% Contingency That Actually Holds</h2>
+          <p class="post-desc">Where production budgets blow contingency before day one — and how to protect it on competitive bids.</p>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+        <div class="post-row-right">
+          <span class="post-tag">Bidding Strategy</span>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+      </article>
+    </a>
+
+    <a href="#" style="display:block">
+      <article class="post-row">
+        <div class="post-row-num">04</div>
+        <div>
+          <span class="post-tag">Post Production</span>
+          <h2 class="post-title" style="font-size:1.2rem;">Editorial Day Rates in 2025: What Editors Are Charging and Why</h2>
+          <p class="post-desc">Current rate benchmarks from SF, LA, and remote-first editors. Plus: how to budget offline vs. online as separate line items.</p>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+        <div class="post-row-right">
+          <span class="post-tag">Post Production</span>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+      </article>
+    </a>
+
+    <a href="#" style="display:block">
+      <article class="post-row">
+        <div class="post-row-num">05</div>
+        <div>
+          <span class="post-tag">Gear & Packages</span>
+          <h2 class="post-title" style="font-size:1.2rem;">ARRI ALEXA 35 vs. RED MONSTRO: The Real Cost Difference on a 3-Day Shoot</h2>
+          <p class="post-desc">Camera package line items compared. Includes camera assistant rates, media costs, and DIT workflow implications for each system.</p>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+        <div class="post-row-right">
+          <span class="post-tag">Gear & Packages</span>
+          <p class="post-meta">Coming Soon</p>
+        </div>
+      </article>
+    </a>
+
+  </main>
+
+  <footer>
+    <div class="footer-logo">VILLAGER <span>PRO</span></div>
+    <p class="footer-copy">© 2026 Villager Pro · Production budgeting for the industry</p>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>
