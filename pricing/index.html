@@ -191,7 +191,7 @@
     }
 
     .tier-card.featured {
-      border: 2px solid var(--accent);
+      /* border handled by .tier-selected */
     }
 
     .tier-card.dimmed {
@@ -444,7 +444,7 @@
     </div>
 
     <!-- MAX -->
-    <div class="tier-card dimmed" id="tier-max">
+    <div class="tier-card dimmed" id="tier-max" onclick="selectTier('tier-max')">
       <div class="tier-label">Max</div>
       <div class="tier-price">$49</div>
       <div class="tier-period">per month &nbsp;·&nbsp; launching soon</div>
@@ -496,26 +496,33 @@
 </footer>
 
 <script>
-  function updateButtons(selectedId) {
-    var btnFree = document.getElementById('btn-free');
-    var btnPro = document.getElementById('btn-pro');
-    var inactiveStyle = 'background:transparent;border:1px solid #2a2a3c;color:#6b6b80;cursor:pointer';
-    var activeStyle = 'background:var(--accent);border:none;color:#fff;cursor:pointer';
-    var commonStyle = ';width:100%;padding:12px;border-radius:4px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase';
-    if (btnFree) btnFree.style.cssText = inactiveStyle + commonStyle;
-    if (btnPro) btnPro.style.cssText = inactiveStyle + commonStyle;
-    if (selectedId === 'tier-free' && btnFree) btnFree.style.cssText = activeStyle + commonStyle;
-    if (selectedId === 'tier-pro' && btnPro) btnPro.style.cssText = activeStyle + commonStyle;
-  }
-
   function selectTier(id) {
-    ['tier-free', 'tier-pro', 'tier-max'].forEach(function(tid) {
-      var el = document.getElementById(tid);
+    // 1. Remove border from all cards
+    var cards = ['tier-free', 'tier-pro', 'tier-max'];
+    cards.forEach(function(cid) {
+      var el = document.getElementById(cid);
       if (el) el.classList.remove('tier-selected');
     });
+
+    // 2. Add border to clicked card
     var target = document.getElementById(id);
     if (target) target.classList.add('tier-selected');
-    updateButtons(id);
+
+    // 3. Reset all buttons to inactive
+    var btnFree = document.getElementById('btn-free');
+    var btnPro = document.getElementById('btn-pro');
+    var baseStyle = 'width:100%;padding:12px;border-radius:4px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;';
+    var inactive = baseStyle + 'background:transparent;border:1px solid #2a2a3c;color:#6b6b80;';
+    var active = baseStyle + 'background:var(--accent);border:none;color:#fff;';
+
+    if (btnFree) btnFree.style.cssText = inactive;
+    if (btnPro) btnPro.style.cssText = inactive;
+    // Max button never gets active style — stays as-is (disabled/greyed)
+
+    // 4. Activate the selected card's button
+    if (id === 'tier-free' && btnFree) btnFree.style.cssText = active;
+    if (id === 'tier-pro' && btnPro) btnPro.style.cssText = active;
+    // id === 'tier-max': both buttons stay grey, Max CTA stays as-is
   }
 </script>
 
