@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Commercial Director's Playbook — Coming Soon — Villager Pro</title>
+<meta name="description" content="Everything they never taught you about winning work, pricing your time, and building a production company that lasts. By Chris Taylor / Farallon Films.">
+<meta property="og:title" content="The Commercial Director's Playbook — Coming Soon">
+<meta property="og:description" content="Everything they never taught you about winning work, pricing your time, and building a production company that lasts.">
+<meta property="og:url" content="https://villagerpro.io/playbook">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060608;
+    --bg1: #0d0d10;
+    --bg2: #111115;
+    --bg3: #16161b;
+    --bg4: #1c1c22;
+    --gold: #c9a84c;
+    --gold-dim: #8a6d2f;
+    --gold-light: #e8c97a;
+    --text: #f0ede8;
+    --text-dim: #8a8880;
+    --text-muted: #4a4845;
+    --border: rgba(201,168,76,0.15);
+    --border-dim: rgba(255,255,255,0.06);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 56px;
+    background: rgba(6,6,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .nav-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  /* LAYOUT */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 140px 0 80px;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .hero-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-label::after {
+    content: '';
+    display: block;
+    height: 0.5px;
+    width: 48px;
+    background: var(--gold-dim);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin-bottom: 2rem;
+    line-height: 1.65;
+  }
+
+  .hero-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    letter-spacing: 0.04em;
+  }
+
+  .price-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    border: 0.5px solid var(--border);
+    padding: 6px 14px;
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.06em;
+  }
+
+  /* EMAIL CAPTURE */
+  .email-capture {
+    display: flex;
+    gap: 0;
+    max-width: 480px;
+    margin-bottom: 0.75rem;
+  }
+
+  .email-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 0.5px solid var(--border-dim);
+    border-right: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .email-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .email-input:focus {
+    border-color: var(--gold-dim);
+  }
+
+  .email-submit {
+    background: var(--gold);
+    color: #0a0802;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 13px 20px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .email-submit:hover {
+    background: var(--gold-light);
+  }
+
+  .email-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* SECTION SHARED */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 1.5rem;
+  }
+
+  /* WHAT'S INSIDE */
+  .inside-section {
+    padding: 80px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .inside-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    margin-bottom: 3rem;
+    color: var(--text);
+  }
+
+  .chapters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .chapter {
+    padding: 1.5rem 0;
+    border-top: 0.5px solid var(--border-dim);
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .chapter:nth-child(odd) { padding-right: 2rem; border-right: 0.5px solid var(--border-dim); }
+  .chapter:nth-child(even) { padding-left: 2rem; }
+
+  .chapter-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gold-dim);
+    letter-spacing: 0.08em;
+    padding-top: 3px;
+  }
+
+  .chapter-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .chapter-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* CREDIBILITY */
+  .cred-section {
+    padding: 80px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .cred-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .cred-text {
+    font-size: 17px;
+    color: var(--text-dim);
+    line-height: 1.75;
+    max-width: 640px;
+  }
+
+  .cred-text strong {
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  /* BOTTOM CTA */
+  .cta-section {
+    padding: 100px 0;
+    border-bottom: 0.5px solid var(--border-dim);
+    text-align: center;
+  }
+
+  .cta-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .cta-section h2 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+
+  .cta-section p {
+    color: var(--text-dim);
+    font-size: 17px;
+    margin-bottom: 2.5rem;
+  }
+
+  .cta-email-wrap {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .cta-back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: color 0.15s;
+  }
+
+  .cta-back-link:hover { color: var(--text-dim); }
+
+  /* FOOTER */
+  footer {
+    border-top: 0.5px solid var(--border-dim);
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--text-dim); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-label, h1, .hero-sub, .hero-meta, .price-badge, .email-capture {
+    animation: fadeUp 0.7s ease both;
+  }
+
+  h1 { animation-delay: 0.1s; }
+  .hero-sub { animation-delay: 0.2s; }
+  .hero-meta { animation-delay: 0.25s; }
+  .price-badge { animation-delay: 0.3s; }
+  .email-capture { animation-delay: 0.35s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 680px) {
+    .chapters { grid-template-columns: 1fr; }
+    .chapter:nth-child(odd) { padding-right: 0; border-right: none; }
+    .chapter:nth-child(even) { padding-left: 0; }
+    .email-capture { max-width: 100%; }
+    nav { padding: 0 1rem; }
+    .container { padding: 0 1.25rem; }
+    .cta-section { text-align: left; }
+    .cta-email-wrap { align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://villagerpro.io/start" class="nav-logo">VILLAGER PRO</a>
+  <div class="nav-links">
+    <a href="/aicp">AICP Guide</a>
+    <a href="https://villagerpro.io/start" target="_blank" rel="noopener">Villager Pro App</a>
+    <a href="https://x.com/Villagerpro_io" target="_blank" rel="noopener">Follow on X</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-label">Knowledge Series &mdash; Coming Soon</div>
+    <h1>The Commercial Director's <em>Playbook</em></h1>
+    <p class="hero-sub">Everything they never taught you about winning work, pricing your time, and building a production company that lasts.</p>
+    <p class="hero-meta">By Chris Taylor / Farallon Films &mdash; 20+ years of commercial production</p>
+    <div class="price-badge">$97 &mdash; one-time</div>
+    <form class="email-capture" action="mailto:jax@villagerpro.io" method="get" enctype="text/plain" onsubmit="return handleNotify(event);">
+      <input class="email-input" type="email" name="email" placeholder="your@email.com" required autocomplete="email">
+      <button class="email-submit" type="submit">Notify Me</button>
+    </form>
+    <p class="email-note">No spam. One email when it drops.</p>
+  </section>
+
+  <!-- WHAT'S INSIDE -->
+  <section class="inside-section">
+    <div class="section-label">What's Inside</div>
+    <h2>Six chapters. No filler.</h2>
+    <div class="chapters">
+
+      <div class="chapter">
+        <div class="chapter-num">01</div>
+        <div>
+          <div class="chapter-title">The Production Ecosystem</div>
+          <div class="chapter-desc">Who's in the room, how money flows. Brand to Agency to Production Company &mdash; and where you fit.</div>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-num">02</div>
+        <div>
+          <div class="chapter-title">The Bidding Process</div>
+          <div class="chapter-desc">How jobs actually move. RFPs, treatments, awards, the unspoken rules.</div>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-num">03</div>
+        <div>
+          <div class="chapter-title">Treatment Writing</div>
+          <div class="chapter-desc">What wins and what loses. How to make the agency feel seen.</div>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-num">04</div>
+        <div>
+          <div class="chapter-title">Pricing Your Work</div>
+          <div class="chapter-desc">Minimum Viable Rate, markup math, how to stop leaving money on the table.</div>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-num">05</div>
+        <div>
+          <div class="chapter-title">Agency Relationships</div>
+          <div class="chapter-desc">Getting on shortlists. Staying on them. The long game.</div>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-num">06</div>
+        <div>
+          <div class="chapter-title">Building a Sustainable Company</div>
+          <div class="chapter-desc">The business OS, the EP model, sales reps, scaling.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CREDIBILITY -->
+  <section class="cred-section">
+    <div class="section-label">The Author</div>
+    <h2>Written by a working commercial director</h2>
+    <p class="cred-text">
+      <strong>Chris Taylor</strong> is the founder of Farallon Films, a Bay Area commercial production company actively pitching and producing work for consumer brands, agencies, and direct clients. Over 20+ years he has written real bids, built real agency relationships, and run real production companies &mdash; not read about them. This is the knowledge he wished existed when he started.
+    </p>
+  </section>
+
+  <!-- BOTTOM CTA -->
+  <section class="cta-section">
+    <div class="section-label" style="text-align:center;">Get Early Access</div>
+    <h2>The <em>Playbook</em> is in production.</h2>
+    <p>Drop your email and you'll be the first to know when it's ready.</p>
+    <div class="cta-email-wrap">
+      <form class="email-capture" action="mailto:jax@villagerpro.io" method="get" enctype="text/plain" onsubmit="return handleNotify(event);">
+        <input class="email-input" type="email" name="email" placeholder="your@email.com" required autocomplete="email">
+        <button class="email-submit" type="submit">Notify Me</button>
+      </form>
+      <p class="email-note">No spam. One email when it drops.</p>
+    </div>
+    <a href="https://villagerpro.io" class="cta-back-link">Back to villagerpro.io &rarr;</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">&copy; 2026 Villager Pro &nbsp;&middot;&nbsp; villagerpro.io/playbook</div>
+    <div class="footer-links">
+      <a href="https://villagerpro.io">App</a>
+      <a href="/aicp">AICP Guide</a>
+      <a href="mailto:jax@villagerpro.io">Contact</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  function handleNotify(e) {
+    // Form will be wired to backend later. For now, show a confirmation.
+    e.preventDefault();
+    const form = e.target;
+    const email = form.querySelector('input[type="email"]').value;
+    const btn = form.querySelector('button');
+    btn.textContent = 'Noted.';
+    btn.style.background = '#4ade80';
+    btn.style.color = '#060608';
+    form.querySelector('input').disabled = true;
+    btn.disabled = true;
+    return false;
+  }
+</script>
+
+</body>
+</html>
