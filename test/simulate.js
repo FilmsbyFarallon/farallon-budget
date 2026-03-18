@@ -13,7 +13,9 @@ const ITERATIONS = parseInt(process.env.ITERATIONS || '100');
 
 // ─── REPLICATE APP CONSTANTS ─────────────────────────────────────────────────
 
-const FRINGE_RATES = { '':0, 'DGA':46, 'SAG':32, 'Teamster':49, 'Union':46, 'Non-Union':24 };
+// SAG rate per SAG-AFTRA Commercials Contract 2025-2026
+const SAG_FRINGE_RATE = 23.5;
+const FRINGE_RATES = { '':0, 'DGA':46, 'SAG':SAG_FRINGE_RATE, 'Teamster':49, 'Union':46, 'Non-Union':24 };
 const FRINGE_KEYS  = Object.keys(FRINGE_RATES);
 
 const SECTIONS = [
@@ -375,9 +377,9 @@ edgeTest('mixed fringe rates accumulate independently', () => {
   };
   const sec = SECTIONS.find(s=>s.code==='A');
   const fri = sectionFringeTotal(sec, b);
-  // 1000*0.46 + 1000*0.32 + 1000*0.24 = 460+320+240 = 1020
-  if (Math.abs(fri - 1020) > 0.001) {
-    throw new Error(`Mixed fringe: expected $1,020 got $${fri.toFixed(2)}`);
+  // 1000*0.46 + 1000*0.235 + 1000*0.24 = 460+235+240 = 935
+  if (Math.abs(fri - 935) > 0.001) {
+    throw new Error(`Mixed fringe: expected $935 got $${fri.toFixed(2)}`);
   }
 });
 

@@ -1769,10 +1769,12 @@ body{margin:0;padding:0}
      fringe rates, group mappings
      ============================================ -->
 <script>
+// SAG rate per SAG-AFTRA Commercials Contract 2025-2026
+const SAG_FRINGE_RATE = 23.5;
 const FRINGE_RATES = {
   '': 0,
   'DGA': 46,
-  'SAG': 32,
+  'SAG': SAG_FRINGE_RATE,
   'Teamster': 49,
   'Union': 46,
   'Non-Union': 24,
@@ -2466,6 +2468,8 @@ async function openBillingPortal() {
 async function startCheckout() {
   document.querySelectorAll('.sb-ctx').forEach(m=>m.remove());
   if (!_currentUser) return;
+  // Remove any prior inline checkout error
+  document.getElementById('checkout-error-banner')?.remove();
   const btn = document.createElement('div');
   btn.id = 'checkout-loading';
   btn.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:#fff;letter-spacing:.1em';
@@ -2482,16 +2486,51 @@ async function startCheckout() {
       body: JSON.stringify({ user_id: _currentUser.id, email: _currentUser.email }),
     });
     const data = await res.json();
+    document.getElementById('checkout-loading')?.remove();
     if (data.url) {
       window.location.href = data.url;
     } else {
-      alert('Checkout error: ' + (data.error || 'Unknown error'));
+      _showCheckoutError(data.error || 'Unknown error');
     }
   } catch(e) {
-    alert('Checkout failed: ' + e);
-  } finally {
     document.getElementById('checkout-loading')?.remove();
+    _showCheckoutError('Payment failed. Please check your card details and try again.');
   }
+}
+
+function _showCheckoutError(msg) {
+  document.getElementById('checkout-error-banner')?.remove();
+  const banner = document.createElement('div');
+  banner.id = 'checkout-error-banner';
+  banner.style.cssText = [
+    'position:fixed',
+    'bottom:28px',
+    'left:50%',
+    'transform:translateX(-50%)',
+    'background:#2a1a1a',
+    'border:1px solid #c0392b',
+    'color:#e74c3c',
+    'font-family:var(--mono)',
+    'font-size:11px',
+    'letter-spacing:.06em',
+    'padding:12px 20px',
+    'border-radius:4px',
+    'z-index:9999',
+    'display:flex',
+    'align-items:center',
+    'gap:14px',
+    'max-width:420px',
+    'box-shadow:0 4px 18px rgba(0,0,0,.5)',
+  ].join(';');
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = 'Payment failed. Please check your card details and try again.';
+  const retryBtn = document.createElement('button');
+  retryBtn.textContent = 'Try again';
+  retryBtn.style.cssText = 'background:#c0392b;color:#fff;border:none;padding:5px 12px;border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;cursor:pointer;white-space:nowrap;flex-shrink:0';
+  retryBtn.onclick = () => { banner.remove(); startCheckout(); };
+  banner.appendChild(msgSpan);
+  banner.appendChild(retryBtn);
+  document.body.appendChild(banner);
 }
 
 // 5-tap on the logo to open dev modal (invisible to normal users)
@@ -2641,6 +2680,34 @@ function hideAuthScreen() {
   // Show success banner if returning from Stripe checkout
   if (window.__checkoutSuccess) {
     window.__checkoutSuccess = false;
+    // Show loading state immediately — webhook may take a moment to confirm
+    const activatingOverlay = document.createElement('div');
+    activatingOverlay.id = 'pro-activating-overlay';
+    activatingOverlay.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'background:rgba(0,0,0,.72)',
+      'z-index:9998',
+      'display:flex',
+      'flex-direction:column',
+      'align-items:center',
+      'justify-content:center',
+      'gap:16px',
+      'font-family:var(--mono)',
+    ].join(';');
+    activatingOverlay.innerHTML = `
+      <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,.15);border-top-color:#4caf50;border-radius:50%;animation:pro-spin .8s linear infinite"></div>
+      <div id="pro-activating-msg" style="color:#b0c4b0;font-size:12px;letter-spacing:.1em;text-align:center;max-width:280px">Activating your Pro account…</div>
+    `;
+    // Inject keyframe animation if not already present
+    if (!document.getElementById('pro-spin-style')) {
+      const style = document.createElement('style');
+      style.id = 'pro-spin-style';
+      style.textContent = '@keyframes pro-spin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(style);
+    }
+    document.body.appendChild(activatingOverlay);
+
     // Poll for is_pro to appear in user metadata (webhook may take a moment)
     let attempts = 0;
     const pollForPro = async () => {
@@ -2658,6 +2725,8 @@ function hideAuthScreen() {
       } catch(e) {}
 
       if (isPro()) {
+        // Remove activating overlay
+        document.getElementById('pro-activating-overlay')?.remove();
         // Success — force full re-render so all gates, lock icons, and buttons update immediately
         updateUserUI();
         render();
@@ -2670,6 +2739,31 @@ function hideAuthScreen() {
       } else if (attempts < 12) {
         // Retry up to 12 times (every 1 second = 12 seconds total)
         setTimeout(pollForPro, 1000);
+      } else {
+        // Timed out — remove spinner, show friendly message
+        document.getElementById('pro-activating-overlay')?.remove();
+        const timeout = document.createElement('div');
+        timeout.style.cssText = [
+          'position:fixed',
+          'bottom:28px',
+          'left:50%',
+          'transform:translateX(-50%)',
+          'background:#1a2020',
+          'border:1px solid #4a8a6a',
+          'color:#8abcaa',
+          'font-family:var(--mono)',
+          'font-size:11px',
+          'letter-spacing:.06em',
+          'padding:12px 22px',
+          'border-radius:4px',
+          'z-index:9999',
+          'max-width:380px',
+          'text-align:center',
+          'line-height:1.5',
+        ].join(';');
+        timeout.textContent = 'Almost there — your account is activating. Refresh in a moment if your Pro features aren\'t showing.';
+        document.body.appendChild(timeout);
+        setTimeout(() => { timeout.style.opacity = '0'; timeout.style.transition = 'opacity .4s'; setTimeout(() => timeout.remove(), 400); }, 8000);
       }
     };
     // Start polling quickly — webhook is usually fast
