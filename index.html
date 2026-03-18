@@ -2733,7 +2733,7 @@ function hideAuthScreen() {
         // Show success banner
         const t = document.createElement('div');
         t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid #4caf50;color:#4caf50;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:10px 22px;border-radius:4px;z-index:9999;pointer-events:none;transition:opacity .4s';
-        t.textContent = '⚡ VILLAGER PRO ACTIVATED — welcome to the full app';
+        t.textContent = '⚡ VILLAGER PRO ACTIVATED. Welcome to the full app.';
         document.body.appendChild(t);
         setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 4000);
       } else if (attempts < 12) {
@@ -2761,7 +2761,7 @@ function hideAuthScreen() {
           'text-align:center',
           'line-height:1.5',
         ].join(';');
-        timeout.textContent = 'Almost there — your account is activating. Refresh in a moment if your Pro features aren\'t showing.';
+        timeout.textContent = 'Almost there. Your account is activating. Refresh in a moment if your Pro features aren\'t showing.';
         document.body.appendChild(timeout);
         setTimeout(() => { timeout.style.opacity = '0'; timeout.style.transition = 'opacity .4s'; setTimeout(() => timeout.remove(), 400); }, 8000);
       }
@@ -12348,7 +12348,7 @@ function spToggle(id) {
         <button onclick="setAllFringes('Non-Union')" style="${chipStyle(dominant==='Non-Union')}">Non-Union 24%</button>
         <button onclick="setAllFringes('Union')"     style="${chipStyle(dominant==='Union')}">Union 46%</button>
         <button onclick="setAllFringes('DGA')"       style="${chipStyle(dominant==='DGA')}">DGA 46%</button>
-        <button onclick="setAllFringes('SAG')"       style="${chipStyle(dominant==='SAG')}">SAG 32%</button>
+        <button onclick="setAllFringes('SAG')"       style="${chipStyle(dominant==='SAG')}">SAG 23.5%</button>
         <button onclick="setAllFringes('Teamster')"  style="${chipStyle(dominant==='Teamster')}">Teamster 49%</button>
         <button onclick="setAllFringes('')"          style="${chipStyle(false,'var(--border2)')}">Clear all</button>
       </div>
