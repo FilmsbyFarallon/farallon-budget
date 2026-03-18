@@ -2536,6 +2536,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.__autoFreePlan = true;
     window.history.replaceState({}, '', window.location.pathname);
   }
+  // Funnel pro plan — ?signup=1&plan=pro lands on signup (plan param extends signup=1)
+  if (params.get('signup') === '1' && params.get('plan') === 'pro') {
+    window.__openSignup = true;
+    window.history.replaceState({}, '', window.location.pathname);
+  }
   // Intercept recovery token before Supabase consumes it
   const _hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
   const _urlParams = new URLSearchParams(window.location.search);

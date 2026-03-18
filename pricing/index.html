@@ -423,7 +423,7 @@
         <div class="feature-item off"><span class="cross">✗</span>Rate cards &amp; templates</div>
         <div class="feature-item off"><span class="cross">✗</span>Unlimited budgets</div>
       </div>
-      <a class="cta-btn cta-free" href="https://villagerpro.io/?signup=1">Start Free</a>
+      <a class="cta-btn cta-free" id="btn-free" href="https://villagerpro.io/?signup=1">Start Free</a>
     </div>
 
     <!-- PRO -->
@@ -440,7 +440,7 @@
         <div class="feature-item"><span class="check">✓</span>Contact &amp; company book</div>
         <div class="feature-item"><span class="check">✓</span>Priority support</div>
       </div>
-      <a class="cta-btn cta-pro" href="https://villagerpro.io">Get Pro</a>
+      <a class="cta-btn cta-pro" id="btn-pro" href="https://villagerpro.io/?signup=1&plan=pro">Get Pro</a>
     </div>
 
     <!-- MAX -->
@@ -496,11 +496,26 @@
 </footer>
 
 <script>
+  function updateButtons(selectedId) {
+    var btnFree = document.getElementById('btn-free');
+    var btnPro = document.getElementById('btn-pro');
+    var inactiveStyle = 'background:transparent;border:1px solid #2a2a3c;color:#6b6b80;cursor:pointer';
+    var activeStyle = 'background:var(--accent);border:none;color:#fff;cursor:pointer';
+    var commonStyle = ';width:100%;padding:12px;border-radius:4px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase';
+    if (btnFree) btnFree.style.cssText = inactiveStyle + commonStyle;
+    if (btnPro) btnPro.style.cssText = inactiveStyle + commonStyle;
+    if (selectedId === 'tier-free' && btnFree) btnFree.style.cssText = activeStyle + commonStyle;
+    if (selectedId === 'tier-pro' && btnPro) btnPro.style.cssText = activeStyle + commonStyle;
+  }
+
   function selectTier(id) {
     ['tier-free', 'tier-pro', 'tier-max'].forEach(function(tid) {
-      document.getElementById(tid).classList.remove('tier-selected');
+      var el = document.getElementById(tid);
+      if (el) el.classList.remove('tier-selected');
     });
-    document.getElementById(id).classList.add('tier-selected');
+    var target = document.getElementById(id);
+    if (target) target.classList.add('tier-selected');
+    updateButtons(id);
   }
 </script>
 
