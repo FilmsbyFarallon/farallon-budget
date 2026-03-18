@@ -723,7 +723,7 @@ body{margin:0;padding:0}
 /* ── AUTH SCREEN ── */
 #auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;align-items:stretch;justify-content:flex-start;font-family:var(--sans);overflow-y:auto}
 /* Split layout */
-.auth-split{display:flex;width:100%;flex:1;min-height:0}
+.auth-split{display:flex;width:100%;flex:1;min-height:calc(100vh - 52px)}
 /* Left panel */
 .auth-left{flex:0 0 42%;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:48px 52px;overflow:hidden;background:#050508}
 .auth-left-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(108,142,240,.18) 0%, transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(168,85,247,.12) 0%, transparent 50%);pointer-events:none}
