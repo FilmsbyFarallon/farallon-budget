@@ -2367,6 +2367,12 @@ function maybShowPricing() {
     selectFreePlan();
     return false;
   }
+  // Coming from funnel pro button — auto-trigger pro checkout, skip pricing screen
+  if (window.__autoProPlan) {
+    window.__autoProPlan = false;
+    selectProPlan();
+    return false;
+  }
   const realBudgets = budgets.filter(b => !b._isDemo);
   if (realBudgets.length === 0) {
     showPricingScreen('new_user');
@@ -2536,9 +2542,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.__autoFreePlan = true;
     window.history.replaceState({}, '', window.location.pathname);
   }
-  // Funnel pro plan — ?signup=1&plan=pro lands on signup (plan param extends signup=1)
-  if (params.get('signup') === '1' && params.get('plan') === 'pro') {
-    window.__openSignup = true;
+  // Funnel pro plan — auto-trigger pro checkout on first login
+  if (params.get('plan') === 'pro') {
+    window.__autoProPlan = true;
     window.history.replaceState({}, '', window.location.pathname);
   }
   // Intercept recovery token before Supabase consumes it
