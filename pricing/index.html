@@ -196,6 +196,15 @@
 
     .tier-card.dimmed {
       opacity: .7;
+      cursor: default;
+    }
+
+    .tier-card:not(.dimmed) {
+      cursor: pointer;
+    }
+
+    .tier-selected {
+      border: 2px solid var(--accent) !important;
     }
 
     .badge {
@@ -386,7 +395,7 @@
   </ul>
   <div class="nav-cta">
     <a class="nav-signin" href="https://villagerpro.io">Sign In</a>
-    <a class="nav-start" href="https://villagerpro.io">Start Free</a>
+    <a class="nav-start" href="https://villagerpro.io/?signup=1">Start Free</a>
   </div>
 </nav>
 
@@ -402,7 +411,7 @@
   <div class="pricing-grid">
 
     <!-- FREE -->
-    <div class="tier-card">
+    <div class="tier-card" id="tier-free" onclick="selectTier('tier-free')">
       <div class="tier-label">Free</div>
       <div class="tier-price">$0</div>
       <div class="tier-period">forever</div>
@@ -414,11 +423,11 @@
         <div class="feature-item off"><span class="cross">✗</span>Rate cards &amp; templates</div>
         <div class="feature-item off"><span class="cross">✗</span>Unlimited budgets</div>
       </div>
-      <a class="cta-btn cta-free" href="https://villagerpro.io">Start Free</a>
+      <a class="cta-btn cta-free" href="https://villagerpro.io/?signup=1">Start Free</a>
     </div>
 
     <!-- PRO -->
-    <div class="tier-card featured">
+    <div class="tier-card featured tier-selected" id="tier-pro" onclick="selectTier('tier-pro')">
       <div class="badge">Most Popular</div>
       <div class="tier-label">Pro</div>
       <div class="tier-price">$19.99</div>
@@ -435,7 +444,7 @@
     </div>
 
     <!-- MAX -->
-    <div class="tier-card dimmed">
+    <div class="tier-card dimmed" id="tier-max">
       <div class="tier-label">Max</div>
       <div class="tier-price">$49</div>
       <div class="tier-period">per month &nbsp;·&nbsp; launching soon</div>
@@ -473,7 +482,7 @@
       <div class="footer-col">
         <div class="footer-col-title">Product</div>
         <a href="/pricing">Pricing</a>
-        <a href="https://villagerpro.io">Start Free</a>
+        <a href="https://villagerpro.io/?signup=1">Start Free</a>
         <a href="https://villagerpro.io">Sign In</a>
       </div>
       <div class="footer-col">
@@ -485,6 +494,15 @@
   </div>
   <div class="footer-copy">© 2026 Villager Pro. All rights reserved.</div>
 </footer>
+
+<script>
+  function selectTier(id) {
+    ['tier-free', 'tier-pro', 'tier-max'].forEach(function(tid) {
+      document.getElementById(tid).classList.remove('tier-selected');
+    });
+    document.getElementById(id).classList.add('tier-selected');
+  }
+</script>
 
 </body>
 </html>
