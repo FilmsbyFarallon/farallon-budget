@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — Villager Pro</title>
+  <meta name="description" content="Simple, transparent pricing for commercial line producers. Start free, upgrade when you're ready.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060608;
+      --bg1: #0d0d10;
+      --bg2: #111115;
+      --bg3: #16161b;
+      --bg4: #1c1c22;
+      --bg5: #242430;
+      --border: #1e1e26;
+      --border2: #26262f;
+      --border3: #30303c;
+      --gold: #C8A96E;
+      --gold-dim: #7a5e2e;
+      --gold-bright: #d4b87a;
+      --accent: #6c8ef0;
+      --accent-dim: #2a3560;
+      --accent2: #a855f7;
+      --accent3: #f472b6;
+      --accent4: #fb923c;
+      --text: #F2F0F7;
+      --text2: #a8a8b8;
+      --text3: #5a5a72;
+      --text4: #30303c;
+      --green: #34d399;
+      --red: #f87171;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: system-ui, -apple-system, sans-serif;
+      --r: 3px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 52px;
+      background: rgba(6,6,8,0.95);
+      border-bottom: 1px solid #1a1a26;
+      backdrop-filter: blur(12px);
+      font-family: var(--mono);
+    }
+
+    .nav-brand {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-brand span { color: var(--gold); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-signin {
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      text-decoration: none;
+      font-family: var(--mono);
+      transition: color .15s;
+    }
+
+    .nav-signin:hover { color: var(--text); }
+
+    .nav-start {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 7px 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: var(--mono);
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+
+    .nav-start:hover { opacity: .88; }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 72px 24px 48px;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      color: var(--accent);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      letter-spacing: -.02em;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: var(--text3);
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    /* PRICING GRID */
+    .pricing-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 36px;
+    }
+
+    @media (max-width: 700px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+    }
+
+    .tier-card {
+      background: var(--bg1);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 30px 26px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .tier-card.featured {
+      border: 2px solid var(--accent);
+    }
+
+    .tier-card.dimmed {
+      opacity: .7;
+    }
+
+    .badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .15em;
+      padding: 3px 14px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .tier-label {
+      font-size: 10px;
+      font-family: var(--mono);
+      letter-spacing: .18em;
+      color: var(--text3);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .tier-card.featured .tier-label { color: var(--accent); }
+
+    .tier-price {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+
+    .tier-period {
+      font-size: 11px;
+      color: var(--text4);
+      margin-bottom: 26px;
+    }
+
+    .tier-features {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      margin-bottom: 28px;
+    }
+
+    .feature-item {
+      font-size: 12px;
+      color: var(--text2);
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+    }
+
+    .feature-item.off { color: var(--text4); }
+
+    .check { color: var(--green); flex-shrink: 0; }
+    .cross { color: #444; flex-shrink: 0; }
+
+    .cta-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      transition: opacity .15s, background .15s;
+    }
+
+    .cta-free {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text3);
+    }
+
+    .cta-free:hover { border-color: var(--border3); color: var(--text); }
+
+    .cta-pro {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+    }
+
+    .cta-pro:hover { opacity: .88; }
+
+    .cta-soon {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text4);
+      cursor: not-allowed;
+    }
+
+    /* FOOTER NOTE */
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text4);
+      font-family: var(--mono);
+      margin-bottom: 64px;
+    }
+
+    /* PAGE FOOTER */
+    .page-footer {
+      border-top: 1px solid #1a1a26;
+      background: var(--bg1);
+      padding: 40px;
+      font-family: var(--mono);
+    }
+
+    .footer-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+    }
+
+    .footer-brand-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--text);
+    }
+
+    .footer-brand-name span { color: var(--gold); }
+
+    .footer-tagline {
+      font-size: 9px;
+      color: var(--text4);
+      letter-spacing: .1em;
+      margin-top: 4px;
+    }
+
+    .footer-cols {
+      display: flex;
+      gap: 48px;
+    }
+
+    .footer-col-title {
+      font-size: 9px;
+      letter-spacing: .15em;
+      color: var(--text4);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .footer-col a {
+      display: block;
+      font-size: 11px;
+      color: var(--text3);
+      text-decoration: none;
+      margin-bottom: 8px;
+      transition: color .15s;
+    }
+
+    .footer-col a:hover { color: var(--text); }
+
+    .footer-copy {
+      max-width: 860px;
+      margin: 24px auto 0;
+      text-align: right;
+      font-size: 9px;
+      color: var(--text4);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="https://villagerpro.io">VILLAGER <span>PRO</span></a>
+  <ul class="nav-links">
+    <li><a href="/blog">Blog</a></li>
+    <li><a href="/aicp">AICP Guide</a></li>
+    <li><a href="/pricing" style="color:var(--text)">Pricing</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a class="nav-signin" href="https://villagerpro.io">Sign In</a>
+    <a class="nav-start" href="https://villagerpro.io">Start Free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Pricing</div>
+  <h1 class="hero-title">Simple, honest pricing.</h1>
+  <p class="hero-sub">Start free. Upgrade when you need more. No surprises, no contracts.</p>
+</div>
+
+<!-- PRICING -->
+<div class="pricing-wrap">
+  <div class="pricing-grid">
+
+    <!-- FREE -->
+    <div class="tier-card">
+      <div class="tier-label">Free</div>
+      <div class="tier-price">$0</div>
+      <div class="tier-period">forever</div>
+      <div class="tier-features">
+        <div class="feature-item"><span class="check">✓</span>1 budget</div>
+        <div class="feature-item"><span class="check">✓</span>Full line-item budgeting</div>
+        <div class="feature-item"><span class="check">✓</span>Contact &amp; company book</div>
+        <div class="feature-item off"><span class="cross">✗</span>PDF &amp; Excel export</div>
+        <div class="feature-item off"><span class="cross">✗</span>Rate cards &amp; templates</div>
+        <div class="feature-item off"><span class="cross">✗</span>Unlimited budgets</div>
+      </div>
+      <a class="cta-btn cta-free" href="https://villagerpro.io">Start Free</a>
+    </div>
+
+    <!-- PRO -->
+    <div class="tier-card featured">
+      <div class="badge">Most Popular</div>
+      <div class="tier-label">Pro</div>
+      <div class="tier-price">$19.99</div>
+      <div class="tier-period">per month</div>
+      <div class="tier-features">
+        <div class="feature-item"><span class="check">✓</span>Unlimited budgets</div>
+        <div class="feature-item"><span class="check">✓</span>Full line-item budgeting</div>
+        <div class="feature-item"><span class="check">✓</span>PDF &amp; Excel export</div>
+        <div class="feature-item"><span class="check">✓</span>Rate cards &amp; templates</div>
+        <div class="feature-item"><span class="check">✓</span>Contact &amp; company book</div>
+        <div class="feature-item"><span class="check">✓</span>Priority support</div>
+      </div>
+      <a class="cta-btn cta-pro" href="https://villagerpro.io">Get Pro</a>
+    </div>
+
+    <!-- MAX -->
+    <div class="tier-card dimmed">
+      <div class="tier-label">Max</div>
+      <div class="tier-price">$49</div>
+      <div class="tier-period">per month &nbsp;·&nbsp; launching soon</div>
+      <div class="tier-features">
+        <div class="feature-item"><span class="check">✓</span>Everything in Pro</div>
+        <div class="feature-item"><span class="check">✓</span>Jerry AI — build budgets from conversation</div>
+        <div class="feature-item"><span class="check">✓</span>Rate suggestions &amp; anomaly flagging</div>
+        <div class="feature-item"><span class="check">✓</span>Bid language generation</div>
+        <div class="feature-item"><span class="check">✓</span>AICP section explanations</div>
+      </div>
+      <span class="cta-btn cta-soon">Coming Soon</span>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    Cancel anytime &nbsp;·&nbsp; Billed securely via Stripe &nbsp;·&nbsp; 7-day money back guarantee
+  </div>
+</div>
+
+<!-- PAGE FOOTER -->
+<footer class="page-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand-name">VILLAGER <span>PRO</span></div>
+      <div class="footer-tagline">IT TAKES A VILLAGE.</div>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <div class="footer-col-title">Resources</div>
+        <a href="/blog">Blog</a>
+        <a href="/aicp">AICP Guide</a>
+        <a href="/playbook">The Playbook <span style="font-size:9px;color:var(--text4)">(coming soon)</span></a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Product</div>
+        <a href="/pricing">Pricing</a>
+        <a href="https://villagerpro.io">Start Free</a>
+        <a href="https://villagerpro.io">Sign In</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Connect</div>
+        <a href="https://x.com/Villagerpro_io" target="_blank">X / Twitter</a>
+        <a href="mailto:jax@villagerpro.io">Contact</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-copy">© 2026 Villager Pro. All rights reserved.</div>
+</footer>
+
+</body>
+</html>
