@@ -721,9 +721,9 @@ body{margin:0;padding:0}
 }
 
 /* ── AUTH SCREEN ── */
-#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;align-items:stretch;justify-content:stretch;font-family:var(--sans)}
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;align-items:stretch;justify-content:flex-start;font-family:var(--sans);overflow-y:auto}
 /* Split layout */
-.auth-split{display:flex;width:100%;height:100%}
+.auth-split{display:flex;width:100%;flex:1;min-height:0}
 /* Left panel */
 .auth-left{flex:0 0 42%;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:48px 52px;overflow:hidden;background:#050508}
 .auth-left-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%, rgba(108,142,240,.18) 0%, transparent 55%), radial-gradient(ellipse at 80% 80%, rgba(168,85,247,.12) 0%, transparent 50%);pointer-events:none}
@@ -1161,36 +1161,6 @@ body{margin:0;padding:0}
       <button class="custom-modal-ok"     id="cm-ok"     onclick="_cmOk()">OK</button>
     </div>
   </div>
-
-<footer style="padding:40px;border-top:1px solid #1a1a26;background:var(--bg1);font-family:var(--mono);margin-top:auto">
-  <div style="max-width:860px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:40px">
-    <div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--text)">VILLAGER <span style="color:var(--gold)">PRO</span></div>
-      <div style="font-size:9px;color:var(--text4);letter-spacing:.1em;margin-top:4px">IT TAKES A VILLAGE.</div>
-    </div>
-    <div style="display:flex;gap:48px">
-      <div>
-        <div style="font-size:9px;letter-spacing:.15em;color:var(--text4);margin-bottom:10px;text-transform:uppercase">Resources</div>
-        <a href="/blog" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">Blog</a>
-        <a href="/aicp" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">AICP Guide</a>
-        <a href="/playbook" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">The Playbook <span style="font-size:9px;color:var(--text4)">(coming soon)</span></a>
-      </div>
-      <div>
-        <div style="font-size:9px;letter-spacing:.15em;color:var(--text4);margin-bottom:10px;text-transform:uppercase">Product</div>
-        <a onclick="showPricing()" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px;cursor:pointer">Pricing</a>
-        <a onclick="authShowPanel('signup')" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px;cursor:pointer">Start Free</a>
-        <a onclick="authShowPanel('signin')" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px;cursor:pointer">Sign In</a>
-      </div>
-      <div>
-        <div style="font-size:9px;letter-spacing:.15em;color:var(--text4);margin-bottom:10px;text-transform:uppercase">Connect</div>
-        <a href="https://x.com/Villagerpro_io" target="_blank" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">X / Twitter</a>
-        <a href="mailto:jax@villagerpro.io" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">Contact</a>
-      </div>
-    </div>
-  </div>
-  <div style="max-width:860px;margin:24px auto 0;text-align:right;font-size:9px;color:var(--text4)">© 2026 Villager Pro. All rights reserved.</div>
-</footer>
-
 </div>
 
 <!-- PRICING / TIER PAGE -->
@@ -1283,10 +1253,10 @@ body{margin:0;padding:0}
 </div>
 
 
-<div id="auth-screen" style="position:relative;padding-top:52px"><div id="marketing-nav" style="position:absolute;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:52px;background:rgba(6,6,8,0.92);border-bottom:1px solid #1a1a26;backdrop-filter:blur(12px);font-family:var(--mono)">
+<div id="auth-screen"><div id="marketing-nav" style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:52px;background:rgba(6,6,8,0.95);border-bottom:1px solid #1a1a26;backdrop-filter:blur(12px);font-family:var(--mono)">
   <a href="https://villagerpro.io" style="font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--text);text-decoration:none">VILLAGER <span style="color:var(--gold)">PRO</span></a>
-  <ul style="display:flex;align-items:center;gap:28px;list-style:none">
-    <li><a href="/blog" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);text-decoration:none">Resources</a></li>
+  <ul style="display:flex;align-items:center;gap:28px;list-style:none;margin:0;padding:0">
+    <li><a href="/blog" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);text-decoration:none">Blog</a></li>
     <li><a href="/aicp" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);text-decoration:none">AICP Guide</a></li>
     <li><a onclick="showPricing()" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);text-decoration:none;cursor:pointer">Pricing</a></li>
   </ul>
@@ -1397,6 +1367,37 @@ body{margin:0;padding:0}
     </div>
 
   </div>
+
+  <!-- MARKETING FOOTER — inside #auth-screen so it disappears on login -->
+  <footer style="flex-shrink:0;padding:40px;border-top:1px solid #1a1a26;background:var(--bg1);font-family:var(--mono)">
+    <div style="max-width:860px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:40px">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--text)">VILLAGER <span style="color:var(--gold)">PRO</span></div>
+        <div style="font-size:9px;color:var(--text4);letter-spacing:.1em;margin-top:4px">IT TAKES A VILLAGE.</div>
+      </div>
+      <div style="display:flex;gap:48px">
+        <div>
+          <div style="font-size:9px;letter-spacing:.15em;color:var(--text4);margin-bottom:10px;text-transform:uppercase">Resources</div>
+          <a href="/blog" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">Blog</a>
+          <a href="/aicp" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">AICP Guide</a>
+          <a href="/playbook" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">The Playbook <span style="font-size:9px;color:var(--text4)">(coming soon)</span></a>
+        </div>
+        <div>
+          <div style="font-size:9px;letter-spacing:.15em;color:var(--text4);margin-bottom:10px;text-transform:uppercase">Product</div>
+          <a onclick="showPricing()" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px;cursor:pointer">Pricing</a>
+          <a onclick="authShowPanel('signup')" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px;cursor:pointer">Start Free</a>
+          <a onclick="authShowPanel('signin')" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px;cursor:pointer">Sign In</a>
+        </div>
+        <div>
+          <div style="font-size:9px;letter-spacing:.15em;color:var(--text4);margin-bottom:10px;text-transform:uppercase">Connect</div>
+          <a href="https://x.com/Villagerpro_io" target="_blank" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">X / Twitter</a>
+          <a href="mailto:jax@villagerpro.io" style="display:block;font-size:11px;color:var(--text3);text-decoration:none;margin-bottom:8px">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:860px;margin:24px auto 0;text-align:right;font-size:9px;color:var(--text4)">© 2026 Villager Pro. All rights reserved.</div>
+  </footer>
+
 </div>
 <div id="sync-indicator"></div>
 <div id="app">
