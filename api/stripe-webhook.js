@@ -1,7 +1,8 @@
 const Stripe = require('stripe');
 const { Resend } = require('resend');
 
-const PDF_URL = 'https://villagerpro.io/aicp/assets/your-first-commercial-budget.pdf';
+const AICP_PDF_URL = 'https://villagerpro.io/aicp/assets/your-first-commercial-budget.pdf';
+const PLAYBOOK_PDF_URL = process.env.PLAYBOOK_PDF_URL;
 
 // Disable Vercel's automatic body parsing so we get raw body for Stripe signature verification
 module.exports.config = {
@@ -50,34 +51,77 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ received: true });
     }
 
-    try {
-      await resend.emails.send({
-        from: 'Villager Pro <jax@villagerpro.io>',
-        to: email,
-        subject: 'Your First Commercial Budget -- Download Inside',
-        html: `
-          <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a;">
-            <p style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 32px;">VILLAGER PRO</p>
-            <h1 style="font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 24px;">Your guide is ready.</h1>
-            <p style="font-size: 16px; line-height: 1.7; margin-bottom: 24px;">
-              Thanks for picking up <strong>Your First Commercial Budget: The Working Producer's Guide to AICP</strong>.
-              83 pages of real rates, real math, and real format.
-            </p>
-            <p style="margin-bottom: 32px;">
-              <a href="${PDF_URL}" style="display: inline-block; background: #1a1a1a; color: #fff; padding: 14px 28px; text-decoration: none; font-family: monospace; font-size: 13px; letter-spacing: 0.05em;">DOWNLOAD PDF</a>
-            </p>
-            <p style="font-size: 14px; line-height: 1.7; color: #555; margin-bottom: 16px;">
-              Questions after reading? Reply to this email -- I'm Jax, I run the Villager Pro stack and I'll get back to you.
-            </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
-            <p style="font-size: 12px; color: #999;">Villager Pro · villagerpro.io</p>
-          </div>
-        `,
-      });
-      console.log('PDF email sent to:', email);
-    } catch (emailErr) {
-      console.error('Resend failed:', emailErr.message);
-      return res.status(500).json({ error: 'Email delivery failed' });
+    // Determine product by Price ID
+    const priceId =
+      session.line_items?.data?.[0]?.price?.id ||
+      (session.amount_total === 2900 ? process.env.AICP_PRICE_ID : null);
+
+    const isPlaybook =
+      priceId === process.env.PLAYBOOK_PRICE_ID ||
+      session.amount_total === 9700;
+
+    if (isPlaybook) {
+      // --- Playbook delivery ---
+      try {
+        await resend.emails.send({
+          from: 'Villager Pro <jax@villagerpro.io>',
+          to: email,
+          subject: 'Win the Bid - Download Inside',
+          html: `
+            <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a;">
+              <p style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 32px;">VILLAGER PRO</p>
+              <h1 style="font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 24px;">Your Playbook is ready.</h1>
+              <p style="font-size: 16px; line-height: 1.7; margin-bottom: 24px;">
+                Thanks for picking up <strong>Win the Bid: How Commercial Production Actually Works</strong>.
+                Everything they never taught you about winning work, pricing your time, and building a production company that lasts.
+              </p>
+              <p style="margin-bottom: 32px;">
+                <a href="${PLAYBOOK_PDF_URL}" style="display: inline-block; background: #1a1a1a; color: #fff; padding: 14px 28px; text-decoration: none; font-family: monospace; font-size: 13px; letter-spacing: 0.05em;">DOWNLOAD PDF</a>
+              </p>
+              <p style="font-size: 14px; line-height: 1.7; color: #555; margin-bottom: 16px;">
+                Questions after reading? Reply to this email - I'm Jax, I run the Villager Pro stack and I'll get back to you.
+              </p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
+              <p style="font-size: 12px; color: #999;">Villager Pro &middot; villagerpro.io</p>
+            </div>
+          `,
+        });
+        console.log('Playbook PDF email sent to:', email);
+      } catch (emailErr) {
+        console.error('Resend failed (Playbook):', emailErr.message);
+        return res.status(500).json({ error: 'Email delivery failed' });
+      }
+    } else {
+      // --- AICP guide delivery ---
+      try {
+        await resend.emails.send({
+          from: 'Villager Pro <jax@villagerpro.io>',
+          to: email,
+          subject: 'Your First Commercial Budget -- Download Inside',
+          html: `
+            <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a;">
+              <p style="font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 32px;">VILLAGER PRO</p>
+              <h1 style="font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 24px;">Your guide is ready.</h1>
+              <p style="font-size: 16px; line-height: 1.7; margin-bottom: 24px;">
+                Thanks for picking up <strong>Your First Commercial Budget: The Working Producer's Guide to AICP</strong>.
+                83 pages of real rates, real math, and real format.
+              </p>
+              <p style="margin-bottom: 32px;">
+                <a href="${AICP_PDF_URL}" style="display: inline-block; background: #1a1a1a; color: #fff; padding: 14px 28px; text-decoration: none; font-family: monospace; font-size: 13px; letter-spacing: 0.05em;">DOWNLOAD PDF</a>
+              </p>
+              <p style="font-size: 14px; line-height: 1.7; color: #555; margin-bottom: 16px;">
+                Questions after reading? Reply to this email -- I'm Jax, I run the Villager Pro stack and I'll get back to you.
+              </p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
+              <p style="font-size: 12px; color: #999;">Villager Pro &middot; villagerpro.io</p>
+            </div>
+          `,
+        });
+        console.log('PDF email sent to:', email);
+      } catch (emailErr) {
+        console.error('Resend failed:', emailErr.message);
+        return res.status(500).json({ error: 'Email delivery failed' });
+      }
     }
   }
 
