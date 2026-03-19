@@ -3,23 +3,10 @@
  * GET /api/auth/linkedin/callback
  *
  * Exchanges the authorization code for tokens, fetches org URNs,
- * and persists everything to LINKEDIN_TOKEN_PATH.
- *
- * ⚠️  PERSISTENCE WARNING:
- * Vercel serverless functions have an ephemeral filesystem — /tmp is
- * NOT shared between invocations and is wiped on cold starts.
- * The LINKEDIN_TOKEN_PATH env var is only useful for local dev.
- * For production, migrate token storage to one of:
- *   - Supabase: a `linkedin_tokens` table (recommended — already in stack)
- *   - Vercel KV (Redis-based, zero-config via dashboard)
- * See PR description for migration notes.
+ * and persists everything to Supabase `linkedin_tokens` table.
  */
 
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
-
-const TOKEN_PATH = process.env.LINKEDIN_TOKEN_PATH || '/tmp/linkedin-tokens.json';
 
 // Known page slugs — used to map org names to stable keys
 const PAGE_SLUG_MAP = {
@@ -48,6 +35,40 @@ function httpsRequest(options, body) {
     if (body) req.write(body);
     req.end();
   });
+}
+
+// ---------------------------------------------------------------------------
+// Upsert tokens to Supabase
+// ---------------------------------------------------------------------------
+async function saveTokensToSupabase({ access_token, refresh_token, expires_at, pages }) {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables');
+  }
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/linkedin_tokens`, {
+    method: 'POST',
+    headers: {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates',
+    },
+    body: JSON.stringify({
+      id: 'default',
+      access_token,
+      refresh_token: refresh_token || null,
+      expires_at,
+      pages,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Supabase upsert failed (${response.status}): ${errText}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -152,21 +173,16 @@ module.exports = async function handler(req, res) {
     console.log('LinkedIn pages found:', Object.keys(pages));
 
     // ------------------------------------------------------------------
-    // 4. Persist tokens
+    // 4. Persist tokens to Supabase
     // ------------------------------------------------------------------
-    const tokenData = {
-      accessToken: access_token,
-      refreshToken: refresh_token || null,
-      expiresAt,
-      memberUrn,
+    await saveTokensToSupabase({
+      access_token,
+      refresh_token,
+      expires_at: expiresAt,
       pages,
-    };
+    });
 
-    const tokenDir = path.dirname(TOKEN_PATH);
-    if (!fs.existsSync(tokenDir)) fs.mkdirSync(tokenDir, { recursive: true });
-    fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokenData, null, 2), 'utf8');
-
-    console.log(`LinkedIn tokens saved to ${TOKEN_PATH}`);
+    console.log('LinkedIn tokens saved to Supabase linkedin_tokens table');
 
     // ------------------------------------------------------------------
     // 5. Return success page

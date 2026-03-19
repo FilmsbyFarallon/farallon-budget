@@ -4,21 +4,43 @@
  *
  * Body: { text: string, imageUrl?: string }
  *
- * Reads org tokens from LINKEDIN_TOKEN_PATH and posts to all three
- * company pages via the LinkedIn UGC Posts API.
+ * Reads org tokens from Supabase `linkedin_tokens` table and posts to all
+ * three company pages via the LinkedIn UGC Posts API.
  *
  * Returns: { success: boolean, results: Array<{ page, urn, status, error? }> }
- *
- * ⚠️  PERSISTENCE WARNING:
- * /tmp is ephemeral on Vercel. Tokens written during OAuth will not be
- * available in a subsequent function invocation. Migrate to Supabase or
- * Vercel KV before using in production. See PR description.
  */
 
 const https = require('https');
-const fs = require('fs');
 
-const TOKEN_PATH = process.env.LINKEDIN_TOKEN_PATH || '/tmp/linkedin-tokens.json';
+// ---------------------------------------------------------------------------
+// Load tokens from Supabase
+// ---------------------------------------------------------------------------
+async function loadTokensFromSupabase() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing SUPABASE_URL or SUPABASE_ANON_KEY environment variables');
+  }
+
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/linkedin_tokens?id=eq.default&select=*`,
+    {
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
+    },
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Supabase fetch failed (${res.status}): ${errText}`);
+  }
+
+  const [tokens] = await res.json();
+  return tokens || null;
+}
 
 // ---------------------------------------------------------------------------
 // Tiny https helper
@@ -111,34 +133,35 @@ module.exports = async function handler(req, res) {
   }
 
   // ------------------------------------------------------------------
-  // Load tokens
+  // Load tokens from Supabase
   // ------------------------------------------------------------------
   let tokenData;
   try {
-    if (!fs.existsSync(TOKEN_PATH)) {
-      return res.status(503).json({
-        error: `Token file not found at ${TOKEN_PATH}. Run /api/auth/linkedin to authenticate first.`,
-      });
-    }
-    tokenData = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
+    tokenData = await loadTokensFromSupabase();
   } catch (err) {
-    return res.status(500).json({ error: `Failed to read token file: ${err.message}` });
+    return res.status(500).json({ error: `Failed to load tokens from Supabase: ${err.message}` });
   }
 
-  const { accessToken, expiresAt, pages } = tokenData;
-
-  if (!accessToken) {
-    return res.status(503).json({ error: 'No access token in token file. Re-authenticate.' });
+  if (!tokenData) {
+    return res.status(503).json({
+      error: 'No LinkedIn tokens found in Supabase. Run /api/auth/linkedin to authenticate first.',
+    });
   }
 
-  if (expiresAt && Math.floor(Date.now() / 1000) > expiresAt) {
+  const { access_token, expires_at, pages } = tokenData;
+
+  if (!access_token) {
+    return res.status(503).json({ error: 'No access token in Supabase. Re-authenticate.' });
+  }
+
+  if (expires_at && Math.floor(Date.now() / 1000) > expires_at) {
     return res.status(503).json({
       error: 'LinkedIn access token has expired. Re-authenticate via /api/auth/linkedin.',
     });
   }
 
   if (!pages || Object.keys(pages).length === 0) {
-    return res.status(503).json({ error: 'No company pages found in token file. Re-authenticate.' });
+    return res.status(503).json({ error: 'No company pages found in Supabase. Re-authenticate.' });
   }
 
   // ------------------------------------------------------------------
@@ -149,7 +172,7 @@ module.exports = async function handler(req, res) {
   for (const [slug, { urn, name }] of Object.entries(pages)) {
     console.log(`Posting to ${name} (${urn})...`);
     try {
-      const result = await postToOrg(accessToken, urn, text.trim());
+      const result = await postToOrg(access_token, urn, text.trim());
       results.push({ page: slug, name, urn, ...result });
       console.log(`  ${name}: ${result.success ? 'OK' : result.error}`);
     } catch (err) {
