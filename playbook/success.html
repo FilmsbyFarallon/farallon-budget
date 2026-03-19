@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're all set - Win the Bid - Villager Pro</title>
+<meta name="description" content="Your purchase is confirmed. Check your email for the download link.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060608;
+    --bg2: #111115;
+    --gold: #c9a84c;
+    --gold-dim: #8a6d2f;
+    --gold-light: #e8c97a;
+    --text: #f0ede8;
+    --text-dim: #8a8880;
+    --text-muted: #4a4845;
+    --border-dim: rgba(255,255,255,0.06);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 56px;
+    background: rgba(6,6,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border-dim);
+  }
+
+  .nav-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  /* MAIN */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .success-wrap {
+    padding: 140px 0 80px;
+    max-width: 580px;
+  }
+
+  .success-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .success-label::after {
+    content: '';
+    display: block;
+    height: 0.5px;
+    width: 48px;
+    background: var(--gold-dim);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .body-text {
+    font-size: 17px;
+    color: var(--text-dim);
+    line-height: 1.75;
+    margin-bottom: 1.25rem;
+  }
+
+  .body-text strong {
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 2.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    transition: color 0.15s;
+  }
+
+  .back-link:hover { color: var(--text-dim); }
+
+  /* FOOTER */
+  footer {
+    border-top: 0.5px solid var(--border-dim);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    max-width: 860px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .footer-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--text-dim); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .success-label { animation: fadeUp 0.6s ease both; }
+  h1 { animation: fadeUp 0.6s ease 0.1s both; }
+  .body-text { animation: fadeUp 0.6s ease 0.2s both; }
+  .back-link { animation: fadeUp 0.6s ease 0.3s both; }
+
+  @media (max-width: 680px) {
+    nav { padding: 0 1rem; }
+    .container { padding: 0 1.25rem; }
+    footer { padding: 2rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://villagerpro.io/start" class="nav-logo">VILLAGER PRO</a>
+  <div class="nav-links">
+    <a href="/playbook">The Playbook</a>
+    <a href="https://villagerpro.io/start" target="_blank" rel="noopener">App</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="success-wrap">
+    <div class="success-label">Purchase Confirmed</div>
+    <h1>You're all set.</h1>
+    <p class="body-text">
+      Check your email for your download link. The PDF will arrive from
+      <strong>jax@villagerpro.io</strong> within a few minutes.
+    </p>
+    <p class="body-text">
+      Questions? Reply to that email.
+    </p>
+    <a href="https://villagerpro.io" class="back-link">Back to Villager Pro &rarr;</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-left">&copy; 2026 Villager Pro &nbsp;&middot;&nbsp; villagerpro.io/playbook</div>
+  <div class="footer-links">
+    <a href="https://villagerpro.io">App</a>
+    <a href="/aicp">AICP Guide</a>
+    <a href="mailto:jax@villagerpro.io">Contact</a>
+  </div>
+</footer>
+
+</body>
+</html>

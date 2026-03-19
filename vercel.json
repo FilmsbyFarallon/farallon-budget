@@ -3,6 +3,10 @@
     "api/*.js": {
       "memory": 512,
       "maxDuration": 10
+    },
+    "api/checkout/*.js": {
+      "memory": 512,
+      "maxDuration": 10
     }
   },
   "routes": [
