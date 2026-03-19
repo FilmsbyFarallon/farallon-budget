@@ -6,7 +6,7 @@
  *   r_liteprofile, w_member_social
  *
  * Note: w_organization_social (company page posting) requires LinkedIn's
- * Community Management API — separate application pending.
+ * Community Management API -- separate application pending.
  */
 
 const SCOPES = [
