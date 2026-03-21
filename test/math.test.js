@@ -11,10 +11,12 @@
 
 // ─── REPLICATE APP CONSTANTS ─────────────────────────────────────────────────
 
+// SAG rate per SAG-AFTRA Commercials Contract 2025-2026
+const SAG_FRINGE_RATE = 23.5;
 const FRINGE_RATES = {
   '': 0,
   'DGA': 46,
-  'SAG': 32,
+  'SAG': SAG_FRINGE_RATE,
   'Teamster': 49,
   'Union': 46,
   'Non-Union': 24,
@@ -284,10 +286,10 @@ test('DGA fringe: 46% of line total', () => {
   assert(lineFringeAmt({ id:'A01', unit:'days' }, b), 2300);
 });
 
-test('SAG fringe: 32% of line total', () => {
+test('SAG fringe: 23.5% of line total (SAG-AFTRA Commercials Contract 2025-2026)', () => {
   const b = makeBudget({ values: { B01: { qty:3, rate:2000 } }, fringes: { B01: 'SAG' } });
-  // 3*2000=6000, 6000*0.32=1920
-  assert(lineFringeAmt({ id:'B01', unit:'days' }, b), 1920);
+  // 3*2000=6000, 6000*0.235=1410
+  assert(lineFringeAmt({ id:'B01', unit:'days' }, b), 1410);
 });
 
 test('Teamster fringe: 49% of line total', () => {
