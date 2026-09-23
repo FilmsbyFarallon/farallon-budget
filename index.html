@@ -2363,7 +2363,7 @@ async function selectProPlan() {
 // Show pricing after new signup (no budgets + no plan_selected)
 function maybShowPricing() {
   if (_devMode) return false;
-  if (isPro()) return false;
+  if (_currentUser?.id?.startsWith('local-')) return false;
   const meta = _currentUser?.user_metadata || {};
   if (meta.plan_selected) return false;
   // Coming from funnel free button — auto-select free, skip pricing screen
