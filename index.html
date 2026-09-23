@@ -2268,6 +2268,10 @@ let _devMode = false;
 
 // ── DEV BACKDOOR ─────────────────────────────────────────────────────────────
 const _DEV_PASSWORD = 'villager-dev-2025';
+// ── LOCAL BYPASS USERS — works without Supabase ───────────────────────────────
+const _LOCAL_USERS = [
+  { id: 'local-heather', email: 'heather@filmsbyfarallon.com', password: 'heather', name: 'Heather', company: 'Farallon Films', isPro: true }
+];
 let _devTapCount = 0, _devTapTimer = null;
 
 function devModalOpen() {
@@ -2804,10 +2808,21 @@ function authShowMsg(msgId, msg, type) {
   el.textContent = msg;
 }
 async function authSignIn() {
-  if (!_supa) return;
   const email = document.getElementById('signin-email').value.trim();
   const password = document.getElementById('signin-password').value;
   if (!email || !password) { authShowMsg('auth-msg','Please enter your email and password.','error'); return; }
+  // Check local bypass users first (works without Supabase)
+  const localUser = _LOCAL_USERS.find(u => u.email === email && u.password === password);
+  if (localUser) {
+    _currentUser = {
+      id: localUser.id,
+      email: localUser.email,
+      user_metadata: { full_name: localUser.name, company: localUser.company, is_pro: localUser.isPro }
+    };
+    hideAuthScreen();
+    return;
+  }
+  if (!_supa) { authShowMsg('auth-msg','Sign in unavailable. Please try again later.','error'); return; }
   const btn = document.getElementById('signin-btn');
   btn.disabled = true; btn.textContent = 'SIGNING IN...';
   try {
